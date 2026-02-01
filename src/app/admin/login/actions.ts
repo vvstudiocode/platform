@@ -25,16 +25,17 @@ export async function login(prevState: { error: string }, formData: FormData) {
         return { error: '驗證失敗' }
     }
 
+    // 檢查是否為 super_admin
     const { data: role } = await supabase
         .from('users_roles')
         .select('role')
         .eq('user_id', user.id)
-        .eq('role', 'platform_admin')
-        .single()
+        .eq('role', 'super_admin')
+        .maybeSingle()
 
     if (!role) {
         await supabase.auth.signOut()
-        return { error: '您沒有管理員權限' }
+        return { error: 'unauthorized' }
     }
 
     revalidatePath('/admin')

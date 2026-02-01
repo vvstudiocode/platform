@@ -27,13 +27,18 @@ export default async function AdminLayout({
         redirect('/admin/login')
     }
 
-    // 檢查是否為 platform_admin
-    const { data: role } = await supabase
+    // 檢查是否為 super_admin
+    const { data: role, error: roleError } = await supabase
         .from('users_roles')
         .select('role')
         .eq('user_id', user.id)
         .eq('role', 'super_admin')
-        .single()
+        .limit(1)
+        .maybeSingle()
+
+    console.log('User ID:', user.id)
+    console.log('Role Query Result:', role)
+    console.log('Role Query Error:', roleError)
 
     if (!role) {
         redirect('/admin/login?error=unauthorized')

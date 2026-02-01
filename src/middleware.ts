@@ -32,11 +32,13 @@ export default async function middleware(req: NextRequest) {
         !hostname.includes('.')
 
     if (isMainDomain) {
-        // 路徑式路由：直接允許 /admin, /app, /store, /home 等路徑
+        // 路徑式路由：直接允許已知路徑
         if (pathname.startsWith('/admin') ||
             pathname.startsWith('/app') ||
             pathname.startsWith('/store') ||
-            pathname.startsWith('/home')) {
+            pathname.startsWith('/home') ||
+            pathname.startsWith('/p') ||       // 總部自訂頁面
+            pathname.startsWith('/product')) { // 總部商品頁
             return NextResponse.next()
         }
 

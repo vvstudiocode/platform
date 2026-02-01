@@ -178,6 +178,33 @@ export default function NewProductPage() {
                     </div>
                 </div>
 
+                {/* SEO 設定 */}
+                <div className="space-y-4 border-t border-zinc-800 pt-6">
+                    <h2 className="text-lg font-semibold text-white">SEO 設定</h2>
+                    <p className="text-sm text-zinc-500">設定搜尋引擎優化資訊，提高商品曝光率</p>
+
+                    <div className="grid gap-4">
+                        <div>
+                            <Label htmlFor="seo_title">SEO 標題</Label>
+                            <Input id="seo_title" name="seo_title" placeholder="搜尋引擎顯示的標題（留空使用商品名稱）" />
+                        </div>
+                        <div>
+                            <Label htmlFor="seo_description">SEO 描述</Label>
+                            <textarea
+                                id="seo_description"
+                                name="seo_description"
+                                rows={3}
+                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="搜尋引擎顯示的描述（留空使用商品描述）"
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="seo_keywords">SEO 關鍵字</Label>
+                            <Input id="seo_keywords" name="seo_keywords" placeholder="以逗號分隔關鍵字，例：美妝, 護膚, 韓國" />
+                        </div>
+                    </div>
+                </div>
+
                 <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800">
                     <Link href="/admin/products">
                         <Button type="button" variant="outline">取消</Button>

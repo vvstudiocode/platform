@@ -17,6 +17,10 @@ const productSchema = z.object({
     sku: z.string().optional(),
     image_url: z.string().url().optional().or(z.literal('')),
     status: z.enum(['draft', 'active', 'archived']).default('draft'),
+    // SEO 欄位
+    seo_title: z.string().optional(),
+    seo_description: z.string().optional(),
+    seo_keywords: z.string().optional(),
 })
 
 // 取得總部商店 ID
@@ -53,6 +57,10 @@ export async function createProduct(prevState: any, formData: FormData) {
         sku: formData.get('sku'),
         image_url: formData.get('image_url'),
         status: formData.get('status'),
+        // SEO 欄位
+        seo_title: formData.get('seo_title'),
+        seo_description: formData.get('seo_description'),
+        seo_keywords: formData.get('seo_keywords'),
     })
 
     if (!validated.success) {
@@ -72,6 +80,9 @@ export async function createProduct(prevState: any, formData: FormData) {
             ...validated.data,
             sku,
             image_url: validated.data.image_url || null,
+            seo_title: validated.data.seo_title || null,
+            seo_description: validated.data.seo_description || null,
+            seo_keywords: validated.data.seo_keywords || null,
         })
 
     if (error) {
