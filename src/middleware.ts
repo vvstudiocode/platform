@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -18,46 +17,64 @@ export const config = {
 export default async function middleware(req: NextRequest) {
     const url = req.nextUrl
     const hostname = req.headers.get("host")!
+    const pathname = url.pathname
 
-    // 如果是 localhost，我們允許開發者透過 .env 設定 ROOT_DOMAIN
-    // 否則預設 localhost:3000
+    // 開發環境或 Zeabur 等平台的 root domain
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000'
 
-    // 取得目前的 subdomain (e.g. "app", "www", "nike")
-    // 如果 hostname 是 "app.localhost:3000"，.replace 後變成 "app"
+    // 取得子域名
     let currentHost = hostname.replace(`.${rootDomain}`, "")
 
-    // Edge case: 如果在 localhost:3000 直接訪問，視為 "www"
-    if (hostname === rootDomain) {
-        currentHost = "www"
+    // 如果是主域名（沒有子域名），使用路徑式路由
+    const isMainDomain = hostname === rootDomain ||
+        hostname.endsWith('.zeabur.app') ||
+        hostname.endsWith('.vercel.app') ||
+        !hostname.includes('.')
+
+    if (isMainDomain) {
+        // 路徑式路由：直接允許 /admin, /app, /store, /home 等路徑
+        if (pathname.startsWith('/admin') ||
+            pathname.startsWith('/app') ||
+            pathname.startsWith('/store') ||
+            pathname.startsWith('/home')) {
+            return NextResponse.next()
+        }
+
+        // 根路徑重定向到 /home
+        if (pathname === '/') {
+            url.pathname = '/home'
+            return NextResponse.rewrite(url)
+        }
+
+        // 其他路徑也重定向到 /home 下
+        url.pathname = `/home${pathname}`
+        return NextResponse.rewrite(url)
     }
+
+    // === 子域名模式（用於自訂域名設定）===
 
     // 1. App Dashboard (app.platform.com) -> Rewrite to /app
     if (currentHost === "app") {
-        url.pathname = `/app${url.pathname}`
+        url.pathname = `/app${pathname}`
         return NextResponse.rewrite(url)
     }
 
     // 2. Super Admin (admin.platform.com) -> Rewrite to /admin
     if (currentHost === "admin") {
-        url.pathname = `/admin${url.pathname}`
+        url.pathname = `/admin${pathname}`
         return NextResponse.rewrite(url)
     }
 
-    // 3. Marketing Site (www.platform.com) -> Rewrite to /home
-    // 但如果路徑是 /admin (為了開發方便或統一入口)，則不 rewrite 到 /home，而是保留原樣(或 rewrite 到 /admin)
+    // 3. Marketing Site (www.platform.com)
     if (currentHost === "www") {
-        if (url.pathname.startsWith('/admin')) {
-            // 允許 localhost:3000/admin 直接訪問 src/app/admin
-            // 這裡不需要 rewrite，因為原本就在 root
+        if (pathname.startsWith('/admin') || pathname.startsWith('/app')) {
             return NextResponse.next()
         }
-        url.pathname = `/home${url.pathname}`
+        url.pathname = `/home${pathname}`
         return NextResponse.rewrite(url)
     }
 
-    // 3. Storefront (nike.platform.com) -> Rewrite to /[site]
-    // 這是最關鍵的：將 "nike" 當作參數傳給 dynamic route
-    url.pathname = `/${currentHost}${url.pathname}`
+    // 4. Storefront (nike.platform.com) -> Rewrite to /store/[slug]
+    url.pathname = `/store/${currentHost}${pathname}`
     return NextResponse.rewrite(url)
 }
