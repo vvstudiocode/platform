@@ -59,11 +59,18 @@ export async function createProduct(prevState: any, formData: FormData) {
         return { error: validated.error.issues[0].message }
     }
 
+    // 如果沒有輸入 SKU，自動生成
+    let sku = validated.data.sku
+    if (!sku || sku.trim() === '') {
+        sku = await generateSKU()
+    }
+
     const { error } = await supabase
         .from('products')
         .insert({
             tenant_id: hqStoreId,
             ...validated.data,
+            sku,
             image_url: validated.data.image_url || null,
         })
 
@@ -129,4 +136,61 @@ export async function deleteProduct(productId: string) {
 
     revalidatePath('/admin/products')
     return { success: true }
+}
+
+// 更新商品上下架狀態
+export async function updateProductStatus(productId: string, status: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase
+        .from('products')
+        .update({ status })
+        .eq('id', productId)
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    // 不使用 revalidatePath 避免 Turbopack header 錯誤
+    return { success: true }
+}
+
+// 更新商品排序
+export async function updateProductOrder(orderData: { id: string; order: number }[]) {
+    const supabase = await createClient()
+
+    // 批次更新排序
+    for (const item of orderData) {
+        await supabase
+            .from('products')
+            .update({ sort_order: item.order })
+            .eq('id', item.id)
+    }
+
+    // 不使用 revalidatePath 避免 Turbopack header 錯誤
+    return { success: true }
+}
+
+// 自動生成商品編號
+export async function generateSKU(): Promise<string> {
+    const supabase = await createClient()
+
+    // 取得目前最大編號
+    const { data } = await supabase
+        .from('products')
+        .select('sku')
+        .not('sku', 'is', null)
+        .order('sku', { ascending: false })
+        .limit(1)
+        .single()
+
+    let nextNum = 1
+    if (data?.sku) {
+        const match = data.sku.match(/P(\d+)/)
+        if (match) {
+            nextNum = parseInt(match[1]) + 1
+        }
+    }
+
+    return `P${String(nextNum).padStart(6, '0')}`
 }

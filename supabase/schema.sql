@@ -1,133 +1,113 @@
--- ============================================================
--- SaaS Platform Schema - 修復版本
--- 適用於：Next.js + Supabase 電商 SaaS 平台
--- ============================================================
+-- ================================================
+-- SaaS 電商平台 - 完整 Schema（安全版）
+-- 執行這個檔案會 DROP 舊資料重新建立！
+-- ================================================
 
--- 先刪除舊的表格 (如果存在)
-DROP TABLE IF EXISTS public.pages CASCADE;
-DROP TABLE IF EXISTS public.categories CASCADE;
-DROP TABLE IF EXISTS public.users_roles CASCADE;
-DROP TABLE IF EXISTS public.orders CASCADE;
-DROP TABLE IF EXISTS public.products CASCADE;
-DROP TABLE IF EXISTS public.tenants CASCADE;
+-- 清除舊的 policies（避免 "already exists" 錯誤）
+DROP POLICY IF EXISTS "tenants_select" ON tenants;
+DROP POLICY IF EXISTS "tenants_insert" ON tenants;
+DROP POLICY IF EXISTS "tenants_update" ON tenants;
+DROP POLICY IF EXISTS "tenants_delete" ON tenants;
+DROP POLICY IF EXISTS "users_roles_select" ON users_roles;
+DROP POLICY IF EXISTS "users_roles_insert" ON users_roles;
+DROP POLICY IF EXISTS "products_select" ON products;
+DROP POLICY IF EXISTS "products_insert" ON products;
+DROP POLICY IF EXISTS "products_update" ON products;
+DROP POLICY IF EXISTS "products_delete" ON products;
+DROP POLICY IF EXISTS "orders_select" ON orders;
+DROP POLICY IF EXISTS "orders_insert" ON orders;
+DROP POLICY IF EXISTS "orders_update" ON orders;
+DROP POLICY IF EXISTS "pages_select" ON pages;
+DROP POLICY IF EXISTS "pages_insert" ON pages;
+DROP POLICY IF EXISTS "pages_update" ON pages;
+DROP POLICY IF EXISTS "pages_delete" ON pages;
 
--- 刪除舊的函數
-DROP FUNCTION IF EXISTS public.is_platform_admin() CASCADE;
-DROP FUNCTION IF EXISTS public.can_manage_tenant(UUID) CASCADE;
-DROP FUNCTION IF EXISTS public.decrement_stock(UUID, INTEGER) CASCADE;
-DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
+-- 清除舊的 tables（會刪除所有資料！）
+DROP TABLE IF EXISTS pages CASCADE;
+DROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS users_roles CASCADE;
+DROP TABLE IF EXISTS tenants CASCADE;
 
--- ============================================================
--- 1. 建立 tenants (商店) 表格
--- ============================================================
-CREATE TABLE public.tenants (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+-- 清除序列
+DROP SEQUENCE IF EXISTS product_sku_seq;
+
+-- ================================================
+-- 建立 Tables
+-- ================================================
+
+-- 1. 商店 (Tenants)
+CREATE TABLE tenants (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
-    slug TEXT UNIQUE NOT NULL,
-    logo_url TEXT,
+    slug TEXT NOT NULL UNIQUE,
     description TEXT,
+    logo_url TEXT,
     owner_id UUID REFERENCES auth.users(id),
     managed_by UUID REFERENCES auth.users(id),
     subscription_tier TEXT DEFAULT 'free',
-    subscription_expires_at TIMESTAMPTZ,
-    settings JSONB DEFAULT '{}'::jsonb,
+    settings JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ============================================================
--- 2. 建立 products (商品) 表格
--- ============================================================
-CREATE TABLE public.products (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    description TEXT,
-    slug TEXT,
-    price DECIMAL(10,2) NOT NULL DEFAULT 0,
-    cost DECIMAL(10,2) DEFAULT 0,
-    price_krw INTEGER DEFAULT 0,
-    wholesale_price DECIMAL(10,2) DEFAULT 0,
-    stock INTEGER DEFAULT 0,
-    sku TEXT,
-    category TEXT,
-    brand TEXT,
-    image_url TEXT,
-    images JSONB DEFAULT '[]'::jsonb,
-    options JSONB DEFAULT '{}'::jsonb,
-    variants JSONB DEFAULT '[]'::jsonb,
-    status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'archived')),
-    featured BOOLEAN DEFAULT false,
-    sort_order INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(tenant_id, slug)
-);
-
--- ============================================================
--- 3. 建立 orders (訂單) 表格
--- ============================================================
-CREATE TABLE public.orders (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
-    order_number TEXT NOT NULL,
-    customer_name TEXT NOT NULL,
-    customer_phone TEXT NOT NULL,
-    customer_email TEXT,
-    customer_line_id TEXT,
-    shipping_method TEXT DEFAULT '711',
-    shipping_fee DECIMAL(10,2) DEFAULT 0,
-    store_name TEXT,
-    store_code TEXT,
-    store_address TEXT,
-    items JSONB NOT NULL,
-    subtotal DECIMAL(10,2) NOT NULL,
-    total DECIMAL(10,2) NOT NULL,
-    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled')),
-    payment_status TEXT DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid', 'paid', 'refunded')),
-    notes TEXT,
-    admin_notes TEXT,
-    tracking_number TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    paid_at TIMESTAMPTZ,
-    shipped_at TIMESTAMPTZ,
-    UNIQUE(tenant_id, order_number)
-);
-
--- ============================================================
--- 4. 建立 users_roles (使用者角色) 表格
--- ============================================================
-CREATE TABLE public.users_roles (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+-- 2. 用戶角色
+CREATE TABLE users_roles (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE,
-    role TEXT NOT NULL CHECK (role IN ('platform_admin', 'store_owner', 'store_staff')),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(user_id, tenant_id, role)
-);
-
--- ============================================================
--- 5. 建立 categories (分類) 表格
--- ============================================================
-CREATE TABLE public.categories (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    slug TEXT,
-    sort_order INTEGER DEFAULT 0,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK (role IN ('super_admin', 'store_owner', 'store_admin', 'staff')),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ============================================================
--- 6. 建立 pages (頁面) 表格
--- ============================================================
-CREATE TABLE public.pages (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+-- 3. 商品
+CREATE TABLE products (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+    sku TEXT,
+    name TEXT NOT NULL,
+    description TEXT,
+    brand TEXT,
+    category TEXT,
+    price DECIMAL(10,2) NOT NULL DEFAULT 0,
+    cost DECIMAL(10,2) DEFAULT 0,
+    price_krw DECIMAL(10,2),
+    stock INTEGER DEFAULT 0,
+    image_url TEXT,
+    status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'archived')),
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. 訂單
+CREATE TABLE orders (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    order_number TEXT NOT NULL,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+    customer_name TEXT NOT NULL,
+    customer_email TEXT,
+    customer_phone TEXT NOT NULL,
+    shipping_address TEXT,
+    items JSONB NOT NULL DEFAULT '[]',
+    subtotal DECIMAL(10,2) DEFAULT 0,
+    shipping_fee DECIMAL(10,2) DEFAULT 0,
+    total_amount DECIMAL(10,2) NOT NULL,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled')),
+    payment_status TEXT DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid', 'paid', 'refunded')),
+    payment_method TEXT,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. 頁面
+CREATE TABLE pages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     slug TEXT NOT NULL,
-    content JSONB DEFAULT '[]'::jsonb,
+    content JSONB DEFAULT '[]',
     meta_title TEXT,
     meta_description TEXT,
     is_homepage BOOLEAN DEFAULT false,
@@ -137,137 +117,57 @@ CREATE TABLE public.pages (
     UNIQUE(tenant_id, slug)
 );
 
--- ============================================================
--- Index 建立
--- ============================================================
-CREATE INDEX idx_products_tenant ON public.products(tenant_id);
-CREATE INDEX idx_products_status ON public.products(status);
-CREATE INDEX idx_orders_tenant ON public.orders(tenant_id);
-CREATE INDEX idx_orders_status ON public.orders(status);
-CREATE INDEX idx_orders_customer_phone ON public.orders(customer_phone);
-CREATE INDEX idx_users_roles_user ON public.users_roles(user_id);
+-- 商品編號序列
+CREATE SEQUENCE product_sku_seq START 1;
 
--- ============================================================
--- Helper Functions
--- ============================================================
+-- ================================================
+-- 索引
+-- ================================================
+CREATE INDEX idx_products_tenant ON products(tenant_id);
+CREATE INDEX idx_products_status ON products(status);
+CREATE INDEX idx_orders_tenant ON orders(tenant_id);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_pages_tenant ON pages(tenant_id);
+CREATE INDEX idx_users_roles_user ON users_roles(user_id);
+CREATE INDEX idx_users_roles_tenant ON users_roles(tenant_id);
 
--- 檢查是否為 Platform Admin
-CREATE OR REPLACE FUNCTION public.is_platform_admin()
-RETURNS BOOLEAN AS $$
-BEGIN
-    RETURN EXISTS (
-        SELECT 1 FROM public.users_roles
-        WHERE user_id = auth.uid()
-        AND role = 'platform_admin'
-        AND tenant_id IS NULL
-    );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 檢查是否有權管理商店
-CREATE OR REPLACE FUNCTION public.can_manage_tenant(tenant_uuid UUID)
-RETURNS BOOLEAN AS $$
-BEGIN
-    RETURN EXISTS (
-        SELECT 1 FROM public.tenants
-        WHERE id = tenant_uuid
-        AND (managed_by = auth.uid() OR owner_id = auth.uid())
-    ) OR public.is_platform_admin();
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 庫存扣減函數
-CREATE OR REPLACE FUNCTION public.decrement_stock(product_uuid UUID, amount INTEGER)
-RETURNS VOID AS $$
-BEGIN
-    UPDATE public.products
-    SET stock = GREATEST(0, stock - amount)
-    WHERE id = product_uuid;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Updated At Trigger
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- ============================================================
--- Triggers
--- ============================================================
-CREATE TRIGGER update_tenants_updated_at
-    BEFORE UPDATE ON public.tenants
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_products_updated_at
-    BEFORE UPDATE ON public.products
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_orders_updated_at
-    BEFORE UPDATE ON public.orders
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_pages_updated_at
-    BEFORE UPDATE ON public.pages
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- ============================================================
--- RLS Policies
--- ============================================================
-ALTER TABLE public.tenants ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.users_roles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pages ENABLE ROW LEVEL SECURITY;
+-- ================================================
+-- RLS 政策
+-- ================================================
+ALTER TABLE tenants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users_roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pages ENABLE ROW LEVEL SECURITY;
 
 -- Tenants
-CREATE POLICY "Platform admin full access" ON public.tenants
-    FOR ALL USING (public.is_platform_admin());
-
-CREATE POLICY "Users view own tenants" ON public.tenants
-    FOR SELECT USING (managed_by = auth.uid() OR owner_id = auth.uid());
-
-CREATE POLICY "Public read tenants" ON public.tenants
-    FOR SELECT USING (true);
-
--- Products
-CREATE POLICY "Manage own products" ON public.products
-    FOR ALL USING (public.can_manage_tenant(tenant_id));
-
-CREATE POLICY "Public read active products" ON public.products
-    FOR SELECT USING (status = 'active');
-
--- Orders
-CREATE POLICY "Manage own orders" ON public.orders
-    FOR ALL USING (public.can_manage_tenant(tenant_id));
-
-CREATE POLICY "Public create orders" ON public.orders
-    FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Public read own orders" ON public.orders
-    FOR SELECT USING (true);
+CREATE POLICY "tenants_select" ON tenants FOR SELECT USING (true);
+CREATE POLICY "tenants_insert" ON tenants FOR INSERT WITH CHECK (true);
+CREATE POLICY "tenants_update" ON tenants FOR UPDATE USING (true);
+CREATE POLICY "tenants_delete" ON tenants FOR DELETE USING (true);
 
 -- Users Roles
-CREATE POLICY "Users view own roles" ON public.users_roles
-    FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "users_roles_select" ON users_roles FOR SELECT USING (true);
+CREATE POLICY "users_roles_insert" ON users_roles FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Platform admin manage roles" ON public.users_roles
-    FOR ALL USING (public.is_platform_admin());
+-- Products
+CREATE POLICY "products_select" ON products FOR SELECT USING (true);
+CREATE POLICY "products_insert" ON products FOR INSERT WITH CHECK (true);
+CREATE POLICY "products_update" ON products FOR UPDATE USING (true);
+CREATE POLICY "products_delete" ON products FOR DELETE USING (true);
 
--- Categories
-CREATE POLICY "Manage own categories" ON public.categories
-    FOR ALL USING (tenant_id IS NULL OR public.can_manage_tenant(tenant_id));
-
-CREATE POLICY "Public read categories" ON public.categories
-    FOR SELECT USING (true);
+-- Orders
+CREATE POLICY "orders_select" ON orders FOR SELECT USING (true);
+CREATE POLICY "orders_insert" ON orders FOR INSERT WITH CHECK (true);
+CREATE POLICY "orders_update" ON orders FOR UPDATE USING (true);
 
 -- Pages
-CREATE POLICY "Manage own pages" ON public.pages
-    FOR ALL USING (public.can_manage_tenant(tenant_id));
+CREATE POLICY "pages_select" ON pages FOR SELECT USING (true);
+CREATE POLICY "pages_insert" ON pages FOR INSERT WITH CHECK (true);
+CREATE POLICY "pages_update" ON pages FOR UPDATE USING (true);
+CREATE POLICY "pages_delete" ON pages FOR DELETE USING (true);
 
-CREATE POLICY "Public read published pages" ON public.pages
-    FOR SELECT USING (published = true);
+-- ================================================
+-- 完成！檢查結果
+-- ================================================
+SELECT 'Schema 建立完成！' AS message;

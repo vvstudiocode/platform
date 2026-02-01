@@ -1,8 +1,8 @@
 'use client'
 
-import { useActionState } from 'react'
-import { createProduct } from '../actions'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { useActionState, useState, useEffect } from 'react'
+import { createProduct, generateSKU } from '../actions'
+import { ArrowLeft, Loader2, Wand2 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +12,21 @@ const initialState = { error: '' }
 
 export default function NewProductPage() {
     const [state, formAction, pending] = useActionState(createProduct, initialState)
+    const [sku, setSku] = useState('')
+    const [price, setPrice] = useState('')
+    const [cost, setCost] = useState('')
+    const [generatingSku, setGeneratingSku] = useState(false)
+
+    // 計算利潤
+    const profit = price && cost ? Number(price) - Number(cost) : null
+
+    // 自動生成 SKU
+    const handleGenerateSku = async () => {
+        setGeneratingSku(true)
+        const newSku = await generateSKU()
+        setSku(newSku)
+        setGeneratingSku(false)
+    }
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
@@ -34,7 +49,33 @@ export default function NewProductPage() {
                     <h2 className="text-lg font-semibold text-white">基本資訊</h2>
 
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="sm:col-span-2">
+                        <div>
+                            <Label htmlFor="sku">商品編號</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    id="sku"
+                                    name="sku"
+                                    value={sku}
+                                    onChange={(e) => setSku(e.target.value)}
+                                    placeholder="留空自動生成"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={handleGenerateSku}
+                                    disabled={generatingSku}
+                                >
+                                    {generatingSku ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Wand2 className="h-4 w-4" />
+                                    )}
+                                </Button>
+                            </div>
+                            <p className="text-xs text-zinc-500 mt-1">格式：P000001</p>
+                        </div>
+                        <div>
                             <Label htmlFor="name">商品名稱 *</Label>
                             <Input id="name" name="name" required placeholder="輸入商品名稱" />
                         </div>
@@ -63,14 +104,43 @@ export default function NewProductPage() {
                 <div className="space-y-4 border-t border-zinc-800 pt-6">
                     <h2 className="text-lg font-semibold text-white">價格與庫存</h2>
 
-                    <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="grid gap-4 sm:grid-cols-4">
                         <div>
                             <Label htmlFor="price">售價 (NTD) *</Label>
-                            <Input id="price" name="price" type="number" min="0" required placeholder="0" />
+                            <Input
+                                id="price"
+                                name="price"
+                                type="number"
+                                min="0"
+                                required
+                                placeholder="0"
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
+                            />
                         </div>
                         <div>
                             <Label htmlFor="cost">成本</Label>
-                            <Input id="cost" name="cost" type="number" min="0" placeholder="0" />
+                            <Input
+                                id="cost"
+                                name="cost"
+                                type="number"
+                                min="0"
+                                placeholder="0"
+                                value={cost}
+                                onChange={(e) => setCost(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <Label>利潤</Label>
+                            <div className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg">
+                                {profit !== null ? (
+                                    <span className={profit > 0 ? 'text-emerald-400' : 'text-red-400'}>
+                                        {profit > 0 ? '+' : ''}{profit.toLocaleString()}
+                                    </span>
+                                ) : (
+                                    <span className="text-zinc-500">-</span>
+                                )}
+                            </div>
                         </div>
                         <div>
                             <Label htmlFor="price_krw">韓幣價格</Label>
@@ -79,10 +149,6 @@ export default function NewProductPage() {
                         <div>
                             <Label htmlFor="stock">庫存數量 *</Label>
                             <Input id="stock" name="stock" type="number" min="0" defaultValue="0" required />
-                        </div>
-                        <div>
-                            <Label htmlFor="sku">SKU</Label>
-                            <Input id="sku" name="sku" placeholder="商品編號" />
                         </div>
                     </div>
                 </div>
@@ -95,6 +161,7 @@ export default function NewProductPage() {
                         <div className="sm:col-span-2">
                             <Label htmlFor="image_url">商品圖片網址</Label>
                             <Input id="image_url" name="image_url" type="url" placeholder="https://..." />
+                            <p className="text-xs text-zinc-500 mt-1">建立商品後可以上傳圖片</p>
                         </div>
                         <div>
                             <Label htmlFor="status">狀態</Label>
@@ -104,9 +171,8 @@ export default function NewProductPage() {
                                 defaultValue="draft"
                                 className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                <option value="draft">草稿</option>
+                                <option value="draft">草稿（下架）</option>
                                 <option value="active">上架</option>
-                                <option value="archived">下架</option>
                             </select>
                         </div>
                     </div>

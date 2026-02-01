@@ -32,11 +32,11 @@ export default async function AdminLayout({
         .from('users_roles')
         .select('role')
         .eq('user_id', user.id)
-        .eq('role', 'platform_admin')
+        .eq('role', 'super_admin')
         .single()
 
     if (!role) {
-        redirect('/admin/login?error=您沒有管理員權限')
+        redirect('/admin/login?error=unauthorized')
     }
 
     // 取得總部商店（slug = 'hq' 或第一個 managed_by 為當前用戶的商店）
