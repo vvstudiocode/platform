@@ -37,7 +37,7 @@ export default async function AdminDashboardPage() {
             title: '本月營收',
             value: '$0',
             icon: DollarSign,
-            href: '/admin/revenue',
+            href: '/admin/orders',
         },
     ]
 
