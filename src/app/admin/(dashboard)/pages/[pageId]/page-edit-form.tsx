@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useState, useEffect } from 'react'
 import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, X, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -43,6 +43,18 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
     const [showPreview, setShowPreview] = useState(false)
     const [dragIndex, setDragIndex] = useState<number | null>(null)
     const [showAddModal, setShowAddModal] = useState(false)
+
+    // 彈窗開啟時鎖定 body 滾動
+    useEffect(() => {
+        if (showAddModal) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = 'unset'
+        }
+        return () => {
+            document.body.style.overflow = 'unset'
+        }
+    }, [showAddModal])
 
     const addComponent = (type: string) => {
         const newComponent: PageComponent = {

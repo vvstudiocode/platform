@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
+import { ShoppingCart } from 'lucide-react'
+import { PageContentRenderer } from '@/components/store/page-content-renderer'
 
 interface Props {
     params: Promise<{ slug: string; pageSlug: string }>
@@ -72,49 +74,54 @@ export default async function StoreCustomPage({ params }: Props) {
         notFound()
     }
 
+    // 取得導覽項目
+    const { data: navItems } = await supabase
+        .from('nav_items')
+        .select('id, title, page_id, pages(slug)')
+        .eq('tenant_id', store.id)
+        .order('position', { ascending: true })
+
     const content = (page.content as any[]) || []
 
     return (
         <div className="min-h-screen bg-white">
             {/* Header */}
             <header className="border-b bg-white sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                     <Link href={`/store/${store.slug}`} className="flex items-center gap-2">
                         {store.logo_url && (
                             <img src={store.logo_url} alt="" className="h-8 w-8 rounded" />
                         )}
                         <span className="text-xl font-bold">{store.name}</span>
                     </Link>
-                    <nav className="flex gap-6">
+                    <nav className="hidden md:flex items-center gap-6">
                         <Link href={`/store/${store.slug}`} className="text-gray-600 hover:text-black">
                             首頁
                         </Link>
+                        {(navItems || []).map((item: any) => (
+                            <Link
+                                key={item.id}
+                                href={`/store/${store.slug}/${item.pages?.slug}`}
+                                className={`text-gray-600 hover:text-black ${pageSlug === item.pages?.slug ? 'font-medium text-black' : ''}`}
+                            >
+                                {item.title}
+                            </Link>
+                        ))}
                     </nav>
+                    <Link href={`/store/${store.slug}/checkout`} className="p-2 hover:bg-gray-100 rounded-lg">
+                        <ShoppingCart className="h-5 w-5" />
+                    </Link>
                 </div>
             </header>
 
-            {/* Page Content */}
-            <main className="max-w-4xl mx-auto px-4 py-12">
-                <h1 className="text-4xl font-bold mb-8">{page.title}</h1>
-
-                {content.map((block: any, index: number) => (
-                    <div key={index} className="mb-6">
-                        {block.type === 'text' && (
-                            <p className="text-gray-700 leading-relaxed">{block.content}</p>
-                        )}
-                        {block.type === 'heading' && (
-                            <h2 className="text-2xl font-semibold mt-8 mb-4">{block.content}</h2>
-                        )}
-                        {block.type === 'image' && (
-                            <img src={block.url} alt={block.alt || ''} className="w-full rounded-lg" />
-                        )}
-                    </div>
-                ))}
+            {/* Page Content - 使用統一渲染元件 */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <PageContentRenderer content={content} />
             </main>
 
             {/* Footer */}
             <footer className="border-t bg-gray-50 py-8">
-                <div className="max-w-6xl mx-auto px-4 text-center text-gray-500 text-sm">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
                     © {new Date().getFullYear()} {store.name}. All rights reserved.
                 </div>
             </footer>
