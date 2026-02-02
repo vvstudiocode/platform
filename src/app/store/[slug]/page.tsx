@@ -43,6 +43,7 @@ export default async function StorefrontPage({ params }: Props) {
         return (
             <HomePageClient
                 store={{
+                    id: store.id,
                     name: store.name,
                     slug: store.slug,
                     logoUrl: store.logo_url,

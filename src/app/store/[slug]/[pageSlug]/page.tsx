@@ -47,10 +47,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function StoreCustomPage({ params }: Props) {
     const { slug, pageSlug } = await params
     const supabase = await createClient()
-
+    // 取得商店資訊
     const { data: store } = await supabase
         .from('tenants')
-        .select('id, name, slug, logo_url, settings')
+        .select('id, name, slug, logo_url')
         .eq('slug', slug)
         .single()
 
@@ -110,9 +110,10 @@ export default async function StoreCustomPage({ params }: Props) {
             </header>
 
 
-            {/* Page Content - 使用統一渲染元件 */}
+            {/* 頁面內容 - 使用統一的渲染元件 */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <PageContentRenderer content={content} />
+                <h1 className="text-3xl font-bold text-gray-900 mb-6">{page.title}</h1>
+                <PageContentRenderer content={(page.content as any[]) || []} storeSlug={store.slug} tenantId={store.id} />
             </main>
 
             {/* Footer */}

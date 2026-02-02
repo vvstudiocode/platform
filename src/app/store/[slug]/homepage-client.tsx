@@ -16,6 +16,7 @@ interface Props {
             primaryColor?: string
         }
         footerSettings?: any
+        id: string  // 加入 tenantId
     }
     page: {
         title: string
@@ -57,7 +58,7 @@ export function HomePageClient({ store, page, navItems }: Props) {
             {/* 頁面內容 */}
             <main className="flex-1">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    <PageContentRenderer content={page.content} />
+                    <PageContentRenderer content={page.content} storeSlug={store.slug} tenantId={store.id} />
                 </div>
             </main>
 

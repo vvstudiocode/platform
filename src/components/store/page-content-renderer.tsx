@@ -3,14 +3,15 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
+import { ProductListBlock, ProductCategoryBlock, ProductCarouselBlock } from './product-blocks'
 
 interface PageComponent {
     id?: string
     type: string
     props?: Record<string, any>
     // 兼容舊格式
-    content?: string
     title?: string
+    content?: string
     subtitle?: string
     url?: string
     alt?: string
@@ -20,19 +21,21 @@ interface PageComponent {
 
 interface Props {
     content: PageComponent[]
+    storeSlug?: string
+    tenantId?: string
 }
 
-export function PageContentRenderer({ content }: Props) {
+export function PageContentRenderer({ content, storeSlug = '', tenantId = '' }: Props) {
     return (
         <div className="space-y-8">
             {content.map((block, index) => (
-                <ContentBlock key={block.id || index} block={block} />
+                <ContentBlock key={block.id || index} block={block} storeSlug={storeSlug} tenantId={tenantId} />
             ))}
         </div>
     )
 }
 
-function ContentBlock({ block }: { block: PageComponent }) {
+function ContentBlock({ block, storeSlug, tenantId }: { block: PageComponent; storeSlug: string; tenantId: string }) {
     // 兼容新舊格式的取值函數
     const getVal = (key: string) => block.props?.[key] ?? (block as any)[key]
 
@@ -58,11 +61,11 @@ function ContentBlock({ block }: { block: PageComponent }) {
         case 'image_grid':
             return <ImageGridBlock block={block} />
         case 'product_list':
-            return <ProductListBlock block={block} />
+            return <ProductListBlock productIds={block.props?.productIds || []} title={block.props?.title} layout={block.props?.layout} columns={block.props?.columns} storeSlug={storeSlug} />
         case 'product_category':
-            return <ProductCategoryBlock block={block} />
+            return <ProductCategoryBlock category={block.props?.category || ''} title={block.props?.title} limit={block.props?.limit} layout={block.props?.layout} columns={block.props?.columns} storeSlug={storeSlug} tenantId={tenantId} />
         case 'product_carousel':
-            return <ProductCarouselBlock block={block} />
+            return <ProductCarouselBlock productIds={block.props?.productIds || []} title={block.props?.title} autoplay={block.props?.autoplay} interval={block.props?.interval} storeSlug={storeSlug} />
         default:
             return null
     }
@@ -352,49 +355,4 @@ function ImageGridBlock({ block }: { block: PageComponent }) {
     )
 }
 
-// 5-7. 商品相關元件（佔位符，需要實際資料）
-function ProductListBlock({ block }: { block: PageComponent }) {
-    const title = block.props?.title
-    const productIds = block.props?.productIds ?? []
-    const layout = block.props?.layout ?? 'grid'
-    const columns = block.props?.columns ?? 3
-
-    return (
-        <div className="space-y-6">
-            {title && <h2 className="text-2xl font-bold text-gray-900">{title}</h2>}
-            <div className={layout === 'grid' ? `grid grid-cols-1 md:grid-cols-${columns} gap-6` : 'space-y-4'}>
-                {productIds.map((id: string) => (
-                    <div key={id} className="border rounded-lg p-4">
-                        {/* 商品卡片 - 需整合實際商品資料 */}
-                        <div className="text-gray-500">商品 {id}</div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-}
-
-function ProductCategoryBlock({ block }: { block: PageComponent }) {
-    const title = block.props?.title
-    const category = block.props?.category
-    const limit = block.props?.limit ?? 8
-
-    return (
-        <div className="space-y-6">
-            {title && <h2 className="text-2xl font-bold text-gray-900">{title}</h2>}
-            <div className="text-gray-500">分類 {category} 的商品（最多 {limit} 個）</div>
-        </div>
-    )
-}
-
-function ProductCarouselBlock({ block }: { block: PageComponent }) {
-    const title = block.props?.title
-    const productIds = block.props?.productIds ?? []
-
-    return (
-        <div className="space-y-6">
-            {title && <h2 className="text-2xl font-bold text-gray-900">{title}</h2>}
-            <div className="text-gray-500">商品輪播（{productIds.length} 個商品）</div>
-        </div>
-    )
-}
+// 商品元件已從 product-blocks.tsx 導入，不需要在此定義

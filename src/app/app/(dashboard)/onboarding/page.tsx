@@ -1,6 +1,6 @@
 'use client'
 
-import { useFormState } from 'react-dom'
+import { useActionState } from 'react'
 import { createStore } from './actions'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,7 @@ const initialState = {
 }
 
 export default function OnboardingPage() {
-    const [state, formAction] = useFormState(createStore, initialState)
+    const [state, formAction] = useActionState(createStore, initialState)
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
