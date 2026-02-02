@@ -5,6 +5,7 @@ import { useCart } from '@/lib/cart-context'
 import { ShoppingCart, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { CartSidebar } from '@/components/store/cart-sidebar'
+import { PageContentRenderer } from '@/components/store/page-content-renderer'
 
 interface Props {
     store: {
@@ -57,7 +58,7 @@ export function HomePageClient({ store, page, navItems }: Props) {
                             {navItems.map((item) => (
                                 <Link
                                     key={item.id}
-                                    href={`/store/${store.slug}/page/${item.pages?.slug}`}
+                                    href={`/store/${store.slug}/${item.pages?.slug}`}
                                     className="text-gray-600 hover:text-gray-900 text-sm font-medium"
                                 >
                                     {item.title}
@@ -94,7 +95,7 @@ export function HomePageClient({ store, page, navItems }: Props) {
                             {navItems.map((item) => (
                                 <Link
                                     key={item.id}
-                                    href={`/store/${store.slug}/page/${item.pages?.slug}`}
+                                    href={`/store/${store.slug}/${item.pages?.slug}`}
                                     className="block py-2 text-gray-600 hover:text-gray-900"
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
@@ -106,37 +107,9 @@ export function HomePageClient({ store, page, navItems }: Props) {
                 )}
             </nav>
 
-            {/* Page Content */}
+            {/* Page Content - 使用統一的渲染元件 */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                {page.content.map((block: any, index: number) => (
-                    <div key={index} className="mb-8">
-                        {block.type === 'text' && (
-                            <p className="text-gray-700 leading-relaxed text-lg">{block.content}</p>
-                        )}
-                        {block.type === 'heading' && (
-                            <h2 className="text-3xl font-bold text-gray-900 mt-12 mb-6">{block.content}</h2>
-                        )}
-                        {block.type === 'image' && (
-                            <img
-                                src={block.url}
-                                alt={block.alt || ''}
-                                className="w-full rounded-lg shadow-lg"
-                            />
-                        )}
-                        {block.type === 'hero' && (
-                            <div
-                                className="relative h-96 rounded-2xl overflow-hidden bg-cover bg-center flex items-center justify-center"
-                                style={{ backgroundImage: block.imageUrl ? `url(${block.imageUrl})` : undefined }}
-                            >
-                                <div className="absolute inset-0 bg-black/40" />
-                                <div className="relative text-center text-white">
-                                    {block.title && <h1 className="text-5xl font-bold mb-4">{block.title}</h1>}
-                                    {block.subtitle && <p className="text-xl">{block.subtitle}</p>}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ))}
+                <PageContentRenderer content={page.content} />
             </main>
 
             {/* Footer */}

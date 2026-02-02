@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { ShoppingCart } from 'lucide-react'
+import { PageContentRenderer } from '@/components/store/page-content-renderer'
 
 interface Props {
     params: Promise<{ slug: string; pageSlug: string }>
@@ -13,7 +14,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug, pageSlug } = await params
     const supabase = await createClient()
 
-    // 取得商店
     const { data: store } = await supabase
         .from('tenants')
         .select('id, name, seo_title, seo_description')
@@ -22,7 +22,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!store) return { title: '商店不存在' }
 
-    // 取得頁面
     const { data: page } = await supabase
         .from('pages')
         .select('title, seo_title, seo_description, seo_keywords, og_image')
@@ -49,7 +48,6 @@ export default async function StoreCustomPage({ params }: Props) {
     const { slug, pageSlug } = await params
     const supabase = await createClient()
 
-    // 取得商店
     const { data: store } = await supabase
         .from('tenants')
         .select('id, name, slug, logo_url, settings')
@@ -60,7 +58,6 @@ export default async function StoreCustomPage({ params }: Props) {
         notFound()
     }
 
-    // 取得頁面
     const { data: page } = await supabase
         .from('pages')
         .select('*')
@@ -73,7 +70,6 @@ export default async function StoreCustomPage({ params }: Props) {
         notFound()
     }
 
-    // 取得導覽項目
     const { data: navItems } = await supabase
         .from('nav_items')
         .select('id, title, page_id, pages(slug)')
@@ -113,72 +109,10 @@ export default async function StoreCustomPage({ params }: Props) {
                 </div>
             </header>
 
-            {/* Page Content */}
+            {/* Page Content - 使用統一渲染元件 */}
             <main className="max-w-4xl mx-auto px-4 py-12">
                 <h1 className="text-4xl font-bold mb-8">{page.title}</h1>
-
-                {content.map((block: any, index: number) => (
-                    <div key={index} className="mb-6">
-                        {block.type === 'hero' && (
-                            <div
-                                className="relative py-20 px-8 rounded-lg overflow-hidden text-center"
-                                style={{
-                                    backgroundImage: block.props?.backgroundUrl ? `url(${block.props.backgroundUrl})` : undefined,
-                                    backgroundColor: block.props?.backgroundUrl ? undefined : '#1f2937',
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
-                                }}
-                            >
-                                <h2 className="text-3xl font-bold text-white mb-2">{block.props?.title}</h2>
-                                <p className="text-lg text-gray-300">{block.props?.subtitle}</p>
-                                {block.props?.buttonText && (
-                                    <Link
-                                        href={block.props?.buttonUrl || '#'}
-                                        className="inline-block mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                                    >
-                                        {block.props.buttonText}
-                                    </Link>
-                                )}
-                            </div>
-                        )}
-                        {block.type === 'text' && (
-                            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{block.props?.content}</p>
-                        )}
-                        {block.type === 'heading' && (
-                            <h2 className="text-2xl font-semibold mt-8 mb-4">{block.content || block.props?.content}</h2>
-                        )}
-                        {block.type === 'image' && (
-                            <img src={block.url || block.props?.url} alt={block.alt || ''} className="w-full rounded-lg" />
-                        )}
-                        {block.type === 'features' && (
-                            <div className="py-8 bg-gray-50 rounded-lg">
-                                <h2 className="text-xl font-bold text-gray-800 text-center mb-6">{block.props?.title}</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-                                    {(block.props?.items || []).map((item: any, i: number) => (
-                                        <div key={i} className="text-center">
-                                            <div className="text-3xl mb-2">{item.icon}</div>
-                                            <h3 className="font-medium text-gray-800">{item.title}</h3>
-                                            <p className="text-sm text-gray-500">{item.description}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        {block.type === 'faq' && (
-                            <div className="py-8">
-                                <h2 className="text-xl font-bold text-gray-800 mb-4">{block.props?.title}</h2>
-                                <div className="space-y-4">
-                                    {(block.props?.items || []).map((item: any, i: number) => (
-                                        <details key={i} className="border rounded-lg p-4">
-                                            <summary className="font-medium text-gray-800 cursor-pointer">{item.question}</summary>
-                                            <p className="text-gray-600 mt-2">{item.answer}</p>
-                                        </details>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ))}
+                <PageContentRenderer content={content} />
             </main>
 
             {/* Footer */}
@@ -190,3 +124,4 @@ export default async function StoreCustomPage({ params }: Props) {
         </div>
     )
 }
+

@@ -1,7 +1,7 @@
 'use client'
 
-import { useActionState, useState, useCallback } from 'react'
-import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, X } from 'lucide-react'
+import { useActionState, useState } from 'react'
+import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, X, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,10 +30,10 @@ interface Props {
 }
 
 const componentTypes = [
-    { type: 'hero', icon: Image, label: 'Hero Banner' },
-    { type: 'text', icon: Type, label: '文字區塊' },
-    { type: 'features', icon: LayoutGrid, label: '特色區塊' },
-    { type: 'faq', icon: MessageSquare, label: 'FAQ 問答' },
+    { type: 'hero', icon: Image, label: 'Hero Banner', description: '大型橫幅圖片區塊' },
+    { type: 'text', icon: Type, label: '文字區塊', description: '純文字內容' },
+    { type: 'features', icon: LayoutGrid, label: '特色區塊', description: '展示特色或服務' },
+    { type: 'faq', icon: MessageSquare, label: 'FAQ 問答', description: '常見問題與解答' },
 ]
 
 export function PageEditForm({ page, updateAction, storeSlug }: Props) {
@@ -42,6 +42,7 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
     const [saving, setSaving] = useState(false)
     const [showPreview, setShowPreview] = useState(false)
     const [dragIndex, setDragIndex] = useState<number | null>(null)
+    const [showAddModal, setShowAddModal] = useState(false)
 
     const addComponent = (type: string) => {
         const newComponent: PageComponent = {
@@ -50,6 +51,7 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
             props: getDefaultProps(type),
         }
         setComponents([...components, newComponent])
+        setShowAddModal(false)
     }
 
     const removeComponent = (id: string) => {
@@ -134,7 +136,7 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                                 <Input id="slug" name="slug" required defaultValue={page.slug} />
                             </div>
                         </div>
-                        <div className="flex items-center gap-6">
+                        <div className="flex flex-wrap items-center gap-6">
                             <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
                                 <input type="checkbox" name="is_homepage" defaultChecked={page.is_homepage} className="rounded bg-zinc-800 border-zinc-600" />
                                 設為首頁
@@ -143,6 +145,14 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                                 <input type="checkbox" name="published" defaultChecked={page.published} className="rounded bg-zinc-800 border-zinc-600" />
                                 發布
                             </label>
+                            <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                                <input type="checkbox" name="show_in_nav" defaultChecked={page.show_in_nav} className="rounded bg-zinc-800 border-zinc-600" />
+                                顯示在導覽
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <Label htmlFor="nav_order" className="text-zinc-300">排序</Label>
+                                <Input id="nav_order" name="nav_order" type="number" defaultValue={page.nav_order} className="w-20" />
+                            </div>
                         </div>
                         <Button type="submit" variant="outline" disabled={pending}>
                             {pending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -151,12 +161,22 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                     </form>
 
                     <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 space-y-4">
-                        <h2 className="text-lg font-semibold text-white">頁面內容</h2>
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-white">頁面內容</h2>
+                            <Button onClick={() => setShowAddModal(true)} size="sm">
+                                <Plus className="h-4 w-4 mr-2" />
+                                新增元件
+                            </Button>
+                        </div>
 
                         <div className="space-y-3">
                             {components.length === 0 && (
-                                <div className="text-center py-8 text-zinc-500 border-2 border-dashed border-zinc-700 rounded-lg">
-                                    尚無內容，請新增元件
+                                <div className="text-center py-12 text-zinc-500 border-2 border-dashed border-zinc-700 rounded-lg">
+                                    <p className="mb-4">尚無內容</p>
+                                    <Button onClick={() => setShowAddModal(true)} variant="outline" size="sm">
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        新增第一個元件
+                                    </Button>
                                 </div>
                             )}
                             {components.map((component, index) => (
@@ -207,23 +227,6 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                                 </div>
                             ))}
                         </div>
-
-                        <div className="border-t border-zinc-700 pt-4">
-                            <p className="text-sm text-zinc-400 mb-3">新增元件</p>
-                            <div className="flex flex-wrap gap-2">
-                                {componentTypes.map((ct) => (
-                                    <button
-                                        key={ct.type}
-                                        type="button"
-                                        onClick={() => addComponent(ct.type)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 border border-zinc-700 hover:border-zinc-600"
-                                    >
-                                        <ct.icon className="h-4 w-4" />
-                                        {ct.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -250,6 +253,37 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                     </div>
                 )}
             </div>
+
+            {/* 新增元件彈窗 */}
+            {showAddModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-zinc-900 rounded-xl border border-zinc-700 w-full max-w-md">
+                        <div className="flex items-center justify-between p-4 border-b border-zinc-700">
+                            <h3 className="text-lg font-semibold text-white">新增元件</h3>
+                            <button onClick={() => setShowAddModal(false)} className="p-1 text-zinc-400 hover:text-white">
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <div className="p-4 space-y-2">
+                            {componentTypes.map((ct) => (
+                                <button
+                                    key={ct.type}
+                                    onClick={() => addComponent(ct.type)}
+                                    className="w-full flex items-center gap-4 p-4 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-left transition-colors"
+                                >
+                                    <div className="p-2 bg-zinc-700 rounded-lg">
+                                        <ct.icon className="h-5 w-5 text-zinc-300" />
+                                    </div>
+                                    <div>
+                                        <div className="font-medium text-white">{ct.label}</div>
+                                        <div className="text-sm text-zinc-400">{ct.description}</div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
@@ -296,6 +330,16 @@ function ComponentEditor({ type, props, onChange }: { type: string; props: Recor
                         <label className="block text-sm text-zinc-400 mb-1">背景圖片網址</label>
                         <Input placeholder="https://..." value={props.backgroundUrl || ''} onChange={(e) => onChange({ backgroundUrl: e.target.value })} />
                     </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-sm text-zinc-400 mb-1">按鈕文字</label>
+                            <Input placeholder="了解更多" value={props.buttonText || ''} onChange={(e) => onChange({ buttonText: e.target.value })} />
+                        </div>
+                        <div>
+                            <label className="block text-sm text-zinc-400 mb-1">按鈕連結</label>
+                            <Input placeholder="https://..." value={props.buttonUrl || ''} onChange={(e) => onChange({ buttonUrl: e.target.value })} />
+                        </div>
+                    </div>
                 </div>
             )
         case 'text':
@@ -312,25 +356,9 @@ function ComponentEditor({ type, props, onChange }: { type: string; props: Recor
                 </div>
             )
         case 'features':
-            return (
-                <div className="space-y-3">
-                    <div>
-                        <label className="block text-sm text-zinc-400 mb-1">標題</label>
-                        <Input placeholder="區塊標題" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
-                    </div>
-                    <p className="text-sm text-zinc-500">進階編輯器開發中...</p>
-                </div>
-            )
+            return <FeaturesEditor props={props} onChange={onChange} />
         case 'faq':
-            return (
-                <div className="space-y-3">
-                    <div>
-                        <label className="block text-sm text-zinc-400 mb-1">標題</label>
-                        <Input placeholder="區塊標題" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
-                    </div>
-                    <p className="text-sm text-zinc-500">進階編輯器開發中...</p>
-                </div>
-            )
+            return <FAQEditor props={props} onChange={onChange} />
         default:
             return (
                 <div className="text-zinc-500 text-sm">
@@ -338,6 +366,113 @@ function ComponentEditor({ type, props, onChange }: { type: string; props: Recor
                 </div>
             )
     }
+}
+
+function FeaturesEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+    const items = props.items || []
+
+    const addItem = () => {
+        onChange({ items: [...items, { icon: '⭐', title: '新特色', description: '說明' }] })
+    }
+
+    const removeItem = (index: number) => {
+        onChange({ items: items.filter((_: any, i: number) => i !== index) })
+    }
+
+    const updateItem = (index: number, field: string, value: string) => {
+        const newItems = [...items]
+        newItems[index] = { ...newItems[index], [field]: value }
+        onChange({ items: newItems })
+    }
+
+    return (
+        <div className="space-y-3">
+            <div>
+                <label className="block text-sm text-zinc-400 mb-1">區塊標題</label>
+                <Input placeholder="標題" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+                <label className="block text-sm text-zinc-400">特色項目</label>
+                {items.map((item: any, index: number) => (
+                    <div key={index} className="flex gap-2 items-start p-3 bg-zinc-700/50 rounded-lg">
+                        <div className="flex-1 space-y-2">
+                            <div className="grid grid-cols-2 gap-2">
+                                <Input placeholder="圖標 (emoji)" value={item.icon || ''} onChange={(e) => updateItem(index, 'icon', e.target.value)} />
+                                <Input placeholder="標題" value={item.title || ''} onChange={(e) => updateItem(index, 'title', e.target.value)} />
+                            </div>
+                            <Input placeholder="說明" value={item.description || ''} onChange={(e) => updateItem(index, 'description', e.target.value)} />
+                        </div>
+                        <button type="button" onClick={() => removeItem(index)} className="p-1 text-zinc-500 hover:text-red-400">
+                            <Trash2 className="h-4 w-4" />
+                        </button>
+                    </div>
+                ))}
+                <button
+                    type="button"
+                    onClick={addItem}
+                    className="w-full py-2 border-2 border-dashed border-zinc-600 rounded-lg text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors"
+                >
+                    + 新增特色
+                </button>
+            </div>
+        </div>
+    )
+}
+
+function FAQEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+    const items = props.items || []
+
+    const addItem = () => {
+        onChange({ items: [...items, { question: '新問題？', answer: '請輸入答案' }] })
+    }
+
+    const removeItem = (index: number) => {
+        onChange({ items: items.filter((_: any, i: number) => i !== index) })
+    }
+
+    const updateItem = (index: number, field: string, value: string) => {
+        const newItems = [...items]
+        newItems[index] = { ...newItems[index], [field]: value }
+        onChange({ items: newItems })
+    }
+
+    return (
+        <div className="space-y-3">
+            <div>
+                <label className="block text-sm text-zinc-400 mb-1">區塊標題</label>
+                <Input placeholder="常見問題" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+                <label className="block text-sm text-zinc-400">問答項目</label>
+                {items.map((item: any, index: number) => (
+                    <div key={index} className="p-3 bg-zinc-700/50 rounded-lg space-y-2">
+                        <div className="flex gap-2 items-center">
+                            <div className="flex-1">
+                                <Input placeholder="問題" value={item.question || ''} onChange={(e) => updateItem(index, 'question', e.target.value)} />
+                            </div>
+                            <button type="button" onClick={() => removeItem(index)} className="p-1 text-zinc-500 hover:text-red-400">
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <textarea
+                            className="w-full px-3 py-2 bg-zinc-600 border border-zinc-500 rounded-lg text-white placeholder:text-zinc-400 text-sm"
+                            rows={2}
+                            placeholder="答案"
+                            value={item.answer || ''}
+                            onChange={(e) => updateItem(index, 'answer', e.target.value)}
+                        />
+                    </div>
+                ))}
+                <button
+                    type="button"
+                    onClick={addItem}
+                    className="w-full py-2 border-2 border-dashed border-zinc-600 rounded-lg text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors"
+                >
+                    + 新增問答
+                </button>
+            </div>
+        </div>
+    )
 }
 
 function ComponentPreview({ type, props }: { type: string; props: Record<string, any> }) {
@@ -353,11 +488,12 @@ function ComponentPreview({ type, props }: { type: string; props: Record<string,
                         backgroundPosition: 'center',
                     }}
                 >
+                    <div className="absolute inset-0 bg-black/40" />
                     <div className="relative z-10 text-center">
                         <h1 className="text-3xl font-bold text-white mb-2">{props.title || '標題'}</h1>
                         <p className="text-lg text-gray-300">{props.subtitle || '副標題'}</p>
                         {props.buttonText && (
-                            <button className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg">
+                            <button className="mt-4 px-6 py-2 bg-white text-gray-900 rounded-lg font-medium">
                                 {props.buttonText}
                             </button>
                         )}
@@ -366,8 +502,8 @@ function ComponentPreview({ type, props }: { type: string; props: Record<string,
             )
         case 'text':
             return (
-                <div className="py-8 px-4 mb-4">
-                    <p className="text-gray-700 whitespace-pre-wrap">{props.content || '內容'}</p>
+                <div className="py-6 px-4 mb-4">
+                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{props.content || '內容'}</p>
                 </div>
             )
         case 'features':
@@ -377,7 +513,7 @@ function ComponentPreview({ type, props }: { type: string; props: Record<string,
                     <div className="grid grid-cols-3 gap-4">
                         {(props.items || []).map((item: any, i: number) => (
                             <div key={i} className="text-center">
-                                <div className="text-2xl mb-2">{item.icon}</div>
+                                <div className="text-3xl mb-2">{item.icon}</div>
                                 <h3 className="font-medium text-gray-800">{item.title}</h3>
                                 <p className="text-sm text-gray-500">{item.description}</p>
                             </div>
@@ -389,12 +525,14 @@ function ComponentPreview({ type, props }: { type: string; props: Record<string,
             return (
                 <div className="py-8 px-4 mb-4">
                     <h2 className="text-xl font-bold text-gray-800 mb-4">{props.title || 'FAQ'}</h2>
-                    {(props.items || []).map((item: any, i: number) => (
-                        <div key={i} className="border-b py-3">
-                            <h3 className="font-medium text-gray-800">{item.question}</h3>
-                            <p className="text-gray-600 mt-1">{item.answer}</p>
-                        </div>
-                    ))}
+                    <div className="space-y-3">
+                        {(props.items || []).map((item: any, i: number) => (
+                            <div key={i} className="border border-gray-200 rounded-lg p-4">
+                                <h3 className="font-medium text-gray-800">{item.question}</h3>
+                                <p className="text-gray-600 mt-2 text-sm">{item.answer}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )
         default:
