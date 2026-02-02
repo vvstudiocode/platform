@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Store, ExternalLink, Package, ClipboardList, Settings, Users, FileText, UserCircle, Mail, Key } from 'lucide-react'
+import { ArrowLeft, Store, ExternalLink, Package, ClipboardList, Settings, Users, FileText, UserCircle, Mail, Key, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { OwnerAccountManager } from './owner-account-manager'
 
@@ -95,6 +95,13 @@ export default async function StoreDetailPage({ params }: Props) {
             href: `/admin/stores/${storeId}/pages`,
             description: '編輯網站頁面',
             color: 'text-purple-400',
+        },
+        {
+            icon: Menu,
+            label: '導覽目錄',
+            href: `/admin/stores/${storeId}/navigation`,
+            description: '管理選單順序',
+            color: 'text-cyan-400',
         },
         {
             icon: Settings,

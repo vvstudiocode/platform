@@ -54,6 +54,17 @@ export default async function AdminLayout({
         .limit(1)
         .single()
 
+    // 取得設定的首頁
+    const { data: homepage } = await supabase
+        .from('pages')
+        .select('slug')
+        .eq('tenant_id', hqStore?.id)
+        .eq('is_homepage', true)
+        .eq('published', true)
+        .maybeSingle()
+
+    const homeUrl = homepage?.slug ? `/p/${homepage.slug}` : '/p/home'
+
     const navSections = [
         {
             title: '總覽',
@@ -88,6 +99,14 @@ export default async function AdminLayout({
                 </Link>
                 <div className="flex items-center gap-4">
                     <span className="text-sm text-zinc-400">{user.email}</span>
+                    <a
+                        href={homeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm border border-zinc-700 rounded-lg px-3 py-1.5 hover:bg-zinc-800 transition-colors"
+                    >
+                        前往首頁
+                    </a>
                     <form action="/api/auth/signout" method="POST">
                         <button type="submit" className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm">
                             <LogOut className="h-4 w-4" />

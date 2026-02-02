@@ -42,7 +42,7 @@ export default async function StoresPage() {
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-white">{store.name}</h3>
-                                        <p className="text-zinc-500 text-sm">{store.slug}.yourdomain.com</p>
+                                        <p className="text-zinc-500 text-sm">/store/{store.slug}</p>
                                     </div>
                                 </div>
                             </div>
@@ -55,7 +55,7 @@ export default async function StoresPage() {
                                     </Button>
                                 </Link>
                                 <a
-                                    href={`https://${store.slug}.yourdomain.com`}
+                                    href={`/store/${store.slug}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
