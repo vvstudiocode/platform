@@ -2,16 +2,11 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
-    LayoutDashboard,
     Store,
     LogOut,
-    Settings,
-    Package,
-    ShoppingCart,
-    FileText,
     ExternalLink,
-    Menu
 } from 'lucide-react'
+import { CollapsibleSidebar } from '@/components/dashboard/collapsible-sidebar'
 
 export default async function AppLayout({
     children,
@@ -43,13 +38,14 @@ export default async function AppLayout({
 
     const store = userRole.tenants as any
 
+    // navItems 使用字串名稱而非組件，以便序列化傳遞給 Client Component
     const navItems = [
-        { href: '/app', icon: LayoutDashboard, label: '儀表板' },
-        { href: '/app/products', icon: Package, label: '商品管理' },
-        { href: '/app/orders', icon: ShoppingCart, label: '訂單管理' },
-        { href: '/app/pages', icon: FileText, label: '頁面管理' },
-        { href: '/app/navigation', icon: Menu, label: '導覽目錄' },
-        { href: '/app/settings', icon: Settings, label: '商店設定' },
+        { href: '/app', icon: 'LayoutDashboard', label: '儀表板' },
+        { href: '/app/products', icon: 'Package', label: '商品管理' },
+        { href: '/app/orders', icon: 'ShoppingCart', label: '訂單管理' },
+        { href: '/app/pages', icon: 'FileText', label: '頁面管理' },
+        { href: '/app/navigation', icon: 'Menu', label: '導覽目錄' },
+        { href: '/app/settings', icon: 'Settings', label: '商店設定' },
     ]
 
     return (
@@ -82,20 +78,7 @@ export default async function AppLayout({
                 </div>
             </header>
             <div className="flex flex-1">
-                <aside className="w-56 border-r border-zinc-800 bg-zinc-900 p-4 overflow-y-auto">
-                    <nav className="space-y-1">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
-                            >
-                                <item.icon className="h-4 w-4" />
-                                {item.label}
-                            </Link>
-                        ))}
-                    </nav>
-                </aside>
+                <CollapsibleSidebar navItems={navItems} />
                 <main className="flex-1 p-8 overflow-auto">
                     {children}
                 </main>

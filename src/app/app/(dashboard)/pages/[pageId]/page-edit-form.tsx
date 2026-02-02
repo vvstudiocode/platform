@@ -74,9 +74,10 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
     const [state, formAction, pending] = useActionState(updateAction, { error: '' })
     const [components, setComponents] = useState<PageComponent[]>(page.content || [])
     const [saving, setSaving] = useState(false)
-    const [dragIndex, setDragIndex] = useState<number | null>(null)
     const [showAddModal, setShowAddModal] = useState(false)
     const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null)
+    const [dragIndex, setDragIndex] = useState<number | null>(null)
+    const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop')
 
     // 彈窗開啟時鎖定 body 滾動
     useEffect(() => {
@@ -286,19 +287,44 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
 
                 {/* 右側 - 預覽 */}
                 <div className="flex-1 bg-white overflow-y-auto">
-                    <div className="sticky top-0 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 border-b z-10">
-                        預覽
+                    <div className="sticky top-0 bg-zinc-100 px-4 py-2 border-b z-10 flex items-center justify-between">
+                        <span className="text-sm font-medium text-zinc-700">預覽</span>
+                        <div className="flex items-center gap-1 bg-zinc-200 rounded-lg p-1">
+                            <button
+                                onClick={() => setPreviewMode('desktop')}
+                                className={`px-3 py-1 text-xs rounded transition-colors ${previewMode === 'desktop'
+                                    ? 'bg-white text-zinc-900 shadow-sm'
+                                    : 'text-zinc-600 hover:text-zinc-900'
+                                    }`}
+                                title="桌面版"
+                            >
+                                💻 桌面
+                            </button>
+                            <button
+                                onClick={() => setPreviewMode('mobile')}
+                                className={`px-3 py-1 text-xs rounded transition-colors ${previewMode === 'mobile'
+                                    ? 'bg-white text-zinc-900 shadow-sm'
+                                    : 'text-zinc-600 hover:text-zinc-900'
+                                    }`}
+                                title="手機版"
+                            >
+                                📱 手機
+                            </button>
+                        </div>
                     </div>
-                    <div className="p-6">
-                        {components.length === 0 ? (
-                            <div className="text-center py-20 text-zinc-400">
-                                尚無內容
-                            </div>
-                        ) : (
-                            components.map((component) => (
-                                <ComponentPreview key={component.id} type={component.type} props={component.props} />
-                            ))
-                        )}
+                    <div className="p-6 flex justify-center">
+                        <div className={`transition-all ${previewMode === 'mobile' ? 'max-w-[375px] w-full' : 'w-full'
+                            }`}>
+                            {components.length === 0 ? (
+                                <div className="text-center py-20 text-zinc-400">
+                                    尚無內容
+                                </div>
+                            ) : (
+                                components.map((component) => (
+                                    <ComponentPreview key={component.id} type={component.type} props={component.props} />
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
