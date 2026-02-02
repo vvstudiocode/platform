@@ -9,7 +9,8 @@ import {
     Package,
     ShoppingCart,
     FileText,
-    Users
+    Users,
+    Menu
 } from 'lucide-react'
 
 export default async function AdminLayout({
@@ -66,6 +67,7 @@ export default async function AdminLayout({
                 { href: '/admin/products', icon: Package, label: '商品管理' },
                 { href: '/admin/orders', icon: ShoppingCart, label: '訂單管理' },
                 { href: '/admin/pages', icon: FileText, label: '頁面管理' },
+                { href: '/admin/navigation', icon: Menu, label: '導覽目錄' },
             ]
         },
         {

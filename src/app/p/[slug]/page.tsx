@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
+import { SiteHeader } from '@/components/site-header'
 
 interface Props {
     params: Promise<{ slug: string }>
@@ -49,7 +50,7 @@ export default async function HQPageRoute({ params }: Props) {
     // 取得總部商店
     const { data: hqStore } = await supabase
         .from('tenants')
-        .select('id, name')
+        .select('id, name, logo_url')
         .eq('slug', 'hq')
         .single()
 
@@ -70,21 +71,40 @@ export default async function HQPageRoute({ params }: Props) {
         notFound()
     }
 
-    // 渲染頁面內容（根據 content JSON 結構）
+    // 從 nav_items 取得導覽選單項目
+    const { data: navItems } = await supabase
+        .from('nav_items')
+        .select('title, page_id, pages(slug)')
+        .eq('tenant_id', hqStore.id)
+        .order('position', { ascending: true })
+
+    // 轉換成 SiteHeader 需要的格式
+    const navMenuItems = (navItems || []).map((item: any) => ({
+        title: item.title,
+        slug: item.pages?.slug || '',
+        is_homepage: false,
+    }))
+
+    // 取得設定的首頁
+    const { data: homepage } = await supabase
+        .from('pages')
+        .select('slug')
+        .eq('tenant_id', hqStore.id)
+        .eq('is_homepage', true)
+        .eq('published', true)
+        .single()
+
+    // 渲染頁面內容
     const content = (page.content as any[]) || []
 
     return (
         <div className="min-h-screen bg-white">
-            {/* Header */}
-            <header className="border-b bg-white sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <a href="/home" className="text-xl font-bold">{hqStore.name}</a>
-                    <nav className="flex gap-6">
-                        <a href="/home" className="text-gray-600 hover:text-black">首頁</a>
-                        <a href="/p/about" className="text-gray-600 hover:text-black">關於我們</a>
-                    </nav>
-                </div>
-            </header>
+            <SiteHeader
+                storeName={hqStore.name}
+                logoUrl={hqStore.logo_url}
+                navItems={navMenuItems}
+                homeSlug={homepage?.slug}
+            />
 
             {/* Page Content */}
             <main className="max-w-4xl mx-auto px-4 py-12">
@@ -100,6 +120,22 @@ export default async function HQPageRoute({ params }: Props) {
                         )}
                         {block.type === 'image' && (
                             <img src={block.url} alt={block.alt || ''} className="w-full rounded-lg" />
+                        )}
+                        {block.type === 'hero' && (
+                            <div
+                                className="relative py-20 px-8 rounded-lg overflow-hidden"
+                                style={{
+                                    backgroundImage: block.props?.backgroundUrl ? `url(${block.props.backgroundUrl})` : undefined,
+                                    backgroundColor: block.props?.backgroundUrl ? undefined : '#1f2937',
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                }}
+                            >
+                                <div className="text-center">
+                                    <h2 className="text-3xl font-bold text-white mb-2">{block.props?.title}</h2>
+                                    <p className="text-lg text-gray-300">{block.props?.subtitle}</p>
+                                </div>
+                            </div>
                         )}
                     </div>
                 ))}

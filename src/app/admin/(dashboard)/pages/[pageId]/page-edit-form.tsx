@@ -21,6 +21,8 @@ interface Props {
         slug: string
         is_homepage: boolean
         published: boolean
+        show_in_nav: boolean
+        nav_order: number
         content: PageComponent[]
     }
     updateAction: (prevState: any, formData: FormData) => Promise<{ error?: string }>

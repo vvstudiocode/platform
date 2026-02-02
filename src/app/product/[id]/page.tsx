@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
-import Link from 'next/link'
 import { ShoppingCart } from 'lucide-react'
+import { SiteHeader } from '@/components/site-header'
 
 interface Props {
     params: Promise<{ id: string }>
@@ -50,27 +50,46 @@ export default async function HQProductPage({ params }: Props) {
         notFound()
     }
 
-    // 取得總部商店名稱
+    // 取得總部商店
     const { data: hqStore } = await supabase
         .from('tenants')
-        .select('name')
+        .select('id, name, logo_url')
         .eq('slug', 'hq')
         .single()
 
     const storeName = hqStore?.name || 'OMOSELECT'
 
+    // 從 nav_items 取得導覽選單項目
+    const { data: navItems } = await supabase
+        .from('nav_items')
+        .select('title, page_id, pages(slug)')
+        .eq('tenant_id', hqStore?.id)
+        .order('position', { ascending: true })
+
+    // 轉換成 SiteHeader 需要的格式
+    const navMenuItems = (navItems || []).map((item: any) => ({
+        title: item.title,
+        slug: item.pages?.slug || '',
+        is_homepage: false,
+    }))
+
+    // 取得設定的首頁
+    const { data: homepage } = await supabase
+        .from('pages')
+        .select('slug')
+        .eq('tenant_id', hqStore?.id)
+        .eq('is_homepage', true)
+        .eq('published', true)
+        .single()
+
     return (
         <div className="min-h-screen bg-white">
-            {/* Header */}
-            <header className="border-b bg-white sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <Link href="/home" className="text-xl font-bold">{storeName}</Link>
-                    <nav className="flex gap-6 items-center">
-                        <Link href="/home" className="text-gray-600 hover:text-black">首頁</Link>
-                        <Link href="/p/about" className="text-gray-600 hover:text-black">關於我們</Link>
-                    </nav>
-                </div>
-            </header>
+            <SiteHeader
+                storeName={storeName}
+                logoUrl={hqStore?.logo_url}
+                navItems={navMenuItems}
+                homeSlug={homepage?.slug}
+            />
 
             {/* Product Content */}
             <main className="max-w-6xl mx-auto px-4 py-12">

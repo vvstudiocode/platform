@@ -8,10 +8,12 @@ import { z } from 'zod'
 const pageSchema = z.object({
     title: z.string().min(1, '請輸入頁面標題'),
     slug: z.string().min(1, '請輸入頁面網址').regex(/^[a-z0-9-]+$/, '只能使用小寫英文、數字和連字符'),
-    meta_title: z.string().optional(),
-    meta_description: z.string().optional(),
+    meta_title: z.string().nullish().transform(v => v || undefined),
+    meta_description: z.string().nullish().transform(v => v || undefined),
     is_homepage: z.coerce.boolean().default(false),
     published: z.coerce.boolean().default(false),
+    show_in_nav: z.coerce.boolean().default(false),
+    nav_order: z.coerce.number().default(0),
 })
 
 // 取得總部商店 ID
@@ -43,6 +45,8 @@ export async function createPage(prevState: any, formData: FormData) {
         meta_description: formData.get('meta_description'),
         is_homepage: formData.get('is_homepage') === 'on',
         published: formData.get('published') === 'on',
+        show_in_nav: formData.get('show_in_nav') === 'on',
+        nav_order: formData.get('nav_order') || 0,
     })
 
     if (!validated.success) {
@@ -92,6 +96,8 @@ export async function updatePage(pageId: string, prevState: any, formData: FormD
         meta_description: formData.get('meta_description'),
         is_homepage: formData.get('is_homepage') === 'on',
         published: formData.get('published') === 'on',
+        show_in_nav: formData.get('show_in_nav') === 'on',
+        nav_order: formData.get('nav_order') || 0,
     })
 
     if (!validated.success) {

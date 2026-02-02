@@ -13,7 +13,7 @@ DECLARE
     hq_tenant_id UUID;
 BEGIN
     -- 取得您的 User ID
-    SELECT id INTO target_user_id FROM auth.users WHERE email = 'admin@example.com'; -- ⚠️ 請確認這裡是用戶的 Email
+    SELECT id INTO target_user_id FROM auth.users WHERE email = 'f127283741@gmail.com'; -- ⚠️ 請確認這裡是用戶的 Email
 
     -- 取得總部 Tenant ID
     SELECT id INTO hq_tenant_id FROM tenants WHERE slug = 'hq';
