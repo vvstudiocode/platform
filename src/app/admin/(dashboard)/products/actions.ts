@@ -7,20 +7,20 @@ import { z } from 'zod'
 
 const productSchema = z.object({
     name: z.string().min(1, '請輸入商品名稱'),
-    description: z.string().optional(),
-    brand: z.string().optional(),
-    category: z.string().optional(),
+    description: z.string().nullish().transform(v => v || undefined),
+    brand: z.string().nullish().transform(v => v || undefined),
+    category: z.string().nullish().transform(v => v || undefined),
     price: z.coerce.number().min(0, '價格不能為負數'),
-    cost: z.coerce.number().min(0).optional(),
-    price_krw: z.coerce.number().min(0).optional(),
+    cost: z.coerce.number().min(0).nullish().transform(v => v ?? undefined),
+    price_krw: z.coerce.number().min(0).nullish().transform(v => v ?? undefined),
     stock: z.coerce.number().min(0).default(0),
-    sku: z.string().optional(),
-    image_url: z.string().url().optional().or(z.literal('')),
+    sku: z.string().nullish().transform(v => v || undefined),
+    image_url: z.string().nullish().transform(v => v || undefined),
     status: z.enum(['draft', 'active', 'archived']).default('draft'),
     // SEO 欄位
-    seo_title: z.string().optional(),
-    seo_description: z.string().optional(),
-    seo_keywords: z.string().optional(),
+    seo_title: z.string().nullish().transform(v => v || undefined),
+    seo_description: z.string().nullish().transform(v => v || undefined),
+    seo_keywords: z.string().nullish().transform(v => v || undefined),
 })
 
 // 取得總部商店 ID
