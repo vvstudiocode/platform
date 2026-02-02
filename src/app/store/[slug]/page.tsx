@@ -11,10 +11,10 @@ export default async function StorefrontPage({ params }: Props) {
     const { slug } = await params
     const supabase = await createClient()
 
-    // 取得商店資訊
+    // 取得商店資訊（包含頁尾設定）
     const { data: store } = await supabase
         .from('tenants')
-        .select('id, name, slug, settings, logo_url')
+        .select('id, name, slug, settings, logo_url, footer_settings')
         .eq('slug', slug)
         .single()
 
@@ -47,6 +47,7 @@ export default async function StorefrontPage({ params }: Props) {
                     slug: store.slug,
                     logoUrl: store.logo_url,
                     settings: store.settings as any,
+                    footerSettings: store.footer_settings as any,
                 }}
                 page={{
                     title: homepage.title,
@@ -72,6 +73,7 @@ export default async function StorefrontPage({ params }: Props) {
                 name: store.name,
                 slug: store.slug,
                 settings: store.settings as any,
+                footerSettings: store.footer_settings as any,
             }}
             products={products || []}
         />

@@ -5,6 +5,8 @@ import { useCart } from '@/lib/cart-context'
 import { ShoppingCart, Search, Menu } from 'lucide-react'
 import Link from 'next/link'
 import { CartSidebar } from '@/components/store/cart-sidebar'
+import { ResponsiveNav } from '@/components/store/responsive-nav'
+import { StoreFooter } from '@/components/store/store-footer'
 
 interface Props {
     store: {
@@ -14,6 +16,7 @@ interface Props {
             logoUrl?: string
             primaryColor?: string
         }
+        footerSettings?: any
     }
     products: Array<{
         id: string

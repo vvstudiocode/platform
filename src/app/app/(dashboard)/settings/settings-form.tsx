@@ -14,6 +14,7 @@ interface Props {
         description: string | null
         logo_url: string | null
         settings: Record<string, any>
+        footer_settings?: any
     }
     updateAction: (prevState: any, formData: FormData) => Promise<{ error?: string; success?: boolean }>
 }
@@ -140,6 +141,72 @@ export function SettingsForm({ store, updateAction }: Props) {
                             min="0"
                             defaultValue={settings.shipping_home_fee || 100}
                         />
+                    </div>
+                </div>
+            </div>
+
+            {/* 頁尾設定 */}
+            <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 space-y-4">
+                <h2 className="text-lg font-semibold text-white">頁尾設定</h2>
+
+                <div className="space-y-4">
+                    <div>
+                        <Label className="text-sm font-medium text-zinc-300 mb-2 block">社交媒體連結</Label>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <div>
+                                <Label htmlFor="footer_line" className="text-xs text-zinc-400">LINE</Label>
+                                <Input id="footer_line" name="footer_line" placeholder="https://..." defaultValue={(store.footer_settings as any)?.socialLinks?.line || ''} />
+                            </div>
+                            <div>
+                                <Label htmlFor="footer_facebook" className="text-xs text-zinc-400">Facebook</Label>
+                                <Input id="footer_facebook" name="footer_facebook" placeholder="https://..." defaultValue={(store.footer_settings as any)?.socialLinks?.facebook || ''} />
+                            </div>
+                            <div>
+                                <Label htmlFor="footer_instagram" className="text-xs text-zinc-400">Instagram</Label>
+                                <Input id="footer_instagram" name="footer_instagram" placeholder="https://..." defaultValue={(store.footer_settings as any)?.socialLinks?.instagram || ''} />
+                            </div>
+                            <div>
+                                <Label htmlFor="footer_threads" className="text-xs text-zinc-400">Threads</Label>
+                                <Input id="footer_threads" name="footer_threads" placeholder="https://..." defaultValue={(store.footer_settings as any)?.socialLinks?.threads || ''} />
+                            </div>
+                            <div>
+                                <Label htmlFor="footer_youtube" className="text-xs text-zinc-400">YouTube</Label>
+                                <Input id="footer_youtube" name="footer_youtube" placeholder="https://..." defaultValue={(store.footer_settings as any)?.socialLinks?.youtube || ''} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <Label htmlFor="footer_email">Email</Label>
+                            <Input id="footer_email" name="footer_email" type="email" placeholder="contact@example.com" defaultValue={(store.footer_settings as any)?.email || ''} />
+                        </div>
+                        <div>
+                            <Label htmlFor="footer_phone">電話</Label>
+                            <Input id="footer_phone" name="footer_phone" placeholder="02-1234-5678" defaultValue={(store.footer_settings as any)?.phone || ''} />
+                        </div>
+                    </div>
+
+                    <div>
+                        <Label htmlFor="footer_address">地址</Label>
+                        <Input id="footer_address" name="footer_address" placeholder="台北市..." defaultValue={(store.footer_settings as any)?.address || ''} />
+                    </div>
+
+                    <div>
+                        <Label htmlFor="footer_about">關於我們</Label>
+                        <textarea
+                            id="footer_about"
+                            name="footer_about"
+                            rows={3}
+                            defaultValue={(store.footer_settings as any)?.about || ''}
+                            className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                            placeholder="簡短介紹您的商店..."
+                        />
+                    </div>
+
+                    <div>
+                        <Label htmlFor="footer_copyright">版權宣告</Label>
+                        <Input id="footer_copyright" name="footer_copyright" placeholder="© 2024 商店名稱" defaultValue={(store.footer_settings as any)?.copyright || ''} />
                     </div>
                 </div>
             </div>

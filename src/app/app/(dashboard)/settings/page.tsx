@@ -6,7 +6,7 @@ import { updateStoreSettings } from './actions'
 async function getUserStore(supabase: any, userId: string) {
     const { data } = await supabase
         .from('users_roles')
-        .select('tenant_id, tenants:tenant_id(*)')
+        .select('tenant_id, tenants:tenant_id(id, name, slug, description, logo_url, settings, footer_settings)')
         .eq('user_id', userId)
         .in('role', ['store_owner', 'store_admin'])
         .single()

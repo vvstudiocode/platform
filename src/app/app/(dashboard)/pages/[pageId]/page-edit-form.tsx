@@ -6,6 +6,15 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+    CarouselEditor,
+    ImageTextEditor,
+    TextColumnsEditor,
+    ImageGridEditor,
+    ProductListEditor,
+    ProductCategoryEditor,
+    ProductCarouselEditor
+} from '@/components/page-editor/component-editors'
 import { updatePageContent } from '../actions'
 
 interface PageComponent {
@@ -29,10 +38,18 @@ interface Props {
 
 const componentTypes = [
     { type: 'hero', icon: Image, label: 'Hero Banner', description: '大型橫幅圖片區塊' },
+    { type: 'carousel', icon: Image, label: '輪播圖', description: '圖片輪播展示' },
+    { type: 'image_text', icon: LayoutGrid, label: '圖文組合', description: '圖片搭配文字說明' },
+    { type: 'image_grid', icon: LayoutGrid, label: '圖片組合', description: '多圖網格佈局' },
     { type: 'text', icon: Type, label: '文字區塊', description: '純文字內容' },
+    { type: 'text_columns', icon: LayoutGrid, label: '文字組合', description: '多欄文字佈局' },
     { type: 'features', icon: LayoutGrid, label: '特色區塊', description: '展示特色或服務' },
     { type: 'faq', icon: MessageSquare, label: 'FAQ 問答', description: '常見問題與解答' },
+    { type: 'product_list', icon: LayoutGrid, label: '商品列表', description: '精選商品展示' },
+    { type: 'product_category', icon: LayoutGrid, label: '商品分類', description: '依分類顯示商品' },
+    { type: 'product_carousel', icon: LayoutGrid, label: '商品輪播', description: '商品輪播展示' },
 ]
+
 
 export function PageEditForm({ page, updateAction, storeSlug }: Props) {
     const [state, formAction, pending] = useActionState(updateAction, { error: '' })
@@ -305,12 +322,26 @@ function getDefaultProps(type: string): Record<string, any> {
     switch (type) {
         case 'hero':
             return { title: '歡迎', subtitle: '這是副標題', backgroundUrl: '', buttonText: '了解更多', buttonUrl: '' }
+        case 'carousel':
+            return { images: [{ url: '', alt: '圖片 1', link: '' }], autoplay: true, interval: 5 }
+        case 'image_text':
+            return { layout: 'left', imageUrl: '', title: '標題', content: '內容說明', buttonText: '', buttonUrl: '' }
+        case 'image_grid':
+            return { images: [{ url: '', alt: '圖片', link: '' }], columns: 3, gap: 16 }
         case 'text':
             return { content: '請輸入內容...' }
+        case 'text_columns':
+            return { columns: [{ title: '欄位一', content: '內容' }], columnCount: 3 }
         case 'features':
             return { title: '我們的特色', items: [{ icon: '⭐', title: '特色一', description: '說明' }] }
         case 'faq':
             return { title: '常見問題', items: [{ question: '問題？', answer: '答案' }] }
+        case 'product_list':
+            return { title: '精選商品', productIds: [], layout: 'grid', columns: 3 }
+        case 'product_category':
+            return { title: '商品分類', category: '', limit: 8, layout: 'grid' }
+        case 'product_carousel':
+            return { title: '熱門商品', productIds: [], autoplay: true }
         default:
             return {}
     }
@@ -319,9 +350,16 @@ function getDefaultProps(type: string): Record<string, any> {
 function getComponentLabel(type: string): string {
     const labels: Record<string, string> = {
         hero: 'Hero Banner',
+        carousel: '輪播圖',
+        image_text: '圖文組合',
+        image_grid: '圖片組合',
         text: '文字區塊',
+        text_columns: '文字組合',
         features: '特色區塊',
         faq: 'FAQ 問答',
+        product_list: '商品列表',
+        product_category: '商品分類',
+        product_carousel: '商品輪播',
     }
     return labels[type] || type
 }
@@ -355,6 +393,12 @@ function ComponentEditor({ type, props, onChange }: { type: string; props: Recor
                     </div>
                 </div>
             )
+        case 'carousel':
+            return <CarouselEditor props={props} onChange={onChange} />
+        case 'image_text':
+            return <ImageTextEditor props={props} onChange={onChange} />
+        case 'image_grid':
+            return <ImageGridEditor props={props} onChange={onChange} />
         case 'text':
             return (
                 <div>
@@ -368,10 +412,18 @@ function ComponentEditor({ type, props, onChange }: { type: string; props: Recor
                     />
                 </div>
             )
+        case 'text_columns':
+            return <TextColumnsEditor props={props} onChange={onChange} />
         case 'features':
             return <FeaturesEditor props={props} onChange={onChange} />
         case 'faq':
             return <FAQEditor props={props} onChange={onChange} />
+        case 'product_list':
+            return <ProductListEditor props={props} onChange={onChange} />
+        case 'product_category':
+            return <ProductCategoryEditor props={props} onChange={onChange} />
+        case 'product_carousel':
+            return <ProductCarouselEditor props={props} onChange={onChange} />
         default:
             return (
                 <div className="text-zinc-500 text-sm">

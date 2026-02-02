@@ -34,12 +34,29 @@ export async function updateStoreSettings(storeId: string, prevState: any, formD
         shipping_home_fee: Number(formData.get('shipping_home_fee')) || 100,
     }
 
+    // 解析頁尾設定
+    const footer_settings = {
+        socialLinks: {
+            line: formData.get('footer_line') || '',
+            facebook: formData.get('footer_facebook') || '',
+            instagram: formData.get('footer_instagram') || '',
+            threads: formData.get('footer_threads') || '',
+            youtube: formData.get('footer_youtube') || '',
+        },
+        email: formData.get('footer_email') || '',
+        phone: formData.get('footer_phone') || '',
+        address: formData.get('footer_address') || '',
+        about: formData.get('footer_about') || '',
+        copyright: formData.get('footer_copyright') || '',
+    }
+
     const { error } = await supabase
         .from('tenants')
         .update({
             ...validated.data,
             logo_url: validated.data.logo_url || null,
             settings,
+            footer_settings,
         })
         .eq('id', storeId)
 
