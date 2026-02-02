@@ -65,7 +65,7 @@ export default function AppLoginPage() {
                 </form>
 
                 <p className="text-center text-zinc-500 text-sm mt-6">
-                    還沒有商店？<Link href="/app/onboarding" className="text-blue-400 hover:underline">立即建立</Link>
+                    如需開通商店，請聯繫管理員
                 </p>
             </div>
         </div>

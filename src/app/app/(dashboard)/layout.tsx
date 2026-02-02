@@ -9,7 +9,8 @@ import {
     Package,
     ShoppingCart,
     FileText,
-    ExternalLink
+    ExternalLink,
+    Menu
 } from 'lucide-react'
 
 export default async function AppLayout({
@@ -47,6 +48,7 @@ export default async function AppLayout({
         { href: '/app/products', icon: Package, label: '商品管理' },
         { href: '/app/orders', icon: ShoppingCart, label: '訂單管理' },
         { href: '/app/pages', icon: FileText, label: '頁面管理' },
+        { href: '/app/navigation', icon: Menu, label: '導覽目錄' },
         { href: '/app/settings', icon: Settings, label: '商店設定' },
     ]
 
