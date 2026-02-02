@@ -64,9 +64,9 @@ export default async function HQProductPage({ params }: Props) {
             {/* Header */}
             <header className="border-b bg-white sticky top-0 z-50">
                 <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <Link href="/" className="text-xl font-bold">{storeName}</Link>
+                    <Link href="/home" className="text-xl font-bold">{storeName}</Link>
                     <nav className="flex gap-6 items-center">
-                        <Link href="/" className="text-gray-600 hover:text-black">首頁</Link>
+                        <Link href="/home" className="text-gray-600 hover:text-black">首頁</Link>
                         <Link href="/p/about" className="text-gray-600 hover:text-black">關於我們</Link>
                     </nav>
                 </div>
