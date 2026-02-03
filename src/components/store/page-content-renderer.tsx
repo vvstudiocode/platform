@@ -23,19 +23,20 @@ interface Props {
     content: PageComponent[]
     storeSlug?: string
     tenantId?: string
+    preview?: boolean
 }
 
-export function PageContentRenderer({ content, storeSlug = '', tenantId = '' }: Props) {
+export function PageContentRenderer({ content, storeSlug = '', tenantId = '', preview = false }: Props) {
     return (
         <div className="space-y-8">
             {content.map((block, index) => (
-                <ContentBlock key={block.id || index} block={block} storeSlug={storeSlug} tenantId={tenantId} />
+                <ContentBlock key={block.id || index} block={block} storeSlug={storeSlug} tenantId={tenantId} preview={preview} />
             ))}
         </div>
     )
 }
 
-function ContentBlock({ block, storeSlug, tenantId }: { block: PageComponent; storeSlug: string; tenantId: string }) {
+function ContentBlock({ block, storeSlug, tenantId, preview }: { block: PageComponent; storeSlug: string; tenantId: string; preview: boolean }) {
     // 兼容新舊格式的取值函數
     const getVal = (key: string) => block.props?.[key] ?? (block as any)[key]
 
@@ -61,11 +62,11 @@ function ContentBlock({ block, storeSlug, tenantId }: { block: PageComponent; st
         case 'image_grid':
             return <ImageGridBlock block={block} />
         case 'product_list':
-            return <ProductListBlock productIds={block.props?.productIds || []} title={block.props?.title} layout={block.props?.layout} columns={block.props?.columns} storeSlug={storeSlug} />
+            return <ProductListBlock productIds={block.props?.productIds || []} title={block.props?.title} layout={block.props?.layout} columns={block.props?.columns} storeSlug={storeSlug} preview={preview} />
         case 'product_category':
-            return <ProductCategoryBlock category={block.props?.category || ''} title={block.props?.title} limit={block.props?.limit} layout={block.props?.layout} columns={block.props?.columns} storeSlug={storeSlug} tenantId={tenantId} />
+            return <ProductCategoryBlock category={block.props?.category || ''} title={block.props?.title} limit={block.props?.limit} layout={block.props?.layout} columns={block.props?.columns} storeSlug={storeSlug} tenantId={tenantId} preview={preview} />
         case 'product_carousel':
-            return <ProductCarouselBlock productIds={block.props?.productIds || []} title={block.props?.title} autoplay={block.props?.autoplay} interval={block.props?.interval} storeSlug={storeSlug} />
+            return <ProductCarouselBlock productIds={block.props?.productIds || []} title={block.props?.title} autoplay={block.props?.autoplay} interval={block.props?.interval} storeSlug={storeSlug} preview={preview} />
         default:
             return null
     }

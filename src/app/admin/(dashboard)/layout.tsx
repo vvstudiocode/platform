@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 import Link from 'next/link'
 import {
     Store,
@@ -49,16 +48,6 @@ export default async function AdminLayout({
         .limit(1)
         .single()
 
-    // 設定 tenant_id cookie，讓 API 可以識別當前商店
-    if (hqStore?.id) {
-        const cookieStore = await cookies()
-        cookieStore.set('tenant_id', hqStore.id, {
-            path: '/',
-            maxAge: 60 * 60 * 24 * 7, // 7 days
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production'
-        })
-    }
 
     // 取得設定的首頁
     const { data: homepage } = await supabase

@@ -60,13 +60,15 @@ export function ProductListBlock({
     title,
     layout = 'grid',
     columns = 3,
-    storeSlug
+    storeSlug,
+    preview
 }: {
     productIds: string[]
     title?: string
     layout?: 'grid' | 'list'
     columns?: number
     storeSlug: string
+    preview?: boolean
 }) {
     const [products, setProducts] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -79,11 +81,16 @@ export function ProductListBlock({
             }
 
             const supabase = createClient()
-            const { data } = await supabase
+            let query = supabase
                 .from('products')
                 .select('*')
                 .in('id', productIds)
-                .eq('status', 'active')
+
+            if (!preview) {
+                query = query.eq('status', 'active')
+            }
+
+            const { data } = await query
 
             if (data) {
                 // 按照 productIds 的順序排列
@@ -139,7 +146,8 @@ export function ProductCategoryBlock({
     layout = 'grid',
     columns = 3,
     storeSlug,
-    tenantId
+    tenantId,
+    preview
 }: {
     category: string
     title?: string
@@ -148,6 +156,7 @@ export function ProductCategoryBlock({
     columns?: number
     storeSlug: string
     tenantId: string
+    preview?: boolean
 }) {
     const [products, setProducts] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -160,12 +169,17 @@ export function ProductCategoryBlock({
             }
 
             const supabase = createClient()
-            const { data } = await supabase
+            let query = supabase
                 .from('products')
                 .select('*')
                 .eq('tenant_id', tenantId)
                 .eq('category', category)
-                .eq('status', 'active')
+
+            if (!preview) {
+                query = query.eq('status', 'active')
+            }
+
+            const { data } = await query
                 .limit(limit)
                 .order('sort_order', { ascending: true })
                 .order('created_at', { ascending: false })
@@ -218,13 +232,15 @@ export function ProductCarouselBlock({
     title,
     autoplay = true,
     interval = 5,
-    storeSlug
+    storeSlug,
+    preview
 }: {
     productIds: string[]
     title?: string
     autoplay?: boolean
     interval?: number
     storeSlug: string
+    preview?: boolean
 }) {
     const [products, setProducts] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -238,11 +254,16 @@ export function ProductCarouselBlock({
             }
 
             const supabase = createClient()
-            const { data } = await supabase
+            let query = supabase
                 .from('products')
                 .select('*')
                 .in('id', productIds)
-                .eq('status', 'active')
+
+            if (!preview) {
+                query = query.eq('status', 'active')
+            }
+
+            const { data } = await query
 
             if (data) {
                 const sorted = productIds
