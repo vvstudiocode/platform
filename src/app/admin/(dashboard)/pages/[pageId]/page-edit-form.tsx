@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, useEffect } from 'react'
-import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, X, Plus } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, X, ExternalLink, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,36 +30,55 @@ interface Props {
         slug: string
         is_homepage: boolean
         published: boolean
-        show_in_nav: boolean
-        nav_order: number
         content: PageComponent[]
     }
     updateAction: (prevState: any, formData: FormData) => Promise<{ error?: string }>
     storeSlug?: string
 }
 
-const componentTypes = [
-    { type: 'hero', icon: Image, label: 'Hero Banner', description: '大型橫幅圖片區塊' },
-    { type: 'carousel', icon: Image, label: '輪播圖', description: '圖片輪播展示' },
-    { type: 'image_text', icon: LayoutGrid, label: '圖文組合', description: '圖片搭配文字說明' },
-    { type: 'image_grid', icon: LayoutGrid, label: '圖片組合', description: '多圖網格佈局' },
-    { type: 'text', icon: Type, label: '文字區塊', description: '純文字內容' },
-    { type: 'text_columns', icon: LayoutGrid, label: '文字組合', description: '多欄文字佈局' },
-    { type: 'features', icon: LayoutGrid, label: '特色區塊', description: '展示特色或服務' },
-    { type: 'faq', icon: MessageSquare, label: 'FAQ 問答', description: '常見問題與解答' },
-    { type: 'product_list', icon: LayoutGrid, label: '商品列表', description: '精選商品展示' },
-    { type: 'product_category', icon: LayoutGrid, label: '商品分類', description: '依分類顯示商品' },
-    { type: 'product_carousel', icon: LayoutGrid, label: '商品輪播', description: '商品輪播展示' },
+// 元件分類定義
+const componentCategories = [
+    {
+        name: '圖片元件',
+        components: [
+            { type: 'hero', icon: Image, label: 'Hero Banner', description: '大型橫幅圖片' },
+            { type: 'carousel', icon: Image, label: '輪播圖', description: '圖片輪播' },
+            { type: 'image_text', icon: LayoutGrid, label: '圖文組合', description: '圖片+文字' },
+            { type: 'image_grid', icon: LayoutGrid, label: '圖片組合', description: '多圖網格' },
+        ]
+    },
+    {
+        name: '文字元件',
+        components: [
+            { type: 'text', icon: Type, label: '文字區塊', description: '純文字內容' },
+            { type: 'text_columns', icon: LayoutGrid, label: '文字組合', description: '多欄文字' },
+            { type: 'features', icon: LayoutGrid, label: '特色區塊', description: '特色/服務' },
+            { type: 'faq', icon: MessageSquare, label: 'FAQ 問答', description: '常見問答' },
+        ]
+    },
+    {
+        name: '商品元件',
+        components: [
+            { type: 'product_list', icon: LayoutGrid, label: '商品列表', description: '精選商品' },
+            { type: 'product_category', icon: LayoutGrid, label: '商品分類', description: '分類商品' },
+            { type: 'product_carousel', icon: LayoutGrid, label: '商品輪播', description: '商品輪播' },
+        ]
+    },
 ]
+
+// 平鋪所有元件（用於查找）
+const allComponentTypes = componentCategories.flatMap(cat => cat.components)
 
 
 export function PageEditForm({ page, updateAction, storeSlug }: Props) {
     const [state, formAction, pending] = useActionState(updateAction, { error: '' })
     const [components, setComponents] = useState<PageComponent[]>(page.content || [])
     const [saving, setSaving] = useState(false)
-    const [showPreview, setShowPreview] = useState(false)
-    const [dragIndex, setDragIndex] = useState<number | null>(null)
     const [showAddModal, setShowAddModal] = useState(false)
+    const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null)
+    const [dragIndex, setDragIndex] = useState<number | null>(null)
+    const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop')
+    const [showMobilePreview, setShowMobilePreview] = useState(false)
 
     // 彈窗開啟時鎖定 body 滾動
     useEffect(() => {
@@ -124,19 +143,34 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
     }
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="h-screen flex flex-col">
+            {/* 頂部標題列 */}
+            <div className="flex items-center justify-between px-6 py-4 bg-zinc-900 border-b border-zinc-800">
                 <div className="flex items-center gap-4">
                     <Link href="/admin/pages" className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white">
                         <ArrowLeft className="h-5 w-5" />
                     </Link>
-                    <h1 className="text-2xl font-bold text-white">編輯頁面</h1>
+                    <h1 className="text-xl font-bold text-white">{page.title}</h1>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" onClick={() => setShowPreview(!showPreview)}>
-                        <Eye className="h-4 w-4 mr-2" />
-                        {showPreview ? '隱藏預覽' : '顯示預覽'}
-                    </Button>
+                    {/* 手機版預覽按鈕 */}
+                    <button
+                        onClick={() => setShowMobilePreview(true)}
+                        className="md:hidden flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg"
+                    >
+                        <Eye className="h-4 w-4" />
+                        預覽
+                    </button>
+                    {storeSlug && page.published && (
+                        <Link
+                            href={`/store/${storeSlug}/${page.slug}`}
+                            target="_blank"
+                            className="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg"
+                        >
+                            <ExternalLink className="h-4 w-4" />
+                            查看頁面
+                        </Link>
+                    )}
                     <Button onClick={saveContent} disabled={saving}>
                         {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                         儲存內容
@@ -145,130 +179,151 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
             </div>
 
             {state.error && (
-                <div className="bg-red-500/20 border border-red-500 text-red-400 rounded-lg p-4">
+                <div className="mx-6 mt-4 bg-red-500/20 border border-red-500 text-red-400 rounded-lg p-4">
                     {state.error}
                 </div>
             )}
 
-            <div className={`grid gap-6 ${showPreview ? 'lg:grid-cols-2' : ''}`}>
-                {/* 編輯區 */}
-                <div className="space-y-6">
-                    <form action={formAction} className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 space-y-4">
-                        <h2 className="text-lg font-semibold text-white">頁面設定</h2>
-                        <div className="grid gap-4 sm:grid-cols-2">
+            {/* 主內容區 - 左右分割 */}
+            <div className="flex-1 flex overflow-hidden">
+                {/* 左側 - 元件列表編輯 */}
+                <div className="w-full md:w-96 bg-zinc-900 md:border-r border-zinc-800 flex flex-col">
+                    {/* 頁面設定 */}
+                    <div className="p-4 border-b border-zinc-800">
+                        <form action={formAction} className="space-y-3">
+                            <h2 className="text-sm font-semibold text-white mb-3">頁面設定</h2>
                             <div>
-                                <Label htmlFor="title">頁面標題</Label>
-                                <Input id="title" name="title" required defaultValue={page.title} />
+                                <Label htmlFor="title" className="text-xs text-zinc-400">頁面標題</Label>
+                                <Input id="title" name="title" required defaultValue={page.title} className="h-8 text-sm" />
                             </div>
                             <div>
-                                <Label htmlFor="slug">頁面網址</Label>
-                                <Input id="slug" name="slug" required defaultValue={page.slug} />
+                                <Label htmlFor="slug" className="text-xs text-zinc-400">頁面網址</Label>
+                                <Input id="slug" name="slug" required defaultValue={page.slug} className="h-8 text-sm" />
                             </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-6">
-                            <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                <input type="checkbox" name="is_homepage" defaultChecked={page.is_homepage} className="rounded bg-zinc-800 border-zinc-600" />
-                                設為首頁
-                            </label>
-                            <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                <input type="checkbox" name="published" defaultChecked={page.published} className="rounded bg-zinc-800 border-zinc-600" />
-                                發布
-                            </label>
-                            <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                <input type="checkbox" name="show_in_nav" defaultChecked={page.show_in_nav} className="rounded bg-zinc-800 border-zinc-600" />
-                                顯示在導覽
-                            </label>
-                            <div className="flex items-center gap-2">
-                                <Label htmlFor="nav_order" className="text-zinc-300">排序</Label>
-                                <Input id="nav_order" name="nav_order" type="number" defaultValue={page.nav_order} className="w-20" />
+                            <div className="flex items-center gap-4 text-sm">
+                                <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                                    <input type="checkbox" name="is_homepage" defaultChecked={page.is_homepage} className="rounded bg-zinc-800 border-zinc-600" />
+                                    設為首頁
+                                </label>
+                                <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                                    <input type="checkbox" name="published" defaultChecked={page.published} className="rounded bg-zinc-800 border-zinc-600" />
+                                    發布
+                                </label>
                             </div>
-                        </div>
-                        <Button type="submit" variant="outline" disabled={pending}>
-                            {pending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                            更新設定
-                        </Button>
-                    </form>
-
-                    <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-white">頁面內容</h2>
-                            <Button onClick={() => setShowAddModal(true)} size="sm">
-                                <Plus className="h-4 w-4 mr-2" />
-                                新增元件
+                            <Button type="submit" variant="outline" size="sm" className="w-full" disabled={pending}>
+                                {pending && <Loader2 className="h-3 w-3 mr-2 animate-spin" />}
+                                更新設定
                             </Button>
-                        </div>
+                        </form>
+                    </div>
 
-                        <div className="space-y-3">
-                            {components.length === 0 && (
-                                <div className="text-center py-12 text-zinc-500 border-2 border-dashed border-zinc-700 rounded-lg">
-                                    <p className="mb-4">尚無內容</p>
-                                    <Button onClick={() => setShowAddModal(true)} variant="outline" size="sm">
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        新增第一個元件
-                                    </Button>
+                    {/* 元件列表 */}
+                    <div className="flex-1 overflow-y-auto">
+                        <div className="p-4 space-y-3">
+                            <div className="flex items-center justify-between mb-2">
+                                <h2 className="text-sm font-semibold text-white">頁面元件</h2>
+                                <Button onClick={() => setShowAddModal(true)} size="sm" className="h-7 text-xs">
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    新增
+                                </Button>
+                            </div>
+
+                            {components.length === 0 ? (
+                                <div className="text-center py-12 text-zinc-500 text-sm">
+                                    點擊上方按鈕新增元件
                                 </div>
-                            )}
-                            {components.map((component, index) => (
-                                <div
-                                    key={component.id}
-                                    className={`bg-zinc-800 rounded-lg p-4 transition-all ${dragIndex === index ? 'opacity-50 scale-95' : ''}`}
-                                    draggable
-                                    onDragStart={() => handleDragStart(index)}
-                                    onDragOver={(e) => handleDragOver(e, index)}
-                                    onDragEnd={handleDragEnd}
-                                >
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-2">
-                                            <GripVertical className="h-4 w-4 text-zinc-500 cursor-grab active:cursor-grabbing" />
-                                            <span className="font-medium text-white capitalize">{getComponentLabel(component.type)}</span>
+                            ) : (
+                                components.map((component, index) => (
+                                    <div
+                                        key={component.id}
+                                        draggable
+                                        onDragStart={() => handleDragStart(index)}
+                                        onDragOver={(e) => handleDragOver(e, index)}
+                                        onDragEnd={handleDragEnd}
+                                        onClick={() => setSelectedComponentId(component.id)}
+                                        className={`bg-zinc-800 rounded-lg border-2 transition-all cursor-pointer ${selectedComponentId === component.id
+                                            ? 'border-rose-500'
+                                            : 'border-transparent hover:border-zinc-600'
+                                            }`}
+                                    >
+                                        <div className="flex items-center justify-between p-3 border-b border-zinc-700">
+                                            <div className="flex items-center gap-2">
+                                                <GripVertical className="h-4 w-4 text-zinc-500 cursor-grab" />
+                                                <span className="font-medium text-sm text-white">{getComponentLabel(component.type)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); moveComponent(index, index - 1) }}
+                                                    disabled={index === 0}
+                                                    className="p-1 text-zinc-500 hover:text-white disabled:opacity-30"
+                                                >
+                                                    <ChevronUp className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); moveComponent(index, index + 1) }}
+                                                    disabled={index === components.length - 1}
+                                                    className="p-1 text-zinc-500 hover:text-white disabled:opacity-30"
+                                                >
+                                                    <ChevronDown className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); removeComponent(component.id) }}
+                                                    className="p-1 text-zinc-500 hover:text-red-400"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                type="button"
-                                                onClick={() => moveComponent(index, index - 1)}
-                                                disabled={index === 0}
-                                                className="p-1 text-zinc-500 hover:text-white disabled:opacity-30"
-                                            >
-                                                <ChevronUp className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => moveComponent(index, index + 1)}
-                                                disabled={index === components.length - 1}
-                                                className="p-1 text-zinc-500 hover:text-white disabled:opacity-30"
-                                            >
-                                                <ChevronDown className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeComponent(component.id)}
-                                                className="p-1 text-zinc-500 hover:text-red-400"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
-                                        </div>
+                                        {selectedComponentId === component.id && (
+                                            <div className="p-3">
+                                                <ComponentEditor
+                                                    type={component.type}
+                                                    props={component.props}
+                                                    onChange={(props) => updateComponent(component.id, props)}
+                                                />
+                                            </div>
+                                        )}
                                     </div>
-                                    <ComponentEditor
-                                        type={component.type}
-                                        props={component.props}
-                                        onChange={(props) => updateComponent(component.id, props)}
-                                    />
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
 
-                {/* 預覽區 */}
-                {showPreview && (
-                    <div className="bg-white rounded-xl overflow-hidden min-h-[600px]">
-                        <div className="bg-zinc-100 px-4 py-2 text-sm text-zinc-600 border-b flex items-center justify-between">
-                            <span>預覽</span>
-                            <button onClick={() => setShowPreview(false)} className="text-zinc-400 hover:text-zinc-600">
-                                <X className="h-4 w-4" />
+
+                {/* 右側 - 預覽（僅桌面版顯示） */}
+                <div className="hidden md:block flex-1 bg-white overflow-y-auto">
+                    <div className="sticky top-0 bg-zinc-100 px-4 py-2 border-b z-10 flex items-center justify-between">
+                        <span className="text-sm font-medium text-zinc-700">預覽</span>
+                        <div className="flex items-center gap-1 bg-zinc-200 rounded-lg p-1">
+                            <button
+                                onClick={() => setPreviewMode('desktop')}
+                                className={`px-3 py-1 text-xs rounded transition-colors ${previewMode === 'desktop'
+                                    ? 'bg-white text-zinc-900 shadow-sm'
+                                    : 'text-zinc-600 hover:text-zinc-900'
+                                    }`}
+                                title="桌面版"
+                            >
+                                💻 桌面
+                            </button>
+                            <button
+                                onClick={() => setPreviewMode('mobile')}
+                                className={`px-3 py-1 text-xs rounded transition-colors ${previewMode === 'mobile'
+                                    ? 'bg-white text-zinc-900 shadow-sm'
+                                    : 'text-zinc-600 hover:text-zinc-900'
+                                    }`}
+                                title="手機版"
+                            >
+                                📱 手機
                             </button>
                         </div>
-                        <div className="p-4">
+                    </div>
+                    <div className="p-6 flex justify-center">
+                        <div className={`transition-all ${previewMode === 'mobile' ? 'max-w-[375px] w-full' : 'w-full'
+                            }`}>
                             {components.length === 0 ? (
                                 <div className="text-center py-20 text-zinc-400">
                                     尚無內容
@@ -280,41 +335,81 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                             )}
                         </div>
                     </div>
-                )}
+                </div>
             </div>
 
-            {/* 新增元件彈窗 */}
+            {/* 新增元件彈窗 - 兩欄分類顯示 */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-zinc-900 rounded-xl border border-zinc-700 w-full max-w-md">
-                        <div className="flex items-center justify-between p-4 border-b border-zinc-700">
-                            <h3 className="text-lg font-semibold text-white">新增元件</h3>
-                            <button onClick={() => setShowAddModal(false)} className="p-1 text-zinc-400 hover:text-white">
-                                <X className="h-5 w-5" />
+                    <div className="bg-zinc-900 rounded-xl border border-zinc-700 w-full max-w-4xl max-h-[90vh] flex flex-col">
+                        <div className="flex items-center justify-between p-6 border-b border-zinc-700">
+                            <h3 className="text-xl font-bold text-white">選擇元件類型</h3>
+                            <button onClick={() => setShowAddModal(false)} className="p-2 text-zinc-400 hover:text-white transition-colors">
+                                <X className="h-6 w-6" />
                             </button>
                         </div>
-                        <div className="p-4 space-y-2">
-                            {componentTypes.map((ct) => (
-                                <button
-                                    key={ct.type}
-                                    onClick={() => addComponent(ct.type)}
-                                    className="w-full flex items-center gap-4 p-4 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-left transition-colors"
-                                >
-                                    <div className="p-2 bg-zinc-700 rounded-lg">
-                                        <ct.icon className="h-5 w-5 text-zinc-300" />
+                        <div className="p-6 overflow-y-auto">
+                            <div className="space-y-8">
+                                {componentCategories.map((category) => (
+                                    <div key={category.name}>
+                                        <h4 className="text-sm font-semibold text-zinc-400 mb-3">{category.name}</h4>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {category.components.map((ct) => (
+                                                <button
+                                                    key={ct.type}
+                                                    onClick={() => addComponent(ct.type)}
+                                                    className="flex items-start gap-3 p-4 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-left transition-colors group"
+                                                >
+                                                    <div className="p-2 bg-zinc-700 group-hover:bg-zinc-600 rounded-lg transition-colors">
+                                                        <ct.icon className="h-5 w-5 text-zinc-300" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="font-medium text-white mb-1">{ct.label}</div>
+                                                        <div className="text-xs text-zinc-400">{ct.description}</div>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div className="font-medium text-white">{ct.label}</div>
-                                        <div className="text-sm text-zinc-400">{ct.description}</div>
-                                    </div>
-                                </button>
-                            ))}
+                                ))}
+                            </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 手機版全螢幕預覽 */}
+            {showMobilePreview && (
+                <div className="md:hidden fixed inset-0 z-50 bg-white flex flex-col">
+                    <div className="flex items-center justify-between px-4 py-3 bg-zinc-900 border-b border-zinc-800">
+                        <span className="text-white font-medium">頁面預覽</span>
+                        <button
+                            onClick={() => setShowMobilePreview(false)}
+                            className="p-2 text-zinc-400 hover:text-white"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4">
+                        {components.length === 0 ? (
+                            <div className="text-center py-20 text-zinc-400">
+                                尚無內容
+                            </div>
+                        ) : (
+                            components.map((component) => (
+                                <ComponentPreview key={component.id} type={component.type} props={component.props} />
+                            ))
+                        )}
                     </div>
                 </div>
             )}
         </div>
     )
+}
+
+function getComponentLabel(type: string): string {
+    const component = allComponentTypes.find(ct => ct.type === type)
+    return component?.label || type
 }
 
 function getDefaultProps(type: string): Record<string, any> {
@@ -346,23 +441,6 @@ function getDefaultProps(type: string): Record<string, any> {
     }
 }
 
-function getComponentLabel(type: string): string {
-    const labels: Record<string, string> = {
-        hero: 'Hero Banner',
-        carousel: '輪播圖',
-        image_text: '圖文組合',
-        image_grid: '圖片組合',
-        text: '文字區塊',
-        text_columns: '文字組合',
-        features: '特色區塊',
-        faq: 'FAQ 問答',
-        product_list: '商品列表',
-        product_category: '商品分類',
-        product_carousel: '商品輪播',
-    }
-    return labels[type] || type
-}
-
 function ComponentEditor({ type, props, onChange }: { type: string; props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
     switch (type) {
         case 'hero':
@@ -392,6 +470,12 @@ function ComponentEditor({ type, props, onChange }: { type: string; props: Recor
                     </div>
                 </div>
             )
+        case 'carousel':
+            return <CarouselEditor props={props} onChange={onChange} />
+        case 'image_text':
+            return <ImageTextEditor props={props} onChange={onChange} />
+        case 'image_grid':
+            return <ImageGridEditor props={props} onChange={onChange} />
         case 'text':
             return (
                 <div>
@@ -405,10 +489,18 @@ function ComponentEditor({ type, props, onChange }: { type: string; props: Recor
                     />
                 </div>
             )
+        case 'text_columns':
+            return <TextColumnsEditor props={props} onChange={onChange} />
         case 'features':
             return <FeaturesEditor props={props} onChange={onChange} />
         case 'faq':
             return <FAQEditor props={props} onChange={onChange} />
+        case 'product_list':
+            return <ProductListEditor props={props} onChange={onChange} />
+        case 'product_category':
+            return <ProductCategoryEditor props={props} onChange={onChange} />
+        case 'product_carousel':
+            return <ProductCarouselEditor props={props} onChange={onChange} />
         default:
             return (
                 <div className="text-zinc-500 text-sm">
@@ -418,6 +510,7 @@ function ComponentEditor({ type, props, onChange }: { type: string; props: Recor
     }
 }
 
+// Features 編輯器
 function FeaturesEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
     const items = props.items || []
 
@@ -469,6 +562,7 @@ function FeaturesEditor({ props, onChange }: { props: Record<string, any>; onCha
     )
 }
 
+// FAQ 編輯器
 function FAQEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
     const items = props.items || []
 

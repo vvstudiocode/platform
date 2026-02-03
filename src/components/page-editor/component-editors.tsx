@@ -1,4 +1,5 @@
 // 完整功能的編輯器元件
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Trash2 } from 'lucide-react'
 
@@ -260,9 +261,29 @@ export function ImageGridEditor({ props, onChange }: { props: Record<string, any
     )
 }
 
-// 5. 商品列表編輯器 - 完整實作
+// 5. 商品列表編輯器 - 動態載入商品
 export function ProductListEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+    const [products, setProducts] = useState<any[]>([])
+    const [categories, setCategories] = useState<string[]>([])
+    const [loading, setLoading] = useState(true)
+    const [searchTerm, setSearchTerm] = useState('')
+    const [filterCategory, setFilterCategory] = useState('')
     const selectedIds = props.productIds || []
+
+    // 載入商品資料
+    useEffect(() => {
+        fetch('/api/products')
+            .then(res => res.json())
+            .then(data => {
+                setProducts(data.products || [])
+                setCategories(data.categories || [])
+                setLoading(false)
+            })
+            .catch(err => {
+                console.error('載入商品失敗:', err)
+                setLoading(false)
+            })
+    }, [])
 
     const toggleProduct = (id: string) => {
         const newIds = selectedIds.includes(id)
@@ -270,6 +291,13 @@ export function ProductListEditor({ props, onChange }: { props: Record<string, a
             : [...selectedIds, id]
         onChange({ productIds: newIds })
     }
+
+    // 篩選商品
+    const filteredProducts = products.filter(p => {
+        const matchSearch = !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        const matchCategory = !filterCategory || p.category === filterCategory
+        return matchSearch && matchCategory
+    })
 
     return (
         <div className="space-y-3">
@@ -295,26 +323,82 @@ export function ProductListEditor({ props, onChange }: { props: Record<string, a
                 </div>
             </div>
 
-            <div>
-                <label className="block text-sm text-zinc-400 mb-2">選擇商品 (ID列表)</label>
-                <textarea
-                    className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white text-sm font-mono"
-                    rows={4}
-                    placeholder="輸入商品ID，每行一個&#10;例如：&#10;uuid-1234&#10;uuid-5678"
-                    value={(props.productIds || []).join('\n')}
-                    onChange={(e) => {
-                        const ids = e.target.value.split('\n').filter(id => id.trim())
-                        onChange({ productIds: ids })
-                    }}
-                />
-                <p className="text-xs text-zinc-500 mt-1">💡 提示：在商品管理頁面複製商品 ID</p>
+            {/* 商品選擇區 */}
+            <div className="border border-zinc-700 rounded-lg overflow-hidden">
+                <div className="p-3 bg-zinc-800 border-b border-zinc-700">
+                    <div className="flex gap-2 mb-2">
+                        <Input
+                            placeholder="搜尋商品..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="flex-1"
+                        />
+                        <select
+                            value={filterCategory}
+                            onChange={(e) => setFilterCategory(e.target.value)}
+                            className="px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white text-sm"
+                        >
+                            <option value="">全部分類</option>
+                            {categories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <p className="text-xs text-zinc-500">已選擇 {selectedIds.length} 個商品</p>
+                </div>
+
+                <div className="max-h-48 overflow-y-auto">
+                    {loading ? (
+                        <div className="p-4 text-center text-zinc-500">載入中...</div>
+                    ) : filteredProducts.length === 0 ? (
+                        <div className="p-4 text-center text-zinc-500">無商品</div>
+                    ) : (
+                        filteredProducts.map(product => (
+                            <label
+                                key={product.id}
+                                className={`flex items-center gap-3 p-2 cursor-pointer hover:bg-zinc-700/50 border-b border-zinc-700/50 last:border-0 ${selectedIds.includes(product.id) ? 'bg-rose-500/10' : ''}`}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={selectedIds.includes(product.id)}
+                                    onChange={() => toggleProduct(product.id)}
+                                    className="accent-rose-500"
+                                />
+                                {product.image_url && (
+                                    <img src={product.image_url} alt="" className="w-8 h-8 object-cover rounded" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm text-white truncate">{product.name}</div>
+                                    <div className="text-xs text-zinc-500">{product.category || '未分類'} · NT${product.price}</div>
+                                </div>
+                            </label>
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     )
 }
 
-// 6. 商品分類編輯器 - 完整實作
+// 6. 商品分類編輯器 - 動態載入分類
 export function ProductCategoryEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+    const [categories, setCategories] = useState<string[]>([])
+    const [loading, setLoading] = useState(true)
+
+    // 載入分類資料
+    useEffect(() => {
+        fetch('/api/products')
+            .then(res => res.json())
+            .then(data => {
+                setCategories(data.categories || [])
+                setLoading(false)
+            })
+            .catch(err => {
+                console.error('載入分類失敗:', err)
+                setLoading(false)
+            })
+    }, [])
+
     return (
         <div className="space-y-3">
             <div>
@@ -322,9 +406,23 @@ export function ProductCategoryEditor({ props, onChange }: { props: Record<strin
                 <Input placeholder="商品分類" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
             </div>
             <div>
-                <label className="block text-sm text-zinc-400 mb-1">分類名稱</label>
-                <Input placeholder="請輸入分類" value={props.category || ''} onChange={(e) => onChange({ category: e.target.value })} />
-                <p className="text-xs text-zinc-500 mt-1">💡 輸入商品的分類名稱（需與商品管理中的分類一致）</p>
+                <label className="block text-sm text-zinc-400 mb-1">選擇分類</label>
+                {loading ? (
+                    <div className="text-sm text-zinc-500">載入中...</div>
+                ) : categories.length === 0 ? (
+                    <div className="text-sm text-zinc-500">尚無分類（請先在商品中設定分類）</div>
+                ) : (
+                    <select
+                        value={props.category || ''}
+                        onChange={(e) => onChange({ category: e.target.value })}
+                        className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white"
+                    >
+                        <option value="">請選擇分類</option>
+                        {categories.map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                    </select>
+                )}
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -351,8 +449,44 @@ export function ProductCategoryEditor({ props, onChange }: { props: Record<strin
     )
 }
 
-// 7. 商品輪播編輯器 - 完整實作
+// 7. 商品輪播編輯器 - 動態載入商品
 export function ProductCarouselEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+    const [products, setProducts] = useState<any[]>([])
+    const [categories, setCategories] = useState<string[]>([])
+    const [loading, setLoading] = useState(true)
+    const [searchTerm, setSearchTerm] = useState('')
+    const [filterCategory, setFilterCategory] = useState('')
+    const selectedIds = props.productIds || []
+
+    // 載入商品資料
+    useEffect(() => {
+        fetch('/api/products')
+            .then(res => res.json())
+            .then(data => {
+                setProducts(data.products || [])
+                setCategories(data.categories || [])
+                setLoading(false)
+            })
+            .catch(err => {
+                console.error('載入商品失敗:', err)
+                setLoading(false)
+            })
+    }, [])
+
+    const toggleProduct = (id: string) => {
+        const newIds = selectedIds.includes(id)
+            ? selectedIds.filter((pid: string) => pid !== id)
+            : [...selectedIds, id]
+        onChange({ productIds: newIds })
+    }
+
+    // 篩選商品
+    const filteredProducts = products.filter(p => {
+        const matchSearch = !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        const matchCategory = !filterCategory || p.category === filterCategory
+        return matchSearch && matchCategory
+    })
+
     return (
         <div className="space-y-3">
             <div>
@@ -360,36 +494,76 @@ export function ProductCarouselEditor({ props, onChange }: { props: Record<strin
                 <Input placeholder="熱門商品" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
             </div>
 
-            <div>
-                <label className="flex items-center gap-2 text-sm text-zinc-400">
-                    <input
-                        type="checkbox"
-                        checked={props.autoplay ?? true}
-                        onChange={(e) => onChange({ autoplay: e.target.checked })}
-                        className="bg-zinc-700 border-zinc-600"
-                    />
-                    自動輪播
-                </label>
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className="flex items-center gap-2 text-sm text-zinc-400">
+                        <input
+                            type="checkbox"
+                            checked={props.autoplay ?? true}
+                            onChange={(e) => onChange({ autoplay: e.target.checked })}
+                            className="bg-zinc-700 border-zinc-600"
+                        />
+                        自動輪播
+                    </label>
+                </div>
+                <div>
+                    <label className="block text-sm text-zinc-400 mb-1">輪播速度 (秒)</label>
+                    <Input type="number" min="1" max="60" value={props.interval || 5} onChange={(e) => onChange({ interval: parseInt(e.target.value) || 5 })} />
+                </div>
             </div>
 
-            <div>
-                <label className="block text-sm text-zinc-400 mb-2">選擇商品 (ID列表)</label>
-                <textarea
-                    className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white text-sm font-mono"
-                    rows={4}
-                    placeholder="輸入商品ID，每行一個&#10;例如：&#10;uuid-1234&#10;uuid-5678"
-                    value={(props.productIds || []).join('\n')}
-                    onChange={(e) => {
-                        const ids = e.target.value.split('\n').filter(id => id.trim())
-                        onChange({ productIds: ids })
-                    }}
-                />
-                <p className="text-xs text-zinc-500 mt-1">💡 提示：在商品管理頁面複製商品 ID</p>
-            </div>
+            {/* 商品選擇區 */}
+            <div className="border border-zinc-700 rounded-lg overflow-hidden">
+                <div className="p-3 bg-zinc-800 border-b border-zinc-700">
+                    <div className="flex gap-2 mb-2">
+                        <Input
+                            placeholder="搜尋商品..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="flex-1"
+                        />
+                        <select
+                            value={filterCategory}
+                            onChange={(e) => setFilterCategory(e.target.value)}
+                            className="px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white text-sm"
+                        >
+                            <option value="">全部分類</option>
+                            {categories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <p className="text-xs text-zinc-500">已選擇 {selectedIds.length} 個商品</p>
+                </div>
 
-            <div>
-                <label className="block text-sm text-zinc-400 mb-1">輪播速度 (秒)</label>
-                <Input type="number" min="1" max="60" value={props.interval || 5} onChange={(e) => onChange({ interval: parseInt(e.target.value) || 5 })} />
+                <div className="max-h-48 overflow-y-auto">
+                    {loading ? (
+                        <div className="p-4 text-center text-zinc-500">載入中...</div>
+                    ) : filteredProducts.length === 0 ? (
+                        <div className="p-4 text-center text-zinc-500">無商品</div>
+                    ) : (
+                        filteredProducts.map(product => (
+                            <label
+                                key={product.id}
+                                className={`flex items-center gap-3 p-2 cursor-pointer hover:bg-zinc-700/50 border-b border-zinc-700/50 last:border-0 ${selectedIds.includes(product.id) ? 'bg-rose-500/10' : ''}`}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={selectedIds.includes(product.id)}
+                                    onChange={() => toggleProduct(product.id)}
+                                    className="accent-rose-500"
+                                />
+                                {product.image_url && (
+                                    <img src={product.image_url} alt="" className="w-8 h-8 object-cover rounded" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm text-white truncate">{product.name}</div>
+                                    <div className="text-xs text-zinc-500">{product.category || '未分類'} · NT${product.price}</div>
+                                </div>
+                            </label>
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     )

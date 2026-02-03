@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu } from 'lucide-react'
 import { CollapsibleSidebar } from '@/components/dashboard/collapsible-sidebar'
 
 interface NavItem {
@@ -11,8 +10,14 @@ interface NavItem {
     label: string
 }
 
+interface NavSection {
+    title: string
+    items: NavItem[]
+}
+
 interface Props {
-    navItems: NavItem[]
+    navItems?: NavItem[]
+    navSections?: NavSection[]
     children: React.ReactNode
 }
 
@@ -24,6 +29,8 @@ import {
     FileText,
     Settings,
     Menu as MenuIcon,
+    Store,
+    Users,
 } from 'lucide-react'
 
 const iconMap: Record<string, any> = {
@@ -33,17 +40,22 @@ const iconMap: Record<string, any> = {
     FileText,
     Settings,
     Menu: MenuIcon,
+    Store,
+    Users,
 }
 
-export function DashboardLayout({ navItems, children }: Props) {
+export function DashboardLayout({ navItems, navSections, children }: Props) {
     const pathname = usePathname()
 
+    // 取得所有導覽項目（用於手機版底部導覽）
+    const allItems: NavItem[] = navSections
+        ? navSections.flatMap(s => s.items)
+        : (navItems || [])
+
     return (
-        <div className="flex flex-1 overflow-hidden relative">
-            {/* 桌面版側邊欄 */}
-            <div className="hidden md:block">
-                <CollapsibleSidebar navItems={navItems} />
-            </div>
+        <div className="flex flex-1 min-h-0">
+            {/* 桌面版側邊欄 - 使用 sticky 確保固定在視窗 */}
+            <CollapsibleSidebar navItems={navItems} navSections={navSections} />
 
             {/* 主內容區 */}
             <main className="flex-1 overflow-auto pb-16 md:pb-0">
@@ -55,8 +67,9 @@ export function DashboardLayout({ navItems, children }: Props) {
             {/* 手機版底部導覽列 */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 z-40">
                 <div className="flex justify-around items-center h-16 px-2">
-                    {navItems.slice(0, 5).map((item) => {
-                        const isActive = pathname === item.href || (item.href !== '/app' && pathname.startsWith(item.href))
+                    {allItems.slice(0, 5).map((item) => {
+                        const isActive = pathname === item.href ||
+                            (item.href !== '/app' && item.href !== '/admin' && pathname.startsWith(item.href))
                         const Icon = iconMap[item.icon] || LayoutDashboard
 
                         return (
