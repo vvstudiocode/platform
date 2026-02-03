@@ -1,7 +1,8 @@
 'use client'
 
 import { useActionState, useState, useEffect } from 'react'
-import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, X, ExternalLink, Plus } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus } from 'lucide-react'
+import { useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,6 +31,8 @@ interface Props {
         slug: string
         is_homepage: boolean
         published: boolean
+        show_in_nav: boolean
+        nav_order: number
         content: PageComponent[]
     }
     updateAction: (prevState: any, formData: FormData) => Promise<{ error?: string }>
@@ -79,6 +82,27 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
     const [dragIndex, setDragIndex] = useState<number | null>(null)
     const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop')
     const [showMobilePreview, setShowMobilePreview] = useState(false)
+    const [settingsCollapsed, setSettingsCollapsed] = useState(true)  // 頁面設定預設收合
+    const [backgroundColor, setBackgroundColor] = useState(page.content?.[0]?.props?.pageBackgroundColor || '#ffffff')
+    const componentListRef = useRef<HTMLDivElement>(null)
+
+    // 滾動到選中的元件
+    const scrollToComponent = (componentId: string) => {
+        const element = document.getElementById(`component-${componentId}`)
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+    }
+
+    // 切換元件展開/收合
+    const toggleComponent = (componentId: string) => {
+        if (selectedComponentId === componentId) {
+            setSelectedComponentId(null)  // 如果已選中則收合
+        } else {
+            setSelectedComponentId(componentId)
+            setTimeout(() => scrollToComponent(componentId), 100)
+        }
+    }
 
     // 彈窗開啟時鎖定 body 滾動
     useEffect(() => {
@@ -188,67 +212,93 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
             <div className="flex-1 flex overflow-hidden">
                 {/* 左側 - 元件列表編輯 */}
                 <div className="w-full md:w-96 bg-zinc-900 md:border-r border-zinc-800 flex flex-col">
-                    {/* 頁面設定 */}
-                    <div className="p-4 border-b border-zinc-800">
-                        <form action={formAction} className="space-y-3">
-                            <h2 className="text-sm font-semibold text-white mb-3">頁面設定</h2>
-                            <div>
-                                <Label htmlFor="title" className="text-xs text-zinc-400">頁面標題</Label>
-                                <Input id="title" name="title" required defaultValue={page.title} className="h-8 text-sm" />
+                    {/* 頁面設定 - 可收合 */}
+                    <div className="border-b border-zinc-800">
+                        <button
+                            type="button"
+                            onClick={() => setSettingsCollapsed(!settingsCollapsed)}
+                            className="w-full flex items-center justify-between p-4 text-sm font-semibold text-white hover:bg-zinc-800/50 transition-colors"
+                        >
+                            <span>頁面設定</span>
+                            <ChevronRight className={`h-4 w-4 transition-transform ${settingsCollapsed ? '' : 'rotate-90'}`} />
+                        </button>
+                        {!settingsCollapsed && (
+                            <div className="px-4 pb-4">
+                                <form action={formAction} className="space-y-3">
+                                    <div>
+                                        <Label htmlFor="title" className="text-xs text-zinc-400">頁面標題</Label>
+                                        <Input id="title" name="title" required defaultValue={page.title} className="h-8 text-sm" />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="slug" className="text-xs text-zinc-400">頁面網址</Label>
+                                        <Input id="slug" name="slug" required defaultValue={page.slug} className="h-8 text-sm" />
+                                    </div>
+                                    <div>
+                                        <Label className="text-xs text-zinc-400">背景顏色</Label>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <input
+                                                type="color"
+                                                value={backgroundColor}
+                                                onChange={(e) => setBackgroundColor(e.target.value)}
+                                                className="w-8 h-8 rounded cursor-pointer bg-transparent border border-zinc-600"
+                                            />
+                                            <Input
+                                                value={backgroundColor}
+                                                onChange={(e) => setBackgroundColor(e.target.value)}
+                                                className="h-8 text-sm flex-1"
+                                                placeholder="#ffffff"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4 text-sm">
+                                        <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                                            <input type="checkbox" name="is_homepage" defaultChecked={page.is_homepage} className="rounded bg-zinc-800 border-zinc-600" />
+                                            設為首頁
+                                        </label>
+                                        <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                                            <input type="checkbox" name="published" defaultChecked={page.published} className="rounded bg-zinc-800 border-zinc-600" />
+                                            發布
+                                        </label>
+                                    </div>
+                                    <Button type="submit" variant="outline" size="sm" className="w-full" disabled={pending}>
+                                        {pending && <Loader2 className="h-3 w-3 mr-2 animate-spin" />}
+                                        更新設定
+                                    </Button>
+                                </form>
                             </div>
-                            <div>
-                                <Label htmlFor="slug" className="text-xs text-zinc-400">頁面網址</Label>
-                                <Input id="slug" name="slug" required defaultValue={page.slug} className="h-8 text-sm" />
-                            </div>
-                            <div className="flex items-center gap-4 text-sm">
-                                <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                    <input type="checkbox" name="is_homepage" defaultChecked={page.is_homepage} className="rounded bg-zinc-800 border-zinc-600" />
-                                    設為首頁
-                                </label>
-                                <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                    <input type="checkbox" name="published" defaultChecked={page.published} className="rounded bg-zinc-800 border-zinc-600" />
-                                    發布
-                                </label>
-                            </div>
-                            <Button type="submit" variant="outline" size="sm" className="w-full" disabled={pending}>
-                                {pending && <Loader2 className="h-3 w-3 mr-2 animate-spin" />}
-                                更新設定
-                            </Button>
-                        </form>
+                        )}
                     </div>
 
                     {/* 元件列表 */}
-                    <div className="flex-1 overflow-y-auto">
-                        <div className="p-4 space-y-3">
-                            <div className="flex items-center justify-between mb-2">
-                                <h2 className="text-sm font-semibold text-white">頁面元件</h2>
-                                <Button onClick={() => setShowAddModal(true)} size="sm" className="h-7 text-xs">
-                                    <Plus className="h-3 w-3 mr-1" />
-                                    新增
-                                </Button>
-                            </div>
+                    <div className="flex-1 overflow-y-auto" ref={componentListRef}>
+                        <div className="p-4 space-y-3 pb-20">
+                            <h2 className="text-sm font-semibold text-white mb-2">頁面元件</h2>
 
                             {components.length === 0 ? (
                                 <div className="text-center py-12 text-zinc-500 text-sm">
-                                    點擊上方按鈕新增元件
+                                    點擊下方按鈕新增元件
                                 </div>
                             ) : (
                                 components.map((component, index) => (
                                     <div
                                         key={component.id}
+                                        id={`component-${component.id}`}
                                         draggable
                                         onDragStart={() => handleDragStart(index)}
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDragEnd={handleDragEnd}
-                                        onClick={() => setSelectedComponentId(component.id)}
-                                        className={`bg-zinc-800 rounded-lg border-2 transition-all cursor-pointer ${selectedComponentId === component.id
+                                        className={`bg-zinc-800 rounded-lg border-2 transition-all ${selectedComponentId === component.id
                                             ? 'border-rose-500'
                                             : 'border-transparent hover:border-zinc-600'
                                             }`}
                                     >
-                                        <div className="flex items-center justify-between p-3 border-b border-zinc-700">
+                                        <div
+                                            className="flex items-center justify-between p-3 cursor-pointer"
+                                            onClick={() => toggleComponent(component.id)}
+                                        >
                                             <div className="flex items-center gap-2">
                                                 <GripVertical className="h-4 w-4 text-zinc-500 cursor-grab" />
+                                                <ChevronRight className={`h-4 w-4 text-zinc-500 transition-transform ${selectedComponentId === component.id ? 'rotate-90' : ''}`} />
                                                 <span className="font-medium text-sm text-white">{getComponentLabel(component.type)}</span>
                                             </div>
                                             <div className="flex items-center gap-1">
@@ -278,7 +328,7 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                                             </div>
                                         </div>
                                         {selectedComponentId === component.id && (
-                                            <div className="p-3">
+                                            <div className="p-3 border-t border-zinc-700">
                                                 <ComponentEditor
                                                     type={component.type}
                                                     props={component.props}
@@ -290,6 +340,14 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                                 ))
                             )}
                         </div>
+                    </div>
+
+                    {/* 新增按鈕 - 固定在底部 */}
+                    <div className="sticky bottom-0 p-4 bg-zinc-900 border-t border-zinc-800">
+                        <Button onClick={() => setShowAddModal(true)} className="w-full">
+                            <Plus className="h-4 w-4 mr-2" />
+                            新增元件
+                        </Button>
                     </div>
                 </div>
 
@@ -478,15 +536,58 @@ function ComponentEditor({ type, props, onChange }: { type: string; props: Recor
             return <ImageGridEditor props={props} onChange={onChange} />
         case 'text':
             return (
-                <div>
-                    <label className="block text-sm text-zinc-400 mb-1">內容</label>
-                    <textarea
-                        className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white placeholder:text-zinc-400"
-                        rows={4}
-                        placeholder="輸入內容..."
-                        value={props.content || ''}
-                        onChange={(e) => onChange({ content: e.target.value })}
-                    />
+                <div className="space-y-3">
+                    <div>
+                        <label className="block text-sm text-zinc-400 mb-1">內容</label>
+                        <textarea
+                            className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white placeholder:text-zinc-400"
+                            rows={4}
+                            placeholder="輸入內容..."
+                            value={props.content || ''}
+                            onChange={(e) => onChange({ ...props, content: e.target.value })}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-sm text-zinc-400 mb-1">文字對齊</label>
+                            <div className="flex gap-1 bg-zinc-700 p-1 rounded-lg">
+                                {[
+                                    { value: 'left', label: '左' },
+                                    { value: 'center', label: '中' },
+                                    { value: 'right', label: '右' },
+                                ].map((align) => (
+                                    <button
+                                        key={align.value}
+                                        type="button"
+                                        onClick={() => onChange({ ...props, textAlign: align.value })}
+                                        className={`flex-1 py-1.5 text-xs rounded transition-colors ${(props.textAlign || 'left') === align.value
+                                            ? 'bg-rose-500 text-white'
+                                            : 'text-zinc-400 hover:text-white'
+                                            }`}
+                                    >
+                                        {align.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm text-zinc-400 mb-1">文字顏色</label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="color"
+                                    value={props.textColor || '#374151'}
+                                    onChange={(e) => onChange({ ...props, textColor: e.target.value })}
+                                    className="w-8 h-8 rounded cursor-pointer bg-transparent border border-zinc-600"
+                                />
+                                <Input
+                                    value={props.textColor || '#374151'}
+                                    onChange={(e) => onChange({ ...props, textColor: e.target.value })}
+                                    className="h-8 text-sm flex-1"
+                                    placeholder="#374151"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )
         case 'text_columns':

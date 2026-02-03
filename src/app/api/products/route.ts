@@ -7,7 +7,10 @@ export async function GET(request: NextRequest) {
     try {
         const supabase = await createClient()
         const cookieStore = await cookies()
-        const tenantId = cookieStore.get('tenant_id')?.value
+
+        // 支援從 URL 參數或 cookie 獲取 tenant_id
+        const { searchParams } = new URL(request.url)
+        const tenantId = searchParams.get('tenantId') || cookieStore.get('tenant_id')?.value
 
         if (!tenantId) {
             return NextResponse.json({ error: '未選擇商店' }, { status: 400 })
