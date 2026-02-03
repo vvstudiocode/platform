@@ -6,7 +6,8 @@ import {
     LogOut,
     ExternalLink,
 } from 'lucide-react'
-import { CollapsibleSidebar } from '@/components/dashboard/collapsible-sidebar'
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
+
 
 export default async function AppLayout({
     children,
@@ -77,12 +78,9 @@ export default async function AppLayout({
                     </form>
                 </div>
             </header>
-            <div className="flex flex-1">
-                <CollapsibleSidebar navItems={navItems} />
-                <main className="flex-1 p-8 overflow-auto">
-                    {children}
-                </main>
-            </div>
+            <DashboardLayout navItems={navItems}>
+                {children}
+            </DashboardLayout>
         </div>
     )
 }

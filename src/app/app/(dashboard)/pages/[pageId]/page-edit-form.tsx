@@ -78,6 +78,7 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
     const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null)
     const [dragIndex, setDragIndex] = useState<number | null>(null)
     const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop')
+    const [showMobilePreview, setShowMobilePreview] = useState(false)
 
     // 彈窗開啟時鎖定 body 滾動
     useEffect(() => {
@@ -152,11 +153,19 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                     <h1 className="text-xl font-bold text-white">{page.title}</h1>
                 </div>
                 <div className="flex items-center gap-2">
+                    {/* 手機版預覽按鈕 */}
+                    <button
+                        onClick={() => setShowMobilePreview(true)}
+                        className="md:hidden flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg"
+                    >
+                        <Eye className="h-4 w-4" />
+                        預覽
+                    </button>
                     {storeSlug && page.published && (
                         <Link
                             href={`/store/${storeSlug}/${page.slug}`}
                             target="_blank"
-                            className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg"
+                            className="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg"
                         >
                             <ExternalLink className="h-4 w-4" />
                             查看頁面
@@ -178,7 +187,7 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
             {/* 主內容區 - 左右分割 */}
             <div className="flex-1 flex overflow-hidden">
                 {/* 左側 - 元件列表編輯 */}
-                <div className="w-96 bg-zinc-900 border-r border-zinc-800 flex flex-col">
+                <div className="w-full md:w-96 bg-zinc-900 md:border-r border-zinc-800 flex flex-col">
                     {/* 頁面設定 */}
                     <div className="p-4 border-b border-zinc-800">
                         <form action={formAction} className="space-y-3">
@@ -285,8 +294,8 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                 </div>
 
 
-                {/* 右側 - 預覽 */}
-                <div className="flex-1 bg-white overflow-y-auto">
+                {/* 右側 - 預覽（僅桌面版顯示） */}
+                <div className="hidden md:block flex-1 bg-white overflow-y-auto">
                     <div className="sticky top-0 bg-zinc-100 px-4 py-2 border-b z-10 flex items-center justify-between">
                         <span className="text-sm font-medium text-zinc-700">預覽</span>
                         <div className="flex items-center gap-1 bg-zinc-200 rounded-lg p-1">
@@ -365,6 +374,32 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                                 ))}
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 手機版全螢幕預覽 */}
+            {showMobilePreview && (
+                <div className="md:hidden fixed inset-0 z-50 bg-white flex flex-col">
+                    <div className="flex items-center justify-between px-4 py-3 bg-zinc-900 border-b border-zinc-800">
+                        <span className="text-white font-medium">頁面預覽</span>
+                        <button
+                            onClick={() => setShowMobilePreview(false)}
+                            className="p-2 text-zinc-400 hover:text-white"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4">
+                        {components.length === 0 ? (
+                            <div className="text-center py-20 text-zinc-400">
+                                尚無內容
+                            </div>
+                        ) : (
+                            components.map((component) => (
+                                <ComponentPreview key={component.id} type={component.type} props={component.props} />
+                            ))
+                        )}
                     </div>
                 </div>
             )}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -11,8 +11,9 @@ import {
     ShoppingCart,
     FileText,
     Settings,
-    Menu,
-    LucideIcon
+    Menu as MenuIcon,
+    LucideIcon,
+    X
 } from 'lucide-react'
 
 // 圖示映射表
@@ -22,7 +23,7 @@ const iconMap: Record<string, LucideIcon> = {
     ShoppingCart,
     FileText,
     Settings,
-    Menu,
+    Menu: MenuIcon,
 }
 
 interface NavItem {
@@ -36,41 +37,26 @@ interface Props {
 }
 
 export function CollapsibleSidebar({ navItems }: Props) {
-    const [collapsed, setCollapsed] = useState(false)
     const pathname = usePathname()
 
     return (
-        <aside className={`${collapsed ? 'w-16' : 'w-56'} border-r border-zinc-800 bg-zinc-900 p-4 overflow-y-auto transition-all duration-300 relative`}>
-            {/* 收合按鈕 */}
-            <button
-                onClick={() => setCollapsed(!collapsed)}
-                className="absolute -right-3 top-4 z-10 p-1.5 bg-zinc-800 border border-zinc-700 rounded-full hover:bg-zinc-700 transition-colors"
-                title={collapsed ? '展開' : '收合'}
-            >
-                {collapsed ? (
-                    <ChevronRight className="h-4 w-4 text-zinc-400" />
-                ) : (
-                    <ChevronLeft className="h-4 w-4 text-zinc-400" />
-                )}
-            </button>
-
+        <aside className="w-64 border-r border-zinc-800 bg-zinc-900 px-4 py-6 overflow-y-auto h-full hidden md:flex md:flex-col">
             <nav className="space-y-1">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || (item.href !== '/app' && pathname.startsWith(item.href))
-                    const Icon = iconMap[item.icon] || LayoutDashboard  // 獲取對應的圖示組件
+                    const Icon = iconMap[item.icon] || LayoutDashboard
 
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${isActive
-                                ? 'bg-rose-500/20 text-rose-400'
-                                : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${isActive
+                                ? 'bg-rose-500/10 text-rose-500'
+                                : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-100'
                                 }`}
-                            title={collapsed ? item.label : ''}
                         >
-                            <Icon className="h-4 w-4 flex-shrink-0" />
-                            {!collapsed && <span className="truncate">{item.label}</span>}
+                            <Icon className="h-5 w-5 flex-shrink-0" />
+                            <span className="font-medium">{item.label}</span>
                         </Link>
                     )
                 })}
