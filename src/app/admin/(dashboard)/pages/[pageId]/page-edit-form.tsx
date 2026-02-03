@@ -16,6 +16,7 @@ import {
     ProductCategoryEditor,
     ProductCarouselEditor
 } from '@/components/page-editor/component-editors'
+import { PageContentRenderer } from '@/components/store/page-content-renderer'
 import { updatePageContent } from '../actions'
 
 interface PageComponent {
