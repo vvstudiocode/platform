@@ -262,7 +262,7 @@ export function ImageGridEditor({ props, onChange }: { props: Record<string, any
 }
 
 // 5. 商品列表編輯器 - 動態載入商品
-export function ProductListEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+export function ProductListEditor({ props, onChange, tenantId }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void; tenantId?: string }) {
     const [products, setProducts] = useState<any[]>([])
     const [categories, setCategories] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
@@ -272,7 +272,8 @@ export function ProductListEditor({ props, onChange }: { props: Record<string, a
 
     // 載入商品資料
     useEffect(() => {
-        fetch('/api/products')
+        const url = tenantId ? `/api/products?tenantId=${tenantId}` : '/api/products'
+        fetch(url)
             .then(res => res.json())
             .then(data => {
                 setProducts(data.products || [])
@@ -283,7 +284,7 @@ export function ProductListEditor({ props, onChange }: { props: Record<string, a
                 console.error('載入商品失敗:', err)
                 setLoading(false)
             })
-    }, [])
+    }, [tenantId])
 
     const toggleProduct = (id: string) => {
         const newIds = selectedIds.includes(id)
@@ -381,13 +382,14 @@ export function ProductListEditor({ props, onChange }: { props: Record<string, a
 }
 
 // 6. 商品分類編輯器 - 動態載入分類
-export function ProductCategoryEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+export function ProductCategoryEditor({ props, onChange, tenantId }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void; tenantId?: string }) {
     const [categories, setCategories] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
 
     // 載入分類資料
     useEffect(() => {
-        fetch('/api/products')
+        const url = tenantId ? `/api/products?tenantId=${tenantId}` : '/api/products'
+        fetch(url)
             .then(res => res.json())
             .then(data => {
                 setCategories(data.categories || [])
@@ -397,7 +399,7 @@ export function ProductCategoryEditor({ props, onChange }: { props: Record<strin
                 console.error('載入分類失敗:', err)
                 setLoading(false)
             })
-    }, [])
+    }, [tenantId])
 
     return (
         <div className="space-y-3">
@@ -450,7 +452,7 @@ export function ProductCategoryEditor({ props, onChange }: { props: Record<strin
 }
 
 // 7. 商品輪播編輯器 - 動態載入商品
-export function ProductCarouselEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+export function ProductCarouselEditor({ props, onChange, tenantId }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void; tenantId?: string }) {
     const [products, setProducts] = useState<any[]>([])
     const [categories, setCategories] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
@@ -460,7 +462,8 @@ export function ProductCarouselEditor({ props, onChange }: { props: Record<strin
 
     // 載入商品資料
     useEffect(() => {
-        fetch('/api/products')
+        const url = tenantId ? `/api/products?tenantId=${tenantId}` : '/api/products'
+        fetch(url)
             .then(res => res.json())
             .then(data => {
                 setProducts(data.products || [])
@@ -471,7 +474,7 @@ export function ProductCarouselEditor({ props, onChange }: { props: Record<strin
                 console.error('載入商品失敗:', err)
                 setLoading(false)
             })
-    }, [])
+    }, [tenantId])
 
     const toggleProduct = (id: string) => {
         const newIds = selectedIds.includes(id)

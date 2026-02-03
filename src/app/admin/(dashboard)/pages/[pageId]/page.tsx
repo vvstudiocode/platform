@@ -36,6 +36,7 @@ export default async function EditPagePage({ params }: Props) {
                 content: (page.content as any[]) || [],
             }}
             updateAction={boundUpdatePage}
+            tenantId={page.tenant_id}
         />
     )
 }

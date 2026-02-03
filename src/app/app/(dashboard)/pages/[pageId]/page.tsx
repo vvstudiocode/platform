@@ -47,10 +47,13 @@ export default async function EditPagePage({ params }: Props) {
                 slug: page.slug,
                 is_homepage: page.is_homepage,
                 published: page.published,
+                show_in_nav: page.show_in_nav ?? false,
+                nav_order: page.nav_order ?? 0,
                 content: (page.content as any[]) || [],
             }}
             updateAction={boundUpdatePage}
             storeSlug={storeSlug}
+            tenantId={tenantId}
         />
     )
 }

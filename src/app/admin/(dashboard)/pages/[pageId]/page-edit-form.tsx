@@ -37,6 +37,7 @@ interface Props {
     }
     updateAction: (prevState: any, formData: FormData) => Promise<{ error?: string }>
     storeSlug?: string
+    tenantId?: string
 }
 
 // 元件分類定義
@@ -73,7 +74,7 @@ const componentCategories = [
 const allComponentTypes = componentCategories.flatMap(cat => cat.components)
 
 
-export function PageEditForm({ page, updateAction, storeSlug }: Props) {
+export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props) {
     const [state, formAction, pending] = useActionState(updateAction, { error: '' })
     const [components, setComponents] = useState<PageComponent[]>(page.content || [])
     const [saving, setSaving] = useState(false)
@@ -270,7 +271,7 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                     </div>
 
                     {/* 元件列表 */}
-                    <div className="flex-1 overflow-y-auto" ref={componentListRef}>
+                    <div className="flex-1 overflow-y-auto scrollbar-hide" ref={componentListRef}>
                         <div className="p-4 space-y-3 pb-20">
                             <h2 className="text-sm font-semibold text-white mb-2">頁面元件</h2>
 
@@ -333,6 +334,7 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                                                     type={component.type}
                                                     props={component.props}
                                                     onChange={(props) => updateComponent(component.id, props)}
+                                                    tenantId={tenantId}
                                                 />
                                             </div>
                                         )}
@@ -353,7 +355,7 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
 
 
                 {/* 右側 - 預覽（僅桌面版顯示） */}
-                <div className="hidden md:block flex-1 bg-white overflow-y-auto">
+                <div className="hidden md:block flex-1 bg-white overflow-y-auto scrollbar-hide">
                     <div className="sticky top-0 bg-zinc-100 px-4 py-2 border-b z-10 flex items-center justify-between">
                         <span className="text-sm font-medium text-zinc-700">預覽</span>
                         <div className="flex items-center gap-1 bg-zinc-200 rounded-lg p-1">
@@ -406,7 +408,7 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                                 <X className="h-6 w-6" />
                             </button>
                         </div>
-                        <div className="p-6 overflow-y-auto">
+                        <div className="p-6 overflow-y-auto scrollbar-hide">
                             <div className="space-y-8">
                                 {componentCategories.map((category) => (
                                     <div key={category.name}>
@@ -448,7 +450,7 @@ export function PageEditForm({ page, updateAction, storeSlug }: Props) {
                             <X className="h-5 w-5" />
                         </button>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex-1 overflow-y-auto scrollbar-hide p-4">
                         {components.length === 0 ? (
                             <div className="text-center py-20 text-zinc-400">
                                 尚無內容
@@ -499,7 +501,7 @@ function getDefaultProps(type: string): Record<string, any> {
     }
 }
 
-function ComponentEditor({ type, props, onChange }: { type: string; props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+function ComponentEditor({ type, props, onChange, tenantId }: { type: string; props: Record<string, any>; onChange: (props: Record<string, any>) => void; tenantId?: string }) {
     switch (type) {
         case 'hero':
             return (
@@ -561,8 +563,8 @@ function ComponentEditor({ type, props, onChange }: { type: string; props: Recor
                                         type="button"
                                         onClick={() => onChange({ ...props, textAlign: align.value })}
                                         className={`flex-1 py-1.5 text-xs rounded transition-colors ${(props.textAlign || 'left') === align.value
-                                                ? 'bg-rose-500 text-white'
-                                                : 'text-zinc-400 hover:text-white'
+                                            ? 'bg-rose-500 text-white'
+                                            : 'text-zinc-400 hover:text-white'
                                             }`}
                                     >
                                         {align.label}
@@ -597,11 +599,11 @@ function ComponentEditor({ type, props, onChange }: { type: string; props: Recor
         case 'faq':
             return <FAQEditor props={props} onChange={onChange} />
         case 'product_list':
-            return <ProductListEditor props={props} onChange={onChange} />
+            return <ProductListEditor props={props} onChange={onChange} tenantId={tenantId} />
         case 'product_category':
-            return <ProductCategoryEditor props={props} onChange={onChange} />
+            return <ProductCategoryEditor props={props} onChange={onChange} tenantId={tenantId} />
         case 'product_carousel':
-            return <ProductCarouselEditor props={props} onChange={onChange} />
+            return <ProductCarouselEditor props={props} onChange={onChange} tenantId={tenantId} />
         default:
             return (
                 <div className="text-zinc-500 text-sm">
