@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
             .from('products')
             .select('id, name, category, price, image_url, status')
             .eq('tenant_id', tenantId)
-            .eq('status', 'active')
             .order('sort_order', { ascending: true })
 
         if (productsError) {

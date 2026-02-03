@@ -298,7 +298,17 @@ export function ProductListEditor({ props, onChange, tenantId }: { props: Record
         const matchSearch = !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase())
         const matchCategory = !filterCategory || p.category === filterCategory
         return matchSearch && matchCategory
+        return matchSearch && matchCategory
     })
+
+    const handleSelectAll = () => {
+        if (selectedIds.length === filteredProducts.length) {
+            onChange({ productIds: [] })
+        } else {
+            const allIds = filteredProducts.map(p => p.id)
+            onChange({ productIds: allIds })
+        }
+    }
 
     return (
         <div className="space-y-3">
@@ -345,7 +355,16 @@ export function ProductListEditor({ props, onChange, tenantId }: { props: Record
                             ))}
                         </select>
                     </div>
-                    <p className="text-xs text-zinc-500">已選擇 {selectedIds.length} 個商品</p>
+                    <div className="flex items-center justify-between text-xs text-zinc-500">
+                        <span>已選擇 {selectedIds.length} 個商品</span>
+                        <button
+                            type="button"
+                            onClick={handleSelectAll}
+                            className="text-rose-500 hover:text-rose-400 font-medium"
+                        >
+                            {selectedIds.length === filteredProducts.length && filteredProducts.length > 0 ? '取消全選' : '全選'}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="max-h-48 overflow-y-auto">
@@ -488,7 +507,17 @@ export function ProductCarouselEditor({ props, onChange, tenantId }: { props: Re
         const matchSearch = !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase())
         const matchCategory = !filterCategory || p.category === filterCategory
         return matchSearch && matchCategory
+        return matchSearch && matchCategory
     })
+
+    const handleSelectAll = () => {
+        if (selectedIds.length === filteredProducts.length) {
+            onChange({ productIds: [] })
+        } else {
+            const allIds = filteredProducts.map(p => p.id)
+            onChange({ productIds: allIds })
+        }
+    }
 
     return (
         <div className="space-y-3">
@@ -536,7 +565,16 @@ export function ProductCarouselEditor({ props, onChange, tenantId }: { props: Re
                             ))}
                         </select>
                     </div>
-                    <p className="text-xs text-zinc-500">已選擇 {selectedIds.length} 個商品</p>
+                    <div className="flex items-center justify-between text-xs text-zinc-500">
+                        <span>已選擇 {selectedIds.length} 個商品</span>
+                        <button
+                            type="button"
+                            onClick={handleSelectAll}
+                            className="text-rose-500 hover:text-rose-400 font-medium"
+                        >
+                            {selectedIds.length === filteredProducts.length && filteredProducts.length > 0 ? '取消全選' : '全選'}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="max-h-48 overflow-y-auto">

@@ -181,8 +181,8 @@ export function ProductDetailClient({ store, product }: Props) {
                                                         [optionName]: value
                                                     }))}
                                                     className={`px-4 py-2 border rounded-lg text-sm ${selectedOptions[optionName] === value
-                                                            ? 'border-rose-500 bg-rose-50 text-rose-600'
-                                                            : 'border-gray-300 hover:border-gray-400'
+                                                        ? 'border-rose-500 bg-rose-50 text-rose-600'
+                                                        : 'border-gray-300 hover:border-gray-400'
                                                         }`}
                                                 >
                                                     {value}
@@ -197,14 +197,11 @@ export function ProductDetailClient({ store, product }: Props) {
                         {/* Stock */}
                         <div>
                             {currentStock > 0 ? (
-                                <p className="text-sm text-gray-500">
-                                    庫存：{currentStock} 件
-                                    {currentStock <= 5 && (
-                                        <span className="text-amber-600 ml-2">（即將售完）</span>
-                                    )}
+                                <p className="text-sm text-green-600 font-medium my-2">
+                                    現貨供應中
                                 </p>
                             ) : (
-                                <p className="text-sm text-red-500 font-medium">已售完</p>
+                                <p className="text-sm text-red-500 font-medium my-2">已售完</p>
                             )}
                         </div>
 
@@ -234,10 +231,10 @@ export function ProductDetailClient({ store, product }: Props) {
                             onClick={handleAddToCart}
                             disabled={currentStock === 0}
                             className={`w-full py-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${isAdded
-                                    ? 'bg-green-500 text-white'
-                                    : currentStock > 0
-                                        ? 'bg-rose-500 text-white hover:bg-rose-600'
-                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                ? 'bg-green-500 text-white'
+                                : currentStock > 0
+                                    ? 'bg-rose-500 text-white hover:bg-rose-600'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                 }`}
                         >
                             {isAdded ? (

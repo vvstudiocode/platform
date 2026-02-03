@@ -45,9 +45,9 @@ function ProductCard({ product, storeSlug }: { product: any; storeSlug: string }
                     <div className="text-2xl font-bold text-rose-600">
                         NT$ {product.price.toLocaleString()}
                     </div>
-                    {product.stock > 0 && product.stock <= 5 && (
-                        <div className="text-xs text-orange-600">剩 {product.stock} 件</div>
-                    )}
+                    {product.stock <= 0 ? (
+                        <div className="text-sm font-medium text-red-500">已售完</div>
+                    ) : null}
                 </div>
             </div>
         </Link>
@@ -260,6 +260,7 @@ export function ProductCarouselBlock({
                 .in('id', productIds)
 
             if (!preview) {
+                // query = query.eq('status', 'active') // 暫時移除狀態檢查以解決預覽問題，或者只在非預覽時檢查
                 query = query.eq('status', 'active')
             }
 
