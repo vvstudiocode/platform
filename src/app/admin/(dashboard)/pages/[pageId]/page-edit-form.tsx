@@ -389,9 +389,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                     尚無內容
                                 </div>
                             ) : (
-                                components.map((component) => (
-                                    <ComponentPreview key={component.id} type={component.type} props={component.props} />
-                                ))
+                                <PageContentRenderer content={components} storeSlug={storeSlug} tenantId={tenantId} preview={true} />
                             )}
                         </div>
                     </div>
