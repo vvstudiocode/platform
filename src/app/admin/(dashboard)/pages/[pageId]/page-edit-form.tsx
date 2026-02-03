@@ -646,10 +646,58 @@ function ComponentPreview({ type, props }: { type: string; props: Record<string,
                     </div>
                 </div>
             )
+        case 'carousel':
+            return (
+                <div className="py-4 mb-4 bg-gray-100 rounded-lg">
+                    <div className="flex items-center justify-center h-32 bg-gray-200 rounded-lg mx-4">
+                        <div className="text-center text-gray-500">
+                            <div className="text-2xl mb-2">🖼️</div>
+                            <div>輪播圖 ({(props.slides || []).length} 張)</div>
+                        </div>
+                    </div>
+                </div>
+            )
+        case 'image_text':
+            return (
+                <div className="py-4 mb-4 flex gap-4 bg-gray-50 rounded-lg p-4">
+                    <div className="w-1/2 h-24 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
+                        {props.imageUrl ? <img src={props.imageUrl} alt="" className="w-full h-full object-cover rounded-lg" /> : '圖片'}
+                    </div>
+                    <div className="w-1/2">
+                        <h3 className="font-bold text-gray-800">{props.title || '標題'}</h3>
+                        <p className="text-sm text-gray-500">{props.text || '文字內容'}</p>
+                    </div>
+                </div>
+            )
+        case 'image_grid':
+            return (
+                <div className="py-4 mb-4 bg-gray-50 rounded-lg p-4">
+                    <div className="grid grid-cols-3 gap-2">
+                        {(props.images || [{ url: '' }, { url: '' }, { url: '' }]).slice(0, 6).map((img: any, i: number) => (
+                            <div key={i} className="h-16 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
+                                {img.url ? <img src={img.url} alt="" className="w-full h-full object-cover rounded" /> : `圖${i + 1}`}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )
         case 'text':
             return (
                 <div className="py-6 px-4 mb-4">
                     <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{props.content || '內容'}</p>
+                </div>
+            )
+        case 'text_columns':
+            return (
+                <div className="py-4 mb-4 bg-gray-50 rounded-lg p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        {(props.columns || [{ title: '欄位 1', content: '內容' }, { title: '欄位 2', content: '內容' }]).map((col: any, i: number) => (
+                            <div key={i} className="p-3 bg-white rounded border border-gray-200">
+                                <h4 className="font-medium text-gray-800">{col.title}</h4>
+                                <p className="text-sm text-gray-500">{col.content}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )
         case 'features':
@@ -681,7 +729,49 @@ function ComponentPreview({ type, props }: { type: string; props: Record<string,
                     </div>
                 </div>
             )
+        case 'product_list':
+            return (
+                <div className="py-4 mb-4 bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-bold text-gray-800 mb-3">{props.title || '商品列表'}</h3>
+                    <div className="grid grid-cols-4 gap-2">
+                        {Array.from({ length: Math.min((props.productIds || []).length || 4, 4) }).map((_, i) => (
+                            <div key={i} className="h-16 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
+                                商品 {i + 1}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-2">已選 {(props.productIds || []).length} 個商品</div>
+                </div>
+            )
+        case 'product_category':
+            return (
+                <div className="py-4 mb-4 bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-bold text-gray-800 mb-2">分類商品</h3>
+                    <div className="text-sm text-gray-500">分類: {props.category || '未選擇'}</div>
+                    <div className="grid grid-cols-3 gap-2 mt-3">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
+                                商品
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )
+        case 'product_carousel':
+            return (
+                <div className="py-4 mb-4 bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-bold text-gray-800 mb-2">{props.title || '商品輪播'}</h3>
+                    <div className="flex gap-2 overflow-hidden">
+                        {Array.from({ length: Math.min((props.productIds || []).length || 3, 4) }).map((_, i) => (
+                            <div key={i} className="w-20 h-20 flex-shrink-0 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
+                                商品 {i + 1}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-2">已選 {(props.productIds || []).length} 個商品</div>
+                </div>
+            )
         default:
-            return <div className="py-4 text-gray-400">未知元件</div>
+            return <div className="py-4 text-gray-400">未知元件: {type}</div>
     }
 }
