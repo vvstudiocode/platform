@@ -72,6 +72,31 @@ export default async function ProductDetailPage({ params }: Props) {
         notFound()
     }
 
+    // 取得導覽項目
+    const { data: navItems } = await supabase
+        .from('nav_items')
+        .select('id, title, page_id, parent_id, position, pages(slug)')
+        .eq('tenant_id', store.id)
+        .order('position', { ascending: true })
+
+    // 取得首頁 slug
+    const { data: homepage } = await supabase
+        .from('pages')
+        .select('slug')
+        .eq('tenant_id', store.id)
+        .eq('is_homepage', true)
+        .eq('published', true)
+        .single()
+
+    const navMenuItems = (navItems || []).map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        slug: item.pages?.slug || '',
+        is_homepage: false,
+        parent_id: item.parent_id,
+        position: item.position
+    }))
+
     return (
         <ProductDetailClient
             store={{ name: store.name, slug: store.slug }}
@@ -87,6 +112,8 @@ export default async function ProductDetailPage({ params }: Props) {
                 options: (product.options as Record<string, string[]>) || {},
                 variants: (product.variants as any[]) || [],
             }}
+            navItems={navMenuItems}
+            homeSlug={homepage?.slug}
         />
     )
 }

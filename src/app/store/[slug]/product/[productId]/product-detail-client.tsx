@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useCart } from '@/lib/cart-context'
-import { ArrowLeft, Minus, Plus, ShoppingCart, Check } from 'lucide-react'
+import { Minus, Plus, ShoppingCart, Check } from 'lucide-react'
 import Link from 'next/link'
 import { CartSidebar } from '@/components/store/cart-sidebar'
+import { SiteHeader } from '@/components/site-header'
 
 interface Props {
     store: {
@@ -28,9 +29,18 @@ interface Props {
             [key: string]: any
         }>
     }
+    navItems?: Array<{
+        id: string
+        title: string
+        slug: string
+        is_homepage: boolean
+        parent_id?: string | null
+        position: number
+    }>
+    homeSlug?: string
 }
 
-export function ProductDetailClient({ store, product }: Props) {
+export function ProductDetailClient({ store, product, navItems, homeSlug }: Props) {
     const { addItem, getItemCount, setStoreSlug } = useCart()
     const [quantity, setQuantity] = useState(1)
     const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
@@ -90,30 +100,13 @@ export function ProductDetailClient({ store, product }: Props) {
     return (
         <div className="min-h-screen bg-white">
             {/* Navbar */}
-            <nav className="sticky top-0 z-30 bg-white border-b border-gray-100">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        <Link
-                            href={`/store/${store.slug}`}
-                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-                        >
-                            <ArrowLeft className="h-5 w-5" />
-                            <span className="font-medium">{store.name}</span>
-                        </Link>
-                        <button
-                            onClick={() => setIsCartOpen(true)}
-                            className="relative p-2 text-gray-500 hover:text-gray-900"
-                        >
-                            <ShoppingCart className="h-5 w-5" />
-                            {mounted && getItemCount() > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                                    {getItemCount()}
-                                </span>
-                            )}
-                        </button>
-                    </div>
-                </div>
-            </nav>
+            <SiteHeader
+                storeName={store.name}
+                logoUrl={null} // Modify if logo is available in props
+                navItems={navItems || []}
+                homeSlug={homeSlug}
+                basePath={`/store/${store.slug}`}
+            />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid md:grid-cols-2 gap-8">
@@ -194,60 +187,54 @@ export function ProductDetailClient({ store, product }: Props) {
                             </div>
                         )}
 
-                        {/* Stock */}
-                        <div>
-                            {currentStock > 0 ? (
-                                <p className="text-sm text-green-600 font-medium my-2">
-                                    現貨供應中
-                                </p>
-                            ) : (
-                                <p className="text-sm text-red-500 font-medium my-2">已售完</p>
-                            )}
-                        </div>
-
-                        {/* Quantity */}
+                        {/* Quantity Selector */}
                         <div className="flex items-center gap-4">
-                            <span className="text-sm text-gray-600">數量：</span>
-                            <div className="flex items-center border border-gray-300 rounded-lg">
+                            <span className="text-sm font-medium text-gray-700">數量：</span>
+                            <div className="flex items-center rounded-md border border-gray-300">
                                 <button
-                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="p-2 hover:bg-gray-100"
+                                    onClick={() => quantity > 1 && setQuantity(quantity - 1)}
+                                    className="px-3 py-1 text-gray-600 hover:text-black disabled:opacity-50"
+                                    disabled={currentStock <= 0}
                                 >
                                     <Minus className="h-4 w-4" />
                                 </button>
-                                <span className="px-4 py-2 font-medium">{quantity}</span>
+                                <span className="px-2 text-sm font-medium text-gray-900 min-w-[2rem] text-center">
+                                    {quantity}
+                                </span>
                                 <button
-                                    onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
-                                    disabled={quantity >= currentStock}
-                                    className="p-2 hover:bg-gray-100 disabled:opacity-50"
+                                    onClick={() => quantity < currentStock && setQuantity(quantity + 1)}
+                                    className="px-3 py-1 text-gray-600 hover:text-black disabled:opacity-50"
+                                    disabled={currentStock <= 0 || quantity >= currentStock}
                                 >
                                     <Plus className="h-4 w-4" />
                                 </button>
                             </div>
                         </div>
 
-                        {/* Add to Cart */}
-                        <button
-                            onClick={handleAddToCart}
-                            disabled={currentStock === 0}
-                            className={`w-full py-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${isAdded
-                                ? 'bg-green-500 text-white'
-                                : currentStock > 0
-                                    ? 'bg-rose-500 text-white hover:bg-rose-600'
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
-                        >
-                            {isAdded ? (
-                                <>
-                                    <Check className="h-5 w-5" />
-                                    已加入購物車
-                                </>
-                            ) : currentStock > 0 ? (
-                                '加入購物車'
-                            ) : (
-                                '已售完'
-                            )}
-                        </button>
+                        {/* Action Buttons */}
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={handleAddToCart}
+                                disabled={currentStock <= 0}
+                                className={`w-full py-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${isAdded
+                                    ? 'bg-green-500 text-white'
+                                    : currentStock > 0
+                                        ? 'bg-rose-500 hover:bg-rose-600 text-white'
+                                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                    }`}
+                            >
+                                {isAdded ? (
+                                    <>
+                                        <Check className="h-5 w-5" />
+                                        已加入購物車
+                                    </>
+                                ) : currentStock > 0 ? (
+                                    '加入購物車'
+                                ) : (
+                                    '已售完'
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </main>

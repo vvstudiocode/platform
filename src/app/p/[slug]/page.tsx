@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { SiteHeader } from '@/components/site-header'
+import { PageContentRenderer } from '@/components/store/page-content-renderer'
 
 interface Props {
     params: Promise<{ slug: string }>
@@ -50,7 +51,7 @@ export default async function HQPageRoute({ params }: Props) {
     // 取得總部商店
     const { data: hqStore } = await supabase
         .from('tenants')
-        .select('id, name, logo_url')
+        .select('id, name, slug, logo_url')
         .eq('slug', 'hq')
         .single()
 
@@ -74,15 +75,18 @@ export default async function HQPageRoute({ params }: Props) {
     // 從 nav_items 取得導覽選單項目
     const { data: navItems } = await supabase
         .from('nav_items')
-        .select('title, page_id, pages(slug)')
+        .select('id, title, page_id, parent_id, position, pages(slug)')
         .eq('tenant_id', hqStore.id)
         .order('position', { ascending: true })
 
     // 轉換成 SiteHeader 需要的格式
     const navMenuItems = (navItems || []).map((item: any) => ({
+        id: item.id, // Ensure ID is passed if used for key; though mapping usually uses slug/title.
         title: item.title,
         slug: item.pages?.slug || '',
         is_homepage: false,
+        parent_id: item.parent_id,
+        position: item.position
     }))
 
     // 取得設定的首頁
@@ -110,35 +114,11 @@ export default async function HQPageRoute({ params }: Props) {
             <main className="max-w-4xl mx-auto px-4 py-12">
                 <h1 className="text-4xl font-bold mb-8">{page.title}</h1>
 
-                {content.map((block: any, index: number) => (
-                    <div key={index} className="mb-6">
-                        {block.type === 'text' && (
-                            <p className="text-gray-700 leading-relaxed">{block.content}</p>
-                        )}
-                        {block.type === 'heading' && (
-                            <h2 className="text-2xl font-semibold mt-8 mb-4">{block.content}</h2>
-                        )}
-                        {block.type === 'image' && (
-                            <img src={block.url} alt={block.alt || ''} className="w-full rounded-lg" />
-                        )}
-                        {block.type === 'hero' && (
-                            <div
-                                className="relative py-20 px-8 rounded-lg overflow-hidden"
-                                style={{
-                                    backgroundImage: block.props?.backgroundUrl ? `url(${block.props.backgroundUrl})` : undefined,
-                                    backgroundColor: block.props?.backgroundUrl ? undefined : '#1f2937',
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
-                                }}
-                            >
-                                <div className="text-center">
-                                    <h2 className="text-3xl font-bold text-white mb-2">{block.props?.title}</h2>
-                                    <p className="text-lg text-gray-300">{block.props?.subtitle}</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ))}
+                <PageContentRenderer
+                    content={content}
+                    storeSlug={hqStore.slug}
+                    tenantId={hqStore.id}
+                />
             </main>
 
             {/* Footer */}

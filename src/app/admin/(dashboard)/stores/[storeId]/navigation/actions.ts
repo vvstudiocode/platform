@@ -69,14 +69,17 @@ export async function removeStoreNavItem(storeId: string, navItemId: string) {
 }
 
 // 更新排序（拖拉後）
-export async function updateStoreNavOrder(storeId: string, items: { id: string; position: number }[]) {
+export async function updateStoreNavOrder(storeId: string, items: { id: string; position: number; parent_id: string | null }[]) {
     const supabase = await createClient()
 
-    // 批次更新所有項目的 position
+    // 批次更新所有項目的 position 和 parent_id
     for (const item of items) {
         await supabase
             .from('nav_items')
-            .update({ position: item.position })
+            .update({
+                position: item.position,
+                parent_id: item.parent_id
+            })
             .eq('id', item.id)
     }
 

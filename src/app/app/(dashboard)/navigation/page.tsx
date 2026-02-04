@@ -27,7 +27,7 @@ export default async function AppNavigationPage() {
     // 取得目前的導覽項目
     const { data: navItems } = await supabase
         .from('nav_items')
-        .select('id, title, position, page_id, pages(title, slug)')
+        .select('id, title, position, page_id, parent_id, pages(title, slug)')
         .eq('tenant_id', storeId)
         .order('position', { ascending: true })
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useCart } from '@/lib/cart-context'
 import { CartSidebar } from '@/components/store/cart-sidebar'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
-import { ResponsiveNav } from '@/components/store/responsive-nav'
+import { SiteHeader } from '@/components/site-header'
 import { StoreFooter } from '@/components/store/store-footer'
 
 interface Props {
@@ -16,7 +16,7 @@ interface Props {
             primaryColor?: string
         }
         footerSettings?: any
-        id: string  // 加入 tenantId
+        id: string
     }
     page: {
         title: string
@@ -26,12 +26,16 @@ interface Props {
         id: string
         title: string
         page_id: string
+        slug?: string
+        parent_id?: string | null
+        position: number
         pages?: { slug: string } | null
     }>
+    homeSlug?: string
 }
 
 
-export function HomePageClient({ store, page, navItems }: Props) {
+export function HomePageClient({ store, page, navItems, homeSlug }: Props) {
     const { setStoreSlug } = useCart()
     const [isCartOpen, setIsCartOpen] = useState(false)
 
@@ -40,19 +44,24 @@ export function HomePageClient({ store, page, navItems }: Props) {
     }, [store.slug, setStoreSlug])
 
     // 準備導覽項目
-    const navigation = navItems.map(item => ({
-        name: item.title,
-        href: `/store/${store.slug}/${item.pages?.slug || ''}`
+    const navMenuItems = navItems.map(item => ({
+        id: item.id,
+        title: item.title,
+        slug: item.pages?.slug || '',
+        is_homepage: false,
+        parent_id: item.parent_id,
+        position: item.position
     }))
 
     return (
         <div className="min-h-screen bg-white flex flex-col">
             {/* 響應式導覽列 */}
-            <ResponsiveNav
+            <SiteHeader
                 storeName={store.name}
-                storeSlug={store.slug}
-                navigation={navigation}
-                logo={store.logoUrl || undefined}
+                logoUrl={store.logoUrl || undefined}
+                navItems={navMenuItems}
+                homeSlug={homeSlug}
+                basePath={`/store/${store.slug}`}
             />
 
             {/* 頁面內容 */}

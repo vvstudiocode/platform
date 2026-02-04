@@ -73,17 +73,44 @@ export async function POST(request: NextRequest) {
             })
         }
 
+        // Calculate totals IF not provided (backward compatibility) OR trust admin provided?
+        // Admin modal provides full calculation.
+        // We can trust 'shippingFee', 'discountValue', 'total' if provided.
+        // But for safety, we should probably minimally validate or just save what admin says.
+        // Let's use the provided values if available, otherwise fallback to auto-calc (old behavior).
+
+        let finalShippingFee = 0
+        let finalSubtotal = bodySubtotal !== undefined ? bodySubtotal : subtotal // Use provided subtotal if available
+        let finalTotal = 0
+
         // 計算運費
-        const settings = store.settings as {
-            shippingFees?: Record<string, number>
-        } || {}
-        const shippingFees = settings.shippingFees || {
-            pickup: 0,
-            '711': 60,
-            home: 100,
+        if (shippingFee !== undefined) {
+            finalShippingFee = shippingFee
+        } else {
+            const settings = store.settings as {
+                shippingFees?: Record<string, number>
+            } || {}
+            const shippingFeesConfig = settings.shippingFees || {
+                pickup: 0,
+                '711': 60,
+                home: 100,
+            }
+            finalShippingFee = shippingFeesConfig[shippingMethod] || 0
         }
-        const shippingFee = shippingFees[shippingMethod] || 0
-        const total = subtotal + shippingFee
+
+        // Calculate total if not provided
+        if (bodyTotal !== undefined) {
+            finalTotal = bodyTotal
+        } else {
+            finalTotal = finalSubtotal + finalShippingFee
+            // Apply discount if not provided in bodyTotal
+            if (discountType === 'percentage' && discountValue) {
+                finalTotal -= finalTotal * (discountValue / 100)
+            } else if (discountType === 'fixed' && discountValue) {
+                finalTotal -= discountValue
+            }
+            finalTotal = Math.max(0, finalTotal) // Ensure total is not negative
+        }
 
         // 生成訂單編號
         const orderNumber = generateOrderNumber()
@@ -99,14 +126,17 @@ export async function POST(request: NextRequest) {
                 customer_email: customerEmail || null,
                 customer_line_id: customerLineId || null,
                 shipping_method: shippingMethod,
-                shipping_fee: shippingFee,
+                shipping_fee: finalShippingFee,
                 store_name: storeName || null,
                 store_code: storeCode || null,
                 store_address: storeAddress || null,
-                items: orderItems,
-                subtotal,
-                total,
+                items: orderItems, // Use calculated orderItems for product details
+                subtotal: finalSubtotal,
+                total: finalTotal,
+                total_amount: finalTotal,
                 notes: notes || null,
+                discount_type: discountType || null, // New field
+                discount_value: discountValue || null, // New field
             })
             .select()
             .single()

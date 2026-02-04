@@ -53,6 +53,19 @@ export default async function StorePagesPage({ params }: Props) {
                 </Link>
             </div>
 
+            {/* Default Homepage Notice */}
+            {!pages?.some(p => p.is_homepage) && (
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 flex items-center gap-3">
+                    <Home className="h-5 w-5 text-blue-400" />
+                    <div>
+                        <p className="text-blue-400 font-medium">目前使用的是預設商品列表首頁</p>
+                        <p className="text-blue-400/80 text-sm">
+                            若要自訂首頁內容，請建立一個新頁面，並在編輯時勾選「設為首頁」。
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {pages && pages.length > 0 ? (
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900 divide-y divide-zinc-800">
                     {pages.map((page) => (
@@ -77,8 +90,8 @@ export default async function StorePagesPage({ params }: Props) {
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className={`text-xs px-2 py-1 rounded ${page.published
-                                        ? 'bg-emerald-500/20 text-emerald-400'
-                                        : 'bg-zinc-500/20 text-zinc-400'
+                                    ? 'bg-emerald-500/20 text-emerald-400'
+                                    : 'bg-zinc-500/20 text-zinc-400'
                                     }`}>
                                     {page.published ? '已發佈' : '草稿'}
                                 </span>

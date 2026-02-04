@@ -8,6 +8,8 @@ interface NavItem {
     title: string
     slug: string
     is_homepage: boolean
+    parent_id?: string | null
+    position: number
 }
 
 interface SiteHeaderProps {
@@ -24,6 +26,30 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
     // 首頁連結：如果有設定首頁則連到該頁面，否則連到基本路徑
     const homePath = homeSlug ? `${basePath}/p/${homeSlug}` : (basePath || '/')
 
+    // Build recursive tree for navigation
+    const navTree = navItems.reduce<any[]>((acc, item: any) => {
+        if (!item.parent_id) {
+            acc.push({ ...item, children: [] })
+        }
+        return acc
+    }, [])
+
+    // Populate children
+    navItems.forEach((item: any) => {
+        if (item.parent_id) {
+            const parent = navTree.find((p: any) => p.id === item.parent_id)
+            if (parent) {
+                parent.children.push(item)
+            }
+        }
+    })
+
+    // Sort
+    navTree.sort((a, b) => a.position - b.position)
+    navTree.forEach(node => {
+        node.children.sort((a: any, b: any) => a.position - b.position)
+    })
+
     return (
         <header className="border-b bg-white sticky top-0 z-50">
             <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -36,18 +62,33 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                 </Link>
 
                 {/* Desktop Navigation */}
-                <nav className="hidden md:flex gap-6">
-                    <Link href={homePath} className="text-gray-600 hover:text-black transition-colors">
-                        首頁
-                    </Link>
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.slug}
-                            href={`${basePath}/p/${item.slug}`}
-                            className="text-gray-600 hover:text-black transition-colors"
-                        >
-                            {item.title}
-                        </Link>
+                <nav className="hidden md:flex gap-8">
+                    {navTree.map((item) => (
+                        <div key={item.slug} className="relative group">
+                            <Link
+                                href={`${basePath}/p/${item.slug}`}
+                                className="text-gray-600 hover:text-black transition-colors py-2 inline-flex items-center gap-1"
+                            >
+                                {item.title}
+                            </Link>
+
+                            {/* Dropdown */}
+                            {item.children && item.children.length > 0 && (
+                                <div className="absolute top-full left-0 mt-0 w-48 bg-white border border-gray-100 shadow-lg rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50">
+                                    <div className="py-1">
+                                        {item.children.map((child: any) => (
+                                            <Link
+                                                key={child.slug}
+                                                href={`${basePath}/p/${child.slug}`}
+                                                className="block px-4 py-2 text-sm text-gray-600 hover:text-black hover:bg-gray-50 bg-white"
+                                            >
+                                                {child.title}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     ))}
                 </nav>
 
@@ -65,22 +106,30 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
             {isMenuOpen && (
                 <div className="md:hidden border-t bg-white">
                     <nav className="flex flex-col px-4 py-2">
-                        <Link
-                            href={homePath}
-                            className="py-3 text-gray-600 hover:text-black border-b border-gray-100"
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            首頁
-                        </Link>
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.slug}
-                                href={`${basePath}/p/${item.slug}`}
-                                className="py-3 text-gray-600 hover:text-black border-b border-gray-100"
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                {item.title}
-                            </Link>
+                        {navTree.map((item) => (
+                            <div key={item.slug}>
+                                <Link
+                                    href={`${basePath}/p/${item.slug}`}
+                                    className="block py-3 text-gray-600 hover:text-black border-b border-gray-100"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    {item.title}
+                                </Link>
+                                {item.children && item.children.length > 0 && (
+                                    <div className="pl-4 bg-gray-50/50">
+                                        {item.children.map((child: any) => (
+                                            <Link
+                                                key={child.slug}
+                                                href={`${basePath}/p/${child.slug}`}
+                                                className="block py-3 text-sm text-gray-500 hover:text-black border-b border-gray-100 last:border-0"
+                                                onClick={() => setIsMenuOpen(false)}
+                                            >
+                                                {child.title}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         ))}
                     </nav>
                 </div>

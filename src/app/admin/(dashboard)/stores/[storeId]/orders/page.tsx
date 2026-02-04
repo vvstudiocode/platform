@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Package, ClipboardList, Clock, CheckCircle, Truck, XCircle, DollarSign, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { OrderTable } from '@/components/admin/order-table'
+import { OrderFormModal } from '@/components/admin/order-form-modal'
 
 interface Props {
     params: Promise<{ storeId: string }>
@@ -40,6 +42,13 @@ export default async function StoreOrdersPage({ params, searchParams }: Props) {
 
     const { data: orders } = await query
 
+    // 取得商品列表供新增訂單使用
+    const { data: products } = await supabase
+        .from('products')
+        .select('id, name, price, stock')
+        .eq('tenant_id', storeId)
+        .order('name')
+
     const statusConfig: Record<string, { icon: typeof Clock; label: string; color: string }> = {
         pending: { icon: Clock, label: '待付款', color: 'text-amber-400 bg-amber-500/20' },
         paid: { icon: DollarSign, label: '已付款', color: 'text-emerald-400 bg-emerald-500/20' },
@@ -72,6 +81,11 @@ export default async function StoreOrdersPage({ params, searchParams }: Props) {
                     <h1 className="text-2xl font-bold text-white">訂單管理</h1>
                     <p className="text-zinc-400 text-sm mt-1">共 {orders?.length || 0} 筆訂單</p>
                 </div>
+                <OrderFormModal
+                    storeId={storeId}
+                    storeSlug={store.slug}
+                    products={products || []}
+                />
             </div>
 
             {/* Status Filters */}
@@ -85,8 +99,8 @@ export default async function StoreOrdersPage({ params, searchParams }: Props) {
                             variant="outline"
                             size="sm"
                             className={`border-zinc-700 ${(status === filter.value || (!status && filter.value === 'all'))
-                                    ? 'bg-white text-black hover:bg-white'
-                                    : 'text-zinc-300 hover:text-white'
+                                ? 'bg-white text-black hover:bg-white'
+                                : 'text-zinc-300 hover:text-white'
                                 }`}
                         >
                             {filter.label}
@@ -97,60 +111,12 @@ export default async function StoreOrdersPage({ params, searchParams }: Props) {
 
             {orders && orders.length > 0 ? (
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
-                    <table className="w-full">
-                        <thead className="bg-zinc-800/50">
-                            <tr className="text-left">
-                                <th className="px-4 py-3 text-xs font-medium text-zinc-400">訂單編號</th>
-                                <th className="px-4 py-3 text-xs font-medium text-zinc-400">客戶</th>
-                                <th className="px-4 py-3 text-xs font-medium text-zinc-400">金額</th>
-                                <th className="px-4 py-3 text-xs font-medium text-zinc-400">狀態</th>
-                                <th className="px-4 py-3 text-xs font-medium text-zinc-400">時間</th>
-                                <th className="px-4 py-3 text-xs font-medium text-zinc-400 text-right">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-zinc-800">
-                            {orders.map((order) => {
-                                const config = statusConfig[order.status] || statusConfig.pending
-                                const StatusIcon = config.icon
-                                return (
-                                    <tr key={order.id} className="hover:bg-zinc-800/30">
-                                        <td className="px-4 py-3">
-                                            <p className="font-mono text-sm text-white">{order.order_number}</p>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <div>
-                                                <p className="text-white">{order.customer_name}</p>
-                                                <p className="text-xs text-zinc-500">{order.customer_phone}</p>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <p className="text-white font-medium">
-                                                NT$ {Number(order.total).toLocaleString()}
-                                            </p>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs ${config.color}`}>
-                                                <StatusIcon className="h-3 w-3" />
-                                                {config.label}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <p className="text-sm text-zinc-400">
-                                                {new Date(order.created_at).toLocaleDateString('zh-TW')}
-                                            </p>
-                                        </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <Link href={`/admin/stores/${storeId}/orders/${order.id}`}>
-                                                <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">
-                                                    查看
-                                                </Button>
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                        </tbody>
-                    </table>
+                    <OrderTable
+                        orders={orders}
+                        products={products || []}
+                        storeId={storeId}
+                        isHQ={false}
+                    />
                 </div>
             ) : (
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-12 text-center">

@@ -36,7 +36,7 @@ export default async function StorefrontPage({ params }: Props) {
         // 取得導覽項目
         const { data: navItems } = await supabase
             .from('nav_items')
-            .select('id, title, page_id, pages(slug)')
+            .select('id, title, page_id, parent_id, position, pages(slug)')
             .eq('tenant_id', store.id)
             .order('position', { ascending: true })
 
@@ -55,6 +55,7 @@ export default async function StorefrontPage({ params }: Props) {
                     content: (homepage.content as any[]) || [],
                 }}
                 navItems={(navItems || []) as any}
+                homeSlug={homepage.slug}
             />
         )
     }

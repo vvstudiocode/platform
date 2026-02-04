@@ -4,6 +4,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { ShoppingCart } from 'lucide-react'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
+import { SiteHeader } from '@/components/site-header'
 
 interface Props {
     params: Promise<{ slug: string; pageSlug: string }>
@@ -70,44 +71,44 @@ export default async function StoreCustomPage({ params }: Props) {
         notFound()
     }
 
+    // 取得導覽項目
     const { data: navItems } = await supabase
         .from('nav_items')
-        .select('id, title, page_id, pages(slug)')
+        .select('id, title, page_id, parent_id, position, pages(slug)')
         .eq('tenant_id', store.id)
         .order('position', { ascending: true })
+
+    // 取得首頁 slug
+    const { data: homepage } = await supabase
+        .from('pages')
+        .select('slug')
+        .eq('tenant_id', store.id)
+        .eq('is_homepage', true)
+        .eq('published', true)
+        .single()
+
+    const navMenuItems = (navItems || []).map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        slug: item.pages?.slug || '',
+        is_homepage: false,
+        parent_id: item.parent_id,
+        position: item.position
+    }))
 
     const content = (page.content as any[]) || []
 
     return (
         <div className="min-h-screen bg-white">
             {/* Header */}
-            <header className="border-b bg-white sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-                    <Link href={`/store/${store.slug}`} className="flex items-center gap-2">
-                        {store.logo_url && (
-                            <img src={store.logo_url} alt="" className="h-8 w-8 rounded" />
-                        )}
-                        <span className="text-xl font-bold">{store.name}</span>
-                    </Link>
-                    <nav className="hidden md:flex items-center gap-6">
-                        <Link href={`/store/${store.slug}`} className="text-gray-600 hover:text-black">
-                            首頁
-                        </Link>
-                        {(navItems || []).map((item: any) => (
-                            <Link
-                                key={item.id}
-                                href={`/store/${store.slug}/${item.pages?.slug}`}
-                                className={`text-gray-600 hover:text-black ${pageSlug === item.pages?.slug ? 'font-medium text-black' : ''}`}
-                            >
-                                {item.title}
-                            </Link>
-                        ))}
-                    </nav>
-                    <Link href={`/store/${store.slug}/checkout`} className="p-2 hover:bg-gray-100 rounded-lg">
-                        <ShoppingCart className="h-5 w-5" />
-                    </Link>
-                </div>
-            </header>
+            {/* Header */}
+            <SiteHeader
+                storeName={store.name}
+                logoUrl={store.logo_url}
+                navItems={navMenuItems}
+                homeSlug={homepage?.slug}
+                basePath={`/store/${store.slug}`}
+            />
 
 
             {/* 頁面內容 - 使用統一的渲染元件 */}
