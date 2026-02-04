@@ -62,7 +62,7 @@ export default async function HQPageRoute({ params }: Props) {
     // 取得頁面內容
     const { data: page } = await supabase
         .from('pages')
-        .select('*')
+        .select('*, background_color')
         .eq('tenant_id', hqStore.id)
         .eq('slug', slug)
         .eq('published', true)
@@ -111,19 +111,20 @@ export default async function HQPageRoute({ params }: Props) {
             />
 
             {/* Page Content */}
-            <main className="max-w-4xl mx-auto px-4 py-12">
+            <main className="max-w-[1200px] mx-auto px-4 py-12">
                 <h1 className="text-4xl font-bold mb-8">{page.title}</h1>
 
                 <PageContentRenderer
                     content={content}
                     storeSlug={hqStore.slug}
                     tenantId={hqStore.id}
+                    backgroundColor={page.background_color}
                 />
             </main>
 
             {/* Footer */}
             <footer className="border-t bg-gray-50 py-8">
-                <div className="max-w-6xl mx-auto px-4 text-center text-gray-500 text-sm">
+                <div className="max-w-[1200px] mx-auto px-4 text-center text-gray-500 text-sm">
                     © {new Date().getFullYear()} {hqStore.name}. All rights reserved.
                 </div>
             </footer>

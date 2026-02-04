@@ -61,7 +61,7 @@ export default async function StoreCustomPage({ params }: Props) {
 
     const { data: page } = await supabase
         .from('pages')
-        .select('*')
+        .select('*, background_color')
         .eq('tenant_id', store.id)
         .eq('slug', pageSlug)
         .eq('published', true)
@@ -112,14 +112,14 @@ export default async function StoreCustomPage({ params }: Props) {
 
 
             {/* 頁面內容 - 使用統一的渲染元件 */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <h1 className="text-3xl font-bold text-gray-900 mb-6">{page.title}</h1>
-                <PageContentRenderer content={(page.content as any[]) || []} storeSlug={store.slug} tenantId={store.id} />
+                <PageContentRenderer content={(page.content as any[]) || []} storeSlug={store.slug} tenantId={store.id} backgroundColor={page.background_color} />
             </main>
 
             {/* Footer */}
             <footer className="border-t bg-gray-50 py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
+                <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
                     © {new Date().getFullYear()} {store.name}. All rights reserved.
                 </div>
             </footer>

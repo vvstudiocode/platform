@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Trash2 } from 'lucide-react'
+import { ResponsiveControls } from './responsive-controls'
 
 // 1. 輪播圖編輯器 - 整合圖片上傳
 export function CarouselEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
@@ -316,23 +317,18 @@ export function ProductListEditor({ props, onChange, tenantId }: { props: Record
                 <label className="block text-sm text-zinc-400 mb-1">區塊標題</label>
                 <Input placeholder="精選商品" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-                <div>
-                    <label className="block text-sm text-zinc-400 mb-1">佈局</label>
-                    <select
-                        value={props.layout || 'grid'}
-                        onChange={(e) => onChange({ layout: e.target.value })}
-                        className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white"
-                    >
-                        <option value="grid">網格</option>
-                        <option value="list">列表</option>
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm text-zinc-400 mb-1">欄數</label>
-                    <Input type="number" min="1" max="4" value={props.columns || 3} onChange={(e) => onChange({ columns: parseInt(e.target.value) || 3 })} />
-                </div>
-            </div>
+
+            <ResponsiveControls
+                layout={{
+                    desktop: props.layoutDesktop || props.layout || 'grid',
+                    mobile: props.layoutMobile || 'grid'
+                }}
+                columns={{
+                    desktop: props.columnsDesktop || props.columns || 3,
+                    mobile: props.columnsMobile || 1
+                }}
+                onChange={onChange}
+            />
 
             {/* 商品選擇區 */}
             <div className="border border-zinc-700 rounded-lg overflow-hidden">
@@ -450,22 +446,19 @@ export function ProductCategoryEditor({ props, onChange, tenantId }: { props: Re
                     <label className="block text-sm text-zinc-400 mb-1">顯示數量</label>
                     <Input type="number" min="1" max="50" value={props.limit || 8} onChange={(e) => onChange({ limit: parseInt(e.target.value) || 8 })} />
                 </div>
-                <div>
-                    <label className="block text-sm text-zinc-400 mb-1">佈局</label>
-                    <select
-                        value={props.layout || 'grid'}
-                        onChange={(e) => onChange({ layout: e.target.value })}
-                        className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white"
-                    >
-                        <option value="grid">網格</option>
-                        <option value="list">列表</option>
-                    </select>
-                </div>
             </div>
-            <div>
-                <label className="block text-sm text-zinc-400 mb-1">網格欄數</label>
-                <Input type="number" min="2" max="4" value={props.columns || 3} onChange={(e) => onChange({ columns: parseInt(e.target.value) || 3 })} />
-            </div>
+
+            <ResponsiveControls
+                layout={{
+                    desktop: props.layoutDesktop || props.layout || 'grid',
+                    mobile: props.layoutMobile || 'grid'
+                }}
+                columns={{
+                    desktop: props.columnsDesktop || props.columns || 3,
+                    mobile: props.columnsMobile || 1
+                }}
+                onChange={onChange}
+            />
         </div>
     )
 }

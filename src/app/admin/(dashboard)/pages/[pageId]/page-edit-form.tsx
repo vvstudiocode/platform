@@ -34,6 +34,7 @@ interface Props {
         published: boolean
         show_in_nav: boolean
         nav_order: number
+        background_color?: string
         content: PageComponent[]
     }
     updateAction: (prevState: any, formData: FormData) => Promise<{ error?: string }>
@@ -86,7 +87,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
     const [showMobilePreview, setShowMobilePreview] = useState(false)
     const [isSaved, setIsSaved] = useState(false)
     const [settingsCollapsed, setSettingsCollapsed] = useState(true)  // 頁面設定預設收合
-    const [backgroundColor, setBackgroundColor] = useState(page.content?.[0]?.props?.pageBackgroundColor || '#ffffff')
+    const [backgroundColor, setBackgroundColor] = useState(page.background_color || '#ffffff')
     const componentListRef = useRef<HTMLDivElement>(null)
 
     // 滾動到選中的元件
@@ -263,6 +264,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                                 className="w-8 h-8 rounded cursor-pointer bg-transparent border border-zinc-600"
                                             />
                                             <Input
+                                                name="background_color"
                                                 value={backgroundColor}
                                                 onChange={(e) => setBackgroundColor(e.target.value)}
                                                 className="h-8 text-sm flex-1"
@@ -408,7 +410,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                     尚無內容
                                 </div>
                             ) : (
-                                <PageContentRenderer content={components} storeSlug={storeSlug} tenantId={tenantId} preview={true} />
+                                <PageContentRenderer content={components} storeSlug={storeSlug} tenantId={tenantId} preview={true} backgroundColor={backgroundColor} />
                             )}
                         </div>
                     </div>

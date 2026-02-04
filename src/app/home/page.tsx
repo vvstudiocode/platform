@@ -24,7 +24,7 @@ export default async function HomePage() {
     // 取得設定的首頁
     const { data: homepage } = await supabase
         .from('pages')
-        .select('*')
+        .select('*, background_color')
         .eq('tenant_id', hqStore.id)
         .eq('is_homepage', true)
         .eq('published', true)
@@ -68,16 +68,17 @@ export default async function HomePage() {
                 homeSlug={homepage.slug}
             />
 
-            <main className="max-w-4xl mx-auto px-4 py-12">
+            <main className="max-w-[1200px] mx-auto px-4 py-12">
                 <PageContentRenderer
                     content={content}
                     storeSlug={hqStore.slug}
                     tenantId={hqStore.id}
+                    backgroundColor={homepage.background_color}
                 />
             </main>
 
             <footer className="border-t bg-gray-50 py-8">
-                <div className="max-w-6xl mx-auto px-4 text-center text-gray-500 text-sm">
+                <div className="max-w-[1200px] mx-auto px-4 text-center text-gray-500 text-sm">
                     © {new Date().getFullYear()} {hqStore.name}. All rights reserved.
                 </div>
             </footer>

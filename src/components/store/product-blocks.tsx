@@ -58,8 +58,12 @@ function ProductCard({ product, storeSlug }: { product: any; storeSlug: string }
 export function ProductListBlock({
     productIds,
     title,
-    layout = 'grid',
-    columns = 3,
+    layout, // Legacy fallback
+    columns, // Legacy fallback
+    layoutDesktop,
+    columnsDesktop,
+    layoutMobile,
+    columnsMobile,
     storeSlug,
     preview
 }: {
@@ -67,9 +71,14 @@ export function ProductListBlock({
     title?: string
     layout?: 'grid' | 'list'
     columns?: number
+    layoutDesktop?: 'grid' | 'list'
+    columnsDesktop?: number
+    layoutMobile?: 'grid' | 'list'
+    columnsMobile?: number
     storeSlug: string
     preview?: boolean
 }) {
+    // ... setup state ...
     const [products, setProducts] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
@@ -93,7 +102,6 @@ export function ProductListBlock({
             const { data } = await query
 
             if (data) {
-                // 按照 productIds 的順序排列
                 const sorted = productIds
                     .map(id => data.find(p => p.id === id))
                     .filter(Boolean)
@@ -122,14 +130,33 @@ export function ProductListBlock({
         )
     }
 
+    // Default Settings
+    const dLayout = layoutDesktop || layout || 'grid'
+    const dCols = columnsDesktop || columns || 3
+    const mLayout = layoutMobile || 'grid'
+    const mCols = columnsMobile || 1
+
+    // Build Responsive Classes
+    let className = ''
+
+    // Mobile Base
+    if (mLayout === 'list') {
+        className += 'flex flex-col gap-4 '
+    } else {
+        className += `grid grid-cols-${mCols} gap-4 `
+    }
+
+    // Desktop Override
+    if (dLayout === 'list') {
+        className += 'md:flex md:flex-col md:gap-6 '
+    } else {
+        className += `md:grid md:gap-6 md:grid-cols-${dCols} `
+    }
+
     return (
         <div className="py-8 space-y-6">
             {title && <h2 className="text-3xl font-bold text-gray-900">{title}</h2>}
-            <div className={
-                layout === 'grid'
-                    ? `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-${columns} gap-6`
-                    : 'space-y-4'
-            }>
+            <div className={className}>
                 {products.map((product) => (
                     <ProductCard key={product.id} product={product} storeSlug={storeSlug} />
                 ))}
@@ -143,8 +170,12 @@ export function ProductCategoryBlock({
     category,
     title,
     limit = 8,
-    layout = 'grid',
-    columns = 3,
+    layout,
+    columns,
+    layoutDesktop,
+    columnsDesktop,
+    layoutMobile,
+    columnsMobile,
     storeSlug,
     tenantId,
     preview
@@ -154,6 +185,10 @@ export function ProductCategoryBlock({
     limit?: number
     layout?: 'grid' | 'list'
     columns?: number
+    layoutDesktop?: 'grid' | 'list'
+    columnsDesktop?: number
+    layoutMobile?: 'grid' | 'list'
+    columnsMobile?: number
     storeSlug: string
     tenantId: string
     preview?: boolean
@@ -210,14 +245,33 @@ export function ProductCategoryBlock({
         )
     }
 
+    // Default Settings
+    const dLayout = layoutDesktop || layout || 'grid'
+    const dCols = columnsDesktop || columns || 3
+    const mLayout = layoutMobile || 'grid'
+    const mCols = columnsMobile || 1
+
+    // Build Responsive Classes
+    let className = ''
+
+    // Mobile Base
+    if (mLayout === 'list') {
+        className += 'flex flex-col gap-4 '
+    } else {
+        className += `grid grid-cols-${mCols} gap-4 `
+    }
+
+    // Desktop Override
+    if (dLayout === 'list') {
+        className += 'md:flex md:flex-col md:gap-6 '
+    } else {
+        className += `md:grid md:gap-6 md:grid-cols-${dCols} `
+    }
+
     return (
         <div className="py-8 space-y-6">
             {title && <h2 className="text-3xl font-bold text-gray-900">{title}</h2>}
-            <div className={
-                layout === 'grid'
-                    ? `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-${columns} gap-6`
-                    : 'space-y-4'
-            }>
+            <div className={className}>
                 {products.map((product) => (
                     <ProductCard key={product.id} product={product} storeSlug={storeSlug} />
                 ))}

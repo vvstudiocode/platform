@@ -46,7 +46,7 @@ export function StorefrontClient({ store, products }: Props) {
         <div className="min-h-screen bg-white">
             {/* Navbar */}
             <nav className="sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <Link href={`/store/${store.slug}`} className="flex items-center gap-3">
                             {settings.logoUrl ? (
@@ -76,7 +76,7 @@ export function StorefrontClient({ store, products }: Props) {
             </nav>
 
             {/* Products */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <h2 className="text-2xl font-bold text-gray-900 mb-8">所有商品</h2>
 
                 {products && products.length > 0 ? (
@@ -127,7 +127,7 @@ export function StorefrontClient({ store, products }: Props) {
 
             {/* Footer */}
             <footer className="bg-gray-50 border-t border-gray-100 py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <p className="text-gray-500 text-sm">
                         © {new Date().getFullYear()} {store.name}. All rights reserved.
                     </p>

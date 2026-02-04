@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Settings, Bell, Shield, Database } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -6,26 +7,10 @@ export default function SettingsPage() {
             icon: Settings,
             title: '一般設定',
             description: '平台基本設定與配置',
-            status: '即將推出',
+            status: '已啟用',
+            href: '/admin/settings/general'
         },
-        {
-            icon: Bell,
-            title: '通知設定',
-            description: '設定 Email 與推播通知',
-            status: '即將推出',
-        },
-        {
-            icon: Shield,
-            title: '安全設定',
-            description: '密碼、雙因素驗證等',
-            status: '即將推出',
-        },
-        {
-            icon: Database,
-            title: '資料庫管理',
-            description: '資料備份與匯出',
-            status: '即將推出',
-        },
+        // ...
     ]
 
     return (
@@ -37,21 +22,40 @@ export default function SettingsPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
                 {settingSections.map((section) => (
-                    <div
-                        key={section.title}
-                        className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 opacity-60"
-                    >
-                        <div className="flex items-start justify-between">
-                            <section.icon className="h-6 w-6 text-zinc-400" />
-                            <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-1 rounded">
-                                {section.status}
-                            </span>
+                    section.href ? (
+                        <Link key={section.title} href={section.href}>
+                            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 hover:bg-zinc-800/50 transition-colors cursor-pointer h-full">
+                                <div className="flex items-start justify-between">
+                                    <section.icon className="h-6 w-6 text-zinc-400" />
+                                    <span className="text-xs bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded">
+                                        {section.status}
+                                    </span>
+                                </div>
+                                <h3 className="font-semibold text-white mt-4">{section.title}</h3>
+                                <p className="text-sm text-zinc-500 mt-1">{section.description}</p>
+                            </div>
+                        </Link>
+                    ) : (
+                        <div
+                            key={section.title}
+                            className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 opacity-60"
+                        >
+                            <div className="flex items-start justify-between">
+                                <section.icon className="h-6 w-6 text-zinc-400" />
+                                <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-1 rounded">
+                                    {section.status}
+                                </span>
+                            </div>
+                            <h3 className="font-semibold text-white mt-4">{section.title}</h3>
+                            <p className="text-sm text-zinc-500 mt-1">{section.description}</p>
                         </div>
-                        <h3 className="font-semibold text-white mt-4">{section.title}</h3>
-                        <p className="text-sm text-zinc-500 mt-1">{section.description}</p>
-                    </div>
+                    )
                 ))}
             </div>
         </div>
+    )
+}
+
+        </div >
     )
 }
