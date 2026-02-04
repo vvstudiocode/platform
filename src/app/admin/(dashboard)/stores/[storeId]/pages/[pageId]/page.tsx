@@ -39,6 +39,7 @@ export default async function EditStorePagePage({ params }: Props) {
 
     return (
         <StorePageEditForm
+            key={JSON.stringify(page.content)}
             storeId={storeId}
             storeName={store.name}
             storeSlug={store.slug}

@@ -84,6 +84,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
     const [dragIndex, setDragIndex] = useState<number | null>(null)
     const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop')
     const [showMobilePreview, setShowMobilePreview] = useState(false)
+    const [isSaved, setIsSaved] = useState(false)
     const [settingsCollapsed, setSettingsCollapsed] = useState(true)  // 頁面設定預設收合
     const [backgroundColor, setBackgroundColor] = useState(page.content?.[0]?.props?.pageBackgroundColor || '#ffffff')
     const componentListRef = useRef<HTMLDivElement>(null)
@@ -164,7 +165,11 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
     const saveContent = async () => {
         setSaving(true)
-        await updatePageContent(page.id, components)
+        const result = await updatePageContent(page.id, components)
+        if (result?.success) {
+            setIsSaved(true)
+            setTimeout(() => { setIsSaved(false) }, 2000)
+        }
         setSaving(false)
     }
 
@@ -197,9 +202,22 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                             查看頁面
                         </Link>
                     )}
-                    <Button onClick={saveContent} disabled={saving}>
-                        {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                        儲存內容
+                    <Button onClick={saveContent} disabled={saving || isSaved} className="min-w-[110px]">
+                        {/* Saving State - Always rendered, toggled via CSS */}
+                        <span className={`flex items-center gap-2 ${saving ? '' : 'hidden'}`}>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            儲存中...
+                        </span>
+
+                        {/* Saved State - Always rendered, toggled via CSS */}
+                        <span className={`flex items-center gap-2 ${isSaved ? '' : 'hidden'}`}>
+                            已儲存
+                        </span>
+
+                        {/* Default State - Always rendered, toggled via CSS */}
+                        <span className={`${!saving && !isSaved ? '' : 'hidden'}`}>
+                            儲存內容
+                        </span>
                     </Button>
                 </div>
             </div>

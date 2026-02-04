@@ -164,7 +164,16 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
     const saveContent = async () => {
         setSaving(true)
-        await updatePageContent(page.id, components)
+        const result = await updatePageContent(page.id, components)
+        if (result?.success) {
+            // Show success message (can be improved with a toast lib)
+            const btn = document.getElementById('save-btn')
+            if (btn) {
+                const originalText = btn.innerText
+                btn.innerText = '已儲存'
+                setTimeout(() => { btn.innerText = originalText }, 2000)
+            }
+        }
         setSaving(false)
     }
 
@@ -197,7 +206,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                             查看頁面
                         </Link>
                     )}
-                    <Button onClick={saveContent} disabled={saving}>
+                    <Button id="save-btn" onClick={saveContent} disabled={saving}>
                         {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                         儲存內容
                     </Button>

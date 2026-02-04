@@ -102,6 +102,12 @@ export async function updatePage(pageId: string, prevState: any, formData: FormD
             .neq('id', pageId)
     }
 
+    const { data: tenant } = await supabase
+        .from('tenants')
+        .select('slug')
+        .eq('id', storeId)
+        .single()
+
     const { error } = await supabase
         .from('pages')
         .update(validated.data)
@@ -115,11 +121,24 @@ export async function updatePage(pageId: string, prevState: any, formData: FormD
     }
 
     revalidatePath('/app/pages')
-    redirect('/app/pages')
+    revalidatePath(`/app/pages/${pageId}`)
+    if (tenant?.slug) {
+        revalidatePath(`/store/${tenant.slug}`)
+        revalidatePath(`/store/${tenant.slug}/${validated.data.slug}`)
+    }
+
+    return { success: true }
 }
 
 export async function updatePageContent(pageId: string, content: any[]) {
     const supabase = await createClient()
+
+    // 取得頁面資訊以進行重驗證
+    const { data: page } = await supabase
+        .from('pages')
+        .select('slug, tenant_id')
+        .eq('id', pageId)
+        .single()
 
     const { error } = await supabase
         .from('pages')
@@ -131,6 +150,21 @@ export async function updatePageContent(pageId: string, content: any[]) {
     }
 
     revalidatePath('/app/pages')
+    revalidatePath(`/app/pages/${pageId}`)
+
+    if (page?.tenant_id) {
+        const { data: tenant } = await supabase
+            .from('tenants')
+            .select('slug')
+            .eq('id', page.tenant_id)
+            .single()
+
+        if (tenant?.slug) {
+            revalidatePath(`/store/${tenant.slug}`)
+            revalidatePath(`/store/${tenant.slug}/${page.slug}`)
+        }
+    }
+
     return { success: true }
 }
 

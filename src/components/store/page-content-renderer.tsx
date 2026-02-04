@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import { ProductListBlock, ProductCategoryBlock, ProductCarouselBlock } from './product-blocks'
@@ -216,13 +216,13 @@ function CarouselBlock({ block }: { block: PageComponent }) {
     const [currentIndex, setCurrentIndex] = useState(0)
 
     // 自動輪播
-    useState(() => {
+    useEffect(() => {
         if (!autoplay || images.length === 0) return
         const timer = setInterval(() => {
             setCurrentIndex((prev) => (prev + 1) % images.length)
         }, interval * 1000)
         return () => clearInterval(timer)
-    })
+    }, [autoplay, interval, images.length])
 
     if (images.length === 0) return null
 

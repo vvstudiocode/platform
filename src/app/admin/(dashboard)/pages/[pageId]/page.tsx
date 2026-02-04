@@ -25,6 +25,7 @@ export default async function EditPagePage({ params }: Props) {
 
     return (
         <PageEditForm
+            key={JSON.stringify(page.content)}
             page={{
                 id: page.id,
                 title: page.title,

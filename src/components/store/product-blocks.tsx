@@ -227,6 +227,7 @@ export function ProductCategoryBlock({
 }
 
 // 商品輪播元件
+// 商品輪播元件
 export function ProductCarouselBlock({
     productIds,
     title,
@@ -260,7 +261,6 @@ export function ProductCarouselBlock({
                 .in('id', productIds)
 
             if (!preview) {
-                // query = query.eq('status', 'active') // 暫時移除狀態檢查以解決預覽問題，或者只在非預覽時檢查
                 query = query.eq('status', 'active')
             }
 
@@ -276,7 +276,7 @@ export function ProductCarouselBlock({
         }
 
         loadProducts()
-    }, [productIds])
+    }, [productIds, preview])
 
     // 自動輪播
     useEffect(() => {
@@ -299,24 +299,28 @@ export function ProductCarouselBlock({
 
     if (loading) {
         return (
-            <div className="py-12 text-center">
+            <div className={`py-12 text-center ${preview ? 'block' : 'hidden md:block'}`}>
                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-rose-600 border-r-transparent"></div>
             </div>
         )
     }
 
     if (products.length === 0) {
-        return (
-            <div className="py-12 text-center text-gray-500">
-                {title && <h2 className="text-2xl font-bold text-gray-900 mb-4">{title}</h2>}
-                <p>目前沒有商品</p>
-            </div>
-        )
+        if (preview) {
+            return (
+                <div className="py-12 text-center text-gray-500">
+                    {title && <h2 className="text-2xl font-bold text-gray-900 mb-4">{title}</h2>}
+                    <p>目前沒有商品</p>
+                </div>
+            )
+        }
+        return null
     }
 
     // 顯示 3 個商品（當前 + 前後各一個）
     const displayCount = 3
     const getVisibleProducts = () => {
+        if (products.length === 0) return []
         const visible = []
         for (let i = 0; i < Math.min(displayCount, products.length); i++) {
             const index = (currentIndex + i) % products.length
@@ -331,9 +335,11 @@ export function ProductCarouselBlock({
 
             <div className="relative">
                 {/* 商品展示 */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className={`grid grid-cols-1 ${products.length === 1 ? 'place-items-center' : 'md:grid-cols-3'} gap-6`}>
                     {getVisibleProducts().map((product, i) => (
-                        <ProductCard key={product.id} product={product} storeSlug={storeSlug} />
+                        <div key={`${product.id}-${i}`} className="w-full">
+                            <ProductCard product={product} storeSlug={storeSlug} />
+                        </div>
                     ))}
                 </div>
 
@@ -341,14 +347,16 @@ export function ProductCarouselBlock({
                 {products.length > displayCount && (
                     <>
                         <button
+                            type="button"
                             onClick={prevSlide}
-                            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors"
+                            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors z-10"
                         >
                             <ChevronLeft className="h-6 w-6 text-gray-600" />
                         </button>
                         <button
+                            type="button"
                             onClick={nextSlide}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors"
+                            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors z-10"
                         >
                             <ChevronRight className="h-6 w-6 text-gray-600" />
                         </button>
@@ -356,16 +364,19 @@ export function ProductCarouselBlock({
                 )}
 
                 {/* 指示器 */}
-                <div className="flex justify-center gap-2 mt-6">
-                    {products.map((_, i) => (
-                        <button
-                            key={i}
-                            onClick={() => setCurrentIndex(i)}
-                            className={`h-2 rounded-full transition-all ${i === currentIndex ? 'w-8 bg-rose-600' : 'w-2 bg-gray-300'
-                                }`}
-                        />
-                    ))}
-                </div>
+                {products.length > 1 && (
+                    <div className="flex justify-center gap-2 mt-6">
+                        {products.map((_, i) => (
+                            <button
+                                key={i}
+                                type="button"
+                                onClick={() => setCurrentIndex(i)}
+                                className={`h-2 rounded-full transition-all ${i === currentIndex ? 'w-8 bg-rose-600' : 'w-2 bg-gray-300'
+                                    }`}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     )

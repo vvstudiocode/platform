@@ -48,11 +48,38 @@ async function checkData() {
         if (weili) {
             const { data: pages, error: pageError } = await supabase
                 .from('pages')
-                .select('id, title, slug, is_homepage, published, tenant_id')
+                .select('id, title, slug, is_homepage, published, tenant_id, content')
                 .eq('tenant_id', weili.id)
 
             if (pageError) console.error('Page Error:', pageError)
-            else console.table(pages)
+            else {
+                console.table(pages.map(p => ({ ...p, content: '...' }))) // summary
+
+                // Check 'about' page content
+                const aboutPage = pages.find(p => p.slug === 'about')
+                if (aboutPage) {
+                    console.log('\n--- Content of About Page ---')
+                    const content = aboutPage.content as any[]
+                    if (Array.isArray(content)) {
+                        console.log(`Total Blocks: ${content.length}`)
+                        const ids = content.map(b => b.id).filter(Boolean)
+                        console.log('Block IDs:', ids)
+
+                        const duplicates = ids.filter((item, index) => ids.indexOf(item) !== index)
+                        if (duplicates.length > 0) {
+                            console.error('CRITICAL: Duplicate Block IDs found:', duplicates)
+                        } else {
+                            console.log('No duplicate Block IDs found.')
+                        }
+
+                        content.forEach((block, i) => {
+                            console.log(`Block ${i}: Type=${block.type}, ID=${block.id || 'MISSING'}`)
+                        })
+                    } else {
+                        console.log('Content is not an array:', content)
+                    }
+                }
+            }
         } else {
             console.log('Tenant "weili" not found')
         }
