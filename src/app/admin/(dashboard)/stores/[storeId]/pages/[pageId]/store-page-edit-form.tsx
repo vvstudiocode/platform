@@ -10,6 +10,7 @@ import {
     CarouselEditor,
     ImageTextEditor,
     TextColumnsEditor,
+    TextEditor,
     ImageGridEditor,
     ProductListEditor,
     ProductCategoryEditor,
@@ -96,10 +97,29 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
     // 切換元件展開/收合
     const toggleComponent = (componentId: string) => {
         if (selectedComponentId === componentId) {
-            setSelectedComponentId(null)  // 如果已選中則收合
+            setSelectedComponentId(null)
         } else {
             setSelectedComponentId(componentId)
-            setTimeout(() => scrollToComponent(componentId), 100)
+            // 延遲滾動以確保展開動畫開始/DOM已更新
+            setTimeout(() => {
+                // 1. 滾動編輯器列表
+                const editorElement = document.getElementById(`component-${componentId}`)
+                if (editorElement) {
+                    editorElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    })
+                }
+
+                // 2. 滾動預覽畫面
+                const previewElement = document.getElementById(`preview-${componentId}`)
+                if (previewElement) {
+                    previewElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    })
+                }
+            }, 150)
         }
     }
 
@@ -382,16 +402,31 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
                             </button>
                         </div>
                     </div>
-                    <div className="p-6 flex justify-center">
-                        <div className={`transition-all ${previewMode === 'mobile' ? 'max-w-[375px] w-full' : 'w-full'
+                    <div className="p-6 flex justify-center min-h-screen bg-zinc-50/50">
+                        <div className={`transition-all duration-300 mx-auto bg-white relative ${previewMode === 'mobile'
+                            ? 'w-[375px] min-h-[667px] border-[14px] border-zinc-900 rounded-[3rem] shadow-2xl overflow-hidden'
+                            : 'w-full min-h-screen shadow-sm'
                             }`}>
-                            {components.length === 0 ? (
-                                <div className="text-center py-20 text-zinc-400">
-                                    尚無內容
-                                </div>
-                            ) : (
-                                <PageContentRenderer content={components} storeSlug={storeSlug} tenantId={storeId} preview={true} />
+                            {/* Mobile Notch Simulation */}
+                            {previewMode === 'mobile' && (
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-zinc-900 rounded-b-2xl z-50"></div>
                             )}
+
+                            <div className={`h-full ${previewMode === 'mobile' ? 'overflow-y-auto scrollbar-hide h-[800px]' : ''}`}>
+                                {components.length === 0 ? (
+                                    <div className="text-center py-20 text-zinc-400">
+                                        尚無內容
+                                    </div>
+                                ) : (
+                                    <PageContentRenderer
+                                        content={components}
+                                        storeSlug={storeSlug}
+                                        tenantId={storeId}
+                                        preview={true}
+                                        previewDevice={previewMode}
+                                    />
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -455,7 +490,7 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
                                 尚無內容
                             </div>
                         ) : (
-                            <PageContentRenderer content={components} storeSlug={storeSlug} tenantId={storeId} preview={true} />
+                            <PageContentRenderer content={components} storeSlug={storeSlug} tenantId={storeId} preview={true} previewDevice="mobile" />
                         )}
                     </div>
                 </div>
@@ -534,61 +569,7 @@ function ComponentEditor({ type, props, onChange, tenantId }: { type: string; pr
         case 'image_grid':
             return <ImageGridEditor props={props} onChange={onChange} />
         case 'text':
-            return (
-                <div className="space-y-3">
-                    <div>
-                        <label className="block text-sm text-zinc-400 mb-1">內容</label>
-                        <textarea
-                            className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white placeholder:text-zinc-400"
-                            rows={4}
-                            placeholder="輸入內容..."
-                            value={props.content || ''}
-                            onChange={(e) => onChange({ ...props, content: e.target.value })}
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-sm text-zinc-400 mb-1">文字對齊</label>
-                            <div className="flex gap-1 bg-zinc-700 p-1 rounded-lg">
-                                {[
-                                    { value: 'left', label: '左' },
-                                    { value: 'center', label: '中' },
-                                    { value: 'right', label: '右' },
-                                ].map((align) => (
-                                    <button
-                                        key={align.value}
-                                        type="button"
-                                        onClick={() => onChange({ ...props, textAlign: align.value })}
-                                        className={`flex-1 py-1.5 text-xs rounded transition-colors ${(props.textAlign || 'left') === align.value
-                                            ? 'bg-rose-500 text-white'
-                                            : 'text-zinc-400 hover:text-white'
-                                            }`}
-                                    >
-                                        {align.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm text-zinc-400 mb-1">文字顏色</label>
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="color"
-                                    value={props.textColor || '#374151'}
-                                    onChange={(e) => onChange({ ...props, textColor: e.target.value })}
-                                    className="w-8 h-8 rounded cursor-pointer bg-transparent border border-zinc-600"
-                                />
-                                <Input
-                                    value={props.textColor || '#374151'}
-                                    onChange={(e) => onChange({ ...props, textColor: e.target.value })}
-                                    className="h-8 text-sm flex-1"
-                                    placeholder="#374151"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
+            return <TextEditor props={props} onChange={onChange} />
         case 'text_columns':
             return <TextColumnsEditor props={props} onChange={onChange} />
         case 'features':

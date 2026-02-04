@@ -111,15 +111,15 @@ export default async function HQPageRoute({ params }: Props) {
             />
 
             {/* Page Content */}
-            <main className="max-w-[1200px] mx-auto px-4 py-12">
-                <h1 className="text-4xl font-bold mb-8">{page.title}</h1>
-
+            <main>
                 <PageContentRenderer
                     content={content}
                     storeSlug={hqStore.slug}
                     tenantId={hqStore.id}
                     backgroundColor={page.background_color}
-                />
+                >
+                    <h1 className="text-4xl font-bold mb-8">{page.title}</h1>
+                </PageContentRenderer>
             </main>
 
             {/* Footer */}

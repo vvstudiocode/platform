@@ -68,7 +68,7 @@ export default async function HomePage() {
                 homeSlug={homepage.slug}
             />
 
-            <main className="max-w-[1200px] mx-auto px-4 py-12">
+            <main>
                 <PageContentRenderer
                     content={content}
                     storeSlug={hqStore.slug}

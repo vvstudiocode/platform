@@ -66,9 +66,7 @@ export function HomePageClient({ store, page, navItems, homeSlug }: Props) {
 
             {/* 頁面內容 */}
             <main className="flex-1">
-                <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    <PageContentRenderer content={page.content} storeSlug={store.slug} tenantId={store.id} />
-                </div>
+                <PageContentRenderer content={page.content} storeSlug={store.slug} tenantId={store.id} />
             </main>
 
             {/* 商店頁尾 */}

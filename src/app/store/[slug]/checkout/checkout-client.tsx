@@ -170,7 +170,7 @@ export function CheckoutClient({ store }: Props) {
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <div className="bg-white border-b sticky top-0 z-10">
-                <div className="max-w-3xl mx-auto px-4 py-4">
+                <div className="max-w-[1200px] mx-auto px-4 py-4">
                     <Link
                         href={`/store/${store.slug}`}
                         className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
@@ -181,7 +181,7 @@ export function CheckoutClient({ store }: Props) {
                 </div>
             </div>
 
-            <div className="max-w-3xl mx-auto px-4 py-8">
+            <div className="max-w-[1200px] mx-auto px-4 py-8">
                 <h1 className="text-2xl font-bold text-gray-900 mb-8">結帳</h1>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -282,8 +282,8 @@ export function CheckoutClient({ store }: Props) {
                                 <label
                                     key={option.id}
                                     className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer ${shippingMethod === option.id
-                                            ? 'border-rose-500 bg-rose-50'
-                                            : 'border-gray-200 hover:border-gray-300'
+                                        ? 'border-rose-500 bg-rose-50'
+                                        : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">

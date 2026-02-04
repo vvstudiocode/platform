@@ -111,10 +111,15 @@ export default async function StoreCustomPage({ params }: Props) {
             />
 
 
-            {/* 頁面內容 - 使用統一的渲染元件 */}
-            <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <h1 className="text-3xl font-bold text-gray-900 mb-6">{page.title}</h1>
-                <PageContentRenderer content={(page.content as any[]) || []} storeSlug={store.slug} tenantId={store.id} backgroundColor={page.background_color} />
+            <main>
+                <PageContentRenderer
+                    content={(page.content as any[]) || []}
+                    storeSlug={store.slug}
+                    tenantId={store.id}
+                    backgroundColor={page.background_color}
+                >
+                    <h1 className="text-3xl font-bold text-gray-900 mb-6">{page.title}</h1>
+                </PageContentRenderer>
             </main>
 
             {/* Footer */}

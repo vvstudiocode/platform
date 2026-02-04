@@ -92,7 +92,7 @@ export default async function HQProductPage({ params }: Props) {
             />
 
             {/* Product Content */}
-            <main className="max-w-6xl mx-auto px-4 py-12">
+            <main className="max-w-[1200px] mx-auto px-4 py-12">
                 <div className="grid md:grid-cols-2 gap-12">
                     {/* Product Image */}
                     <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
@@ -143,7 +143,7 @@ export default async function HQProductPage({ params }: Props) {
 
             {/* Footer */}
             <footer className="border-t bg-gray-50 py-8 mt-12">
-                <div className="max-w-6xl mx-auto px-4 text-center text-gray-500 text-sm">
+                <div className="max-w-[1200px] mx-auto px-4 text-center text-gray-500 text-sm">
                     © {new Date().getFullYear()} {storeName}. All rights reserved.
                 </div>
             </footer>

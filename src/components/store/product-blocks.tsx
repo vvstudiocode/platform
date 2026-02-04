@@ -5,6 +5,21 @@ import Link from 'next/link'
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
+// 靜態映射以確保 Tailwind 能抓取到 class
+const GRID_COLS: Record<number, string> = {
+    1: 'grid-cols-1',
+    2: 'grid-cols-2',
+    3: 'grid-cols-3',
+    4: 'grid-cols-4'
+}
+
+const MD_GRID_COLS: Record<number, string> = {
+    1: 'md:grid-cols-1',
+    2: 'md:grid-cols-2',
+    3: 'md:grid-cols-3',
+    4: 'md:grid-cols-4'
+}
+
 // 商品卡片元件（共用）
 function ProductCard({ product, storeSlug }: { product: any; storeSlug: string }) {
     return (
@@ -54,10 +69,20 @@ function ProductCard({ product, storeSlug }: { product: any; storeSlug: string }
     )
 }
 
+// Helper for Title Alignment
+const getTitleClass = (align?: string) => {
+    return {
+        left: 'text-left',
+        center: 'text-center',
+        right: 'text-right'
+    }[align || 'center'] || 'text-start' // default to start/left if undefined, or center? User said "center all titles globally" in a previous turn, but here I should support the prop.
+}
+
 // 商品列表元件（支援從資料庫讀取）
 export function ProductListBlock({
     productIds,
     title,
+    titleAlign,
     layout, // Legacy fallback
     columns, // Legacy fallback
     layoutDesktop,
@@ -65,10 +90,12 @@ export function ProductListBlock({
     layoutMobile,
     columnsMobile,
     storeSlug,
-    preview
+    preview,
+    previewDevice = 'desktop'
 }: {
     productIds: string[]
     title?: string
+    titleAlign?: string
     layout?: 'grid' | 'list'
     columns?: number
     layoutDesktop?: 'grid' | 'list'
@@ -77,8 +104,8 @@ export function ProductListBlock({
     columnsMobile?: number
     storeSlug: string
     preview?: boolean
+    previewDevice?: 'mobile' | 'desktop'
 }) {
-    // ... setup state ...
     const [products, setProducts] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
@@ -111,7 +138,7 @@ export function ProductListBlock({
         }
 
         loadProducts()
-    }, [productIds])
+    }, [productIds, preview])
 
     if (loading) {
         return (
@@ -124,7 +151,7 @@ export function ProductListBlock({
     if (products.length === 0) {
         return (
             <div className="py-12 text-center text-gray-500">
-                {title && <h2 className="text-2xl font-bold text-gray-900 mb-4">{title}</h2>}
+                {title && <h2 className={`text-2xl font-bold text-gray-900 mb-4 ${getTitleClass(titleAlign)}`}>{title}</h2>}
                 <p>目前沒有商品</p>
             </div>
         )
@@ -143,19 +170,25 @@ export function ProductListBlock({
     if (mLayout === 'list') {
         className += 'flex flex-col gap-4 '
     } else {
-        className += `grid grid-cols-${mCols} gap-4 `
+        // 使用映射表
+        const colClass = GRID_COLS[mCols] || 'grid-cols-1'
+        className += `grid ${colClass} gap-4 `
     }
 
     // Desktop Override
-    if (dLayout === 'list') {
+    if (preview && previewDevice === 'mobile') {
+        // Do nothing for mobile preview
+    } else if (dLayout === 'list') {
         className += 'md:flex md:flex-col md:gap-6 '
     } else {
-        className += `md:grid md:gap-6 md:grid-cols-${dCols} `
+        // 使用映射表
+        const colClass = MD_GRID_COLS[dCols] || 'md:grid-cols-3'
+        className += `md:grid md:gap-6 ${colClass} `
     }
 
     return (
         <div className="py-8 space-y-6">
-            {title && <h2 className="text-3xl font-bold text-gray-900">{title}</h2>}
+            {title && <h2 className={`text-3xl font-bold text-gray-900 ${getTitleClass(titleAlign)}`}>{title}</h2>}
             <div className={className}>
                 {products.map((product) => (
                     <ProductCard key={product.id} product={product} storeSlug={storeSlug} />
@@ -169,6 +202,7 @@ export function ProductListBlock({
 export function ProductCategoryBlock({
     category,
     title,
+    titleAlign,
     limit = 8,
     layout,
     columns,
@@ -178,10 +212,12 @@ export function ProductCategoryBlock({
     columnsMobile,
     storeSlug,
     tenantId,
-    preview
+    preview,
+    previewDevice = 'desktop'
 }: {
     category: string
     title?: string
+    titleAlign?: string
     limit?: number
     layout?: 'grid' | 'list'
     columns?: number
@@ -192,6 +228,7 @@ export function ProductCategoryBlock({
     storeSlug: string
     tenantId: string
     preview?: boolean
+    previewDevice?: 'mobile' | 'desktop'
 }) {
     const [products, setProducts] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -226,7 +263,7 @@ export function ProductCategoryBlock({
         }
 
         loadProducts()
-    }, [category, tenantId, limit])
+    }, [category, tenantId, limit, preview])
 
     if (loading) {
         return (
@@ -239,7 +276,7 @@ export function ProductCategoryBlock({
     if (products.length === 0) {
         return (
             <div className="py-12 text-center text-gray-500">
-                {title && <h2 className="text-2xl font-bold text-gray-900 mb-4">{title}</h2>}
+                {title && <h2 className={`text-2xl font-bold text-gray-900 mb-4 ${getTitleClass(titleAlign)}`}>{title}</h2>}
                 <p>目前「{category}」分類沒有商品</p>
             </div>
         )
@@ -258,180 +295,157 @@ export function ProductCategoryBlock({
     if (mLayout === 'list') {
         className += 'flex flex-col gap-4 '
     } else {
-        className += `grid grid-cols-${mCols} gap-4 `
+        // 使用映射表
+        const colClass = GRID_COLS[mCols] || 'grid-cols-1'
+        className += `grid ${colClass} gap-4 `
     }
 
     // Desktop Override
-    if (dLayout === 'list') {
+    if (preview && previewDevice === 'mobile') {
+        // Do nothing for mobile preview
+    } else if (dLayout === 'list') {
         className += 'md:flex md:flex-col md:gap-6 '
     } else {
-        className += `md:grid md:gap-6 md:grid-cols-${dCols} `
+        // 使用映射表
+        const colClass = MD_GRID_COLS[dCols] || 'md:grid-cols-3'
+        className += `md:grid md:gap-6 ${colClass} `
     }
 
     return (
         <div className="py-8 space-y-6">
-            {title && <h2 className="text-3xl font-bold text-gray-900">{title}</h2>}
+            {title && <h2 className={`text-3xl font-bold text-gray-900 ${getTitleClass(titleAlign)}`}>{title}</h2>}
             <div className={className}>
                 {products.map((product) => (
                     <ProductCard key={product.id} product={product} storeSlug={storeSlug} />
                 ))}
+            </div>
+            <div className="text-center">
+                <Link href={`/store/${storeSlug}/products?category=${category}`} className="inline-block px-6 py-2 border border-gray-900 text-gray-900 rounded-full hover:bg-gray-900 hover:text-white transition-colors">
+                    查看更多
+                </Link>
             </div>
         </div>
     )
 }
 
 // 商品輪播元件
-// 商品輪播元件
 export function ProductCarouselBlock({
     productIds,
     title,
+    titleAlign,
     autoplay = true,
     interval = 5,
     storeSlug,
-    preview
+    preview,
+    previewDevice = 'desktop'
 }: {
     productIds: string[]
     title?: string
+    titleAlign?: string
     autoplay?: boolean
     interval?: number
     storeSlug: string
     preview?: boolean
+    previewDevice?: 'mobile' | 'desktop'
 }) {
     const [products, setProducts] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
     const [currentIndex, setCurrentIndex] = useState(0)
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        async function loadProducts() {
-            if (!productIds || productIds.length === 0) {
+        const fetchProducts = async () => {
+            if (productIds.length === 0) {
                 setLoading(false)
                 return
             }
-
-            const supabase = createClient()
-            let query = supabase
-                .from('products')
-                .select('*')
-                .in('id', productIds)
-
-            if (!preview) {
-                query = query.eq('status', 'active')
+            try {
+                const res = await fetch(`/api/products/batch?ids=${productIds.join(',')}`)
+                const data = await res.json()
+                setProducts(data.products || [])
+            } catch (error) {
+                console.error('Error fetching products:', error)
+            } finally {
+                setLoading(false)
             }
-
-            const { data } = await query
-
-            if (data) {
-                const sorted = productIds
-                    .map(id => data.find(p => p.id === id))
-                    .filter(Boolean)
-                setProducts(sorted)
-            }
-            setLoading(false)
         }
+        fetchProducts()
+    }, [JSON.stringify(productIds)])
 
-        loadProducts()
-    }, [productIds, preview])
-
-    // 自動輪播
     useEffect(() => {
-        if (!autoplay || products.length === 0) return
-
+        if (!autoplay || products.length <= (preview && previewDevice === 'mobile' ? 1 : 4)) return
         const timer = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 1) % products.length)
+            setCurrentIndex(prev => (prev + 1) % products.length)
         }, interval * 1000)
-
         return () => clearInterval(timer)
-    }, [autoplay, interval, products.length])
+    }, [autoplay, interval, products.length, preview, previewDevice])
+
 
     const nextSlide = () => {
-        setCurrentIndex((prev) => (prev + 1) % products.length)
+        setCurrentIndex(prev => (prev + 1) % products.length)
     }
 
     const prevSlide = () => {
-        setCurrentIndex((prev) => (prev - 1 + products.length) % products.length)
+        setCurrentIndex(prev => (prev - 1 + products.length) % products.length)
     }
 
-    if (loading) {
-        return (
-            <div className={`py-12 text-center ${preview ? 'block' : 'hidden md:block'}`}>
-                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-rose-600 border-r-transparent"></div>
-            </div>
-        )
-    }
+    if (loading) return <div className="py-12 text-center text-gray-400">載入輪播中...</div>
+    if (products.length === 0) return null
 
-    if (products.length === 0) {
-        if (preview) {
-            return (
-                <div className="py-12 text-center text-gray-500">
-                    {title && <h2 className="text-2xl font-bold text-gray-900 mb-4">{title}</h2>}
-                    <p>目前沒有商品</p>
-                </div>
-            )
-        }
-        return null
-    }
-
-    // 顯示 3 個商品（當前 + 前後各一個）
-    const displayCount = 3
-    const getVisibleProducts = () => {
-        if (products.length === 0) return []
-        const visible = []
-        for (let i = 0; i < Math.min(displayCount, products.length); i++) {
-            const index = (currentIndex + i) % products.length
-            visible.push(products[index])
-        }
-        return visible
-    }
+    const isMobile = preview && previewDevice === 'mobile'
+    const itemWidthClass = isMobile ? 'w-full' : 'w-full md:w-1/2 lg:w-1/4'
 
     return (
-        <div className="py-8 space-y-6">
-            {title && <h2 className="text-3xl font-bold text-gray-900">{title}</h2>}
+        <div className="py-8 space-y-6 group relative">
+            <div className={`px-1 ${getTitleClass(titleAlign)}`}>
+                {title && <h2 className="text-3xl font-bold text-gray-900">{title}</h2>}
+            </div>
 
-            <div className="relative">
-                {/* 商品展示 */}
-                <div className={`grid grid-cols-1 ${products.length === 1 ? 'place-items-center' : 'md:grid-cols-3'} gap-6`}>
-                    {getVisibleProducts().map((product, i) => (
-                        <div key={`${product.id}-${i}`} className="w-full">
+            <div className="relative overflow-hidden -mx-4 px-4 py-4">
+                <div
+                    className="flex transition-transform duration-500 ease-out will-change-transform"
+                    style={{
+                        transform: `translateX(-${currentIndex * (isMobile ? 100 : 25)}%)`
+                    }}
+                >
+                    {products.map((product) => (
+                        <div
+                            key={product.id}
+                            className={`flex-shrink-0 px-3 ${itemWidthClass} transition-opacity duration-300`}
+                        >
                             <ProductCard product={product} storeSlug={storeSlug} />
                         </div>
                     ))}
                 </div>
 
-                {/* 導航按鈕 */}
-                {products.length > displayCount && (
+                {products.length > (isMobile ? 1 : 4) && (
                     <>
                         <button
-                            type="button"
-                            onClick={prevSlide}
-                            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors z-10"
+                            onClick={(e) => { e.preventDefault(); prevSlide() }}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white shadow-lg rounded-r-lg text-gray-800 transition-all z-20 backdrop-blur-sm border-y border-r border-gray-100"
                         >
-                            <ChevronLeft className="h-6 w-6 text-gray-600" />
+                            <ChevronLeft className="w-6 h-6" />
                         </button>
                         <button
-                            type="button"
-                            onClick={nextSlide}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors z-10"
+                            onClick={(e) => { e.preventDefault(); nextSlide() }}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white shadow-lg rounded-l-lg text-gray-800 transition-all z-20 backdrop-blur-sm border-y border-l border-gray-100"
                         >
-                            <ChevronRight className="h-6 w-6 text-gray-600" />
+                            <ChevronRight className="w-6 h-6" />
                         </button>
                     </>
                 )}
-
-                {/* 指示器 */}
-                {products.length > 1 && (
-                    <div className="flex justify-center gap-2 mt-6">
-                        {products.map((_, i) => (
-                            <button
-                                key={i}
-                                type="button"
-                                onClick={() => setCurrentIndex(i)}
-                                className={`h-2 rounded-full transition-all ${i === currentIndex ? 'w-8 bg-rose-600' : 'w-2 bg-gray-300'
-                                    }`}
-                            />
-                        ))}
-                    </div>
-                )}
             </div>
+
+            {products.length > 0 && (
+                <div className="flex justify-center gap-1.5 mt-2">
+                    {products.map((_, i) => (
+                        <div
+                            key={i}
+                            className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-6 bg-rose-600' : 'w-1.5 bg-gray-300'
+                                }`}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     )
 }

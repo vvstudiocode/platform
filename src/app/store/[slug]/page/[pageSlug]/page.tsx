@@ -87,7 +87,7 @@ export default async function StoreCustomPage({ params }: Props) {
         <div className="min-h-screen bg-white">
             {/* Header */}
             <header className="border-b bg-white sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+                <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                     <Link href={`/store/${store.slug}`} className="flex items-center gap-2">
                         {store.logo_url && (
                             <img src={store.logo_url} alt="" className="h-8 w-8 rounded" />
@@ -115,13 +115,13 @@ export default async function StoreCustomPage({ params }: Props) {
             </header>
 
             {/* Page Content - 使用統一渲染元件 */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <PageContentRenderer content={content} />
             </main>
 
             {/* Footer */}
             <footer className="border-t bg-gray-50 py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
+                <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
                     © {new Date().getFullYear()} {store.name}. All rights reserved.
                 </div>
             </footer>

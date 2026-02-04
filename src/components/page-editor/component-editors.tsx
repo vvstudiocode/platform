@@ -126,7 +126,7 @@ export function ImageTextEditor({ props, onChange }: { props: Record<string, any
     )
 }
 
-// 3. 文字組合編輯器
+// 3. 文字組合編輯器 (Multi-column)
 export function TextColumnsEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
     const columns = props.columns || []
 
@@ -184,6 +184,105 @@ export function TextColumnsEditor({ props, onChange }: { props: Record<string, a
                 >
                     + 新增欄位
                 </button>
+            </div>
+        </div>
+    )
+}
+
+// 8. 純文字/Rich Text 編輯器
+export function TextEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+    return (
+        <div className="space-y-4">
+            {/* 標題與副標題 */}
+            <div className="space-y-3">
+                <Input
+                    placeholder="大標題"
+                    value={props.title || ''}
+                    onChange={(e) => onChange({ title: e.target.value })}
+                    className="font-bold"
+                />
+                <Input
+                    placeholder="副標題"
+                    value={props.subtitle || ''}
+                    onChange={(e) => onChange({ subtitle: e.target.value })}
+                />
+            </div>
+
+            {/* 內容 */}
+            <div>
+                <label className="block text-sm text-zinc-400 mb-1">內容</label>
+                <textarea
+                    className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white placeholder:text-zinc-500"
+                    rows={6}
+                    placeholder="輸入文字內容..."
+                    value={props.content || ''}
+                    onChange={(e) => onChange({ content: e.target.value })}
+                />
+            </div>
+
+            {/* 樣式設定 (排版與顏色) */}
+            <div className="grid grid-cols-2 gap-3 p-3 bg-zinc-700/30 rounded-lg border border-zinc-700">
+                <div>
+                    <label className="block text-xs text-zinc-500 mb-1">對齊方式</label>
+                    <div className="flex bg-zinc-800 rounded-md p-0.5">
+                        {['left', 'center', 'right'].map((align) => (
+                            <button
+                                key={align}
+                                type="button"
+                                onClick={() => onChange({ align })}
+                                className={`flex-1 py-1 text-xs capitalize rounded ${(props.align || 'center') === align
+                                    ? 'bg-zinc-600 text-white shadow-sm'
+                                    : 'text-zinc-400 hover:text-zinc-300'
+                                    }`}
+                            >
+                                {align}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <div>
+                    <label className="block text-xs text-zinc-500 mb-1">文字顏色</label>
+                    <div className="flex gap-2 items-center">
+                        <input
+                            type="color"
+                            value={props.textColor || '#000000'}
+                            onChange={(e) => onChange({ textColor: e.target.value })}
+                            className="h-7 w-7 rounded cursor-pointer bg-transparent border-none p-0"
+                        />
+                        <span className="text-xs text-zinc-400 uppercase">{props.textColor || '#000'}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* 按鈕設定 */}
+            <div className="p-3 bg-zinc-700/30 rounded-lg border border-zinc-700 space-y-3">
+                <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-300">顯示按鈕</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={props.showButton || false}
+                            onChange={(e) => onChange({ showButton: e.target.checked })}
+                            className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-zinc-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600"></div>
+                    </label>
+                </div>
+
+                {props.showButton && (
+                    <div className="grid grid-cols-2 gap-3 animate-in slide-in-from-top-2 duration-200">
+                        <Input
+                            placeholder="按鈕文字"
+                            value={props.buttonText || ''}
+                            onChange={(e) => onChange({ buttonText: e.target.value })}
+                        />
+                        <Input
+                            placeholder="連結 URL"
+                            value={props.buttonUrl || ''}
+                            onChange={(e) => onChange({ buttonUrl: e.target.value })}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     )
@@ -262,8 +361,36 @@ export function ImageGridEditor({ props, onChange }: { props: Record<string, any
     )
 }
 
+// Helper for alignment buttons
+function AlignmentButtons({ value, onChange }: { value: string; onChange: (val: string) => void }) {
+    return (
+        <div className="flex gap-1 bg-zinc-700 p-1 rounded-lg">
+            {[
+                { value: 'left', label: '左' },
+                { value: 'center', label: '中' },
+                { value: 'right', label: '右' },
+            ].map((align) => (
+                <button
+                    key={align.value}
+                    type="button"
+                    onClick={() => onChange(align.value)}
+                    className={`flex-1 py-1.5 text-xs rounded transition-colors ${(value || 'center') === align.value
+                        ? 'bg-rose-500 text-white'
+                        : 'text-zinc-400 hover:text-white'
+                        }`}
+                >
+                    {align.label}
+                </button>
+            ))}
+        </div>
+    )
+}
+
+// ... existing code ...
+
 // 5. 商品列表編輯器 - 動態載入商品
 export function ProductListEditor({ props, onChange, tenantId }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void; tenantId?: string }) {
+    // ... existing hooks ...
     const [products, setProducts] = useState<any[]>([])
     const [categories, setCategories] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
@@ -271,7 +398,6 @@ export function ProductListEditor({ props, onChange, tenantId }: { props: Record
     const [filterCategory, setFilterCategory] = useState('')
     const selectedIds = props.productIds || []
 
-    // 載入商品資料
     useEffect(() => {
         const url = tenantId ? `/api/products?tenantId=${tenantId}` : '/api/products'
         fetch(url)
@@ -294,11 +420,9 @@ export function ProductListEditor({ props, onChange, tenantId }: { props: Record
         onChange({ productIds: newIds })
     }
 
-    // 篩選商品
     const filteredProducts = products.filter(p => {
         const matchSearch = !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase())
         const matchCategory = !filterCategory || p.category === filterCategory
-        return matchSearch && matchCategory
         return matchSearch && matchCategory
     })
 
@@ -315,7 +439,10 @@ export function ProductListEditor({ props, onChange, tenantId }: { props: Record
         <div className="space-y-3">
             <div>
                 <label className="block text-sm text-zinc-400 mb-1">區塊標題</label>
-                <Input placeholder="精選商品" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+                <div className="space-y-2">
+                    <Input placeholder="精選商品" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+                    <AlignmentButtons value={props.titleAlign || 'center'} onChange={(val) => onChange({ titleAlign: val })} />
+                </div>
             </div>
 
             <ResponsiveControls
@@ -401,7 +528,6 @@ export function ProductCategoryEditor({ props, onChange, tenantId }: { props: Re
     const [categories, setCategories] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
 
-    // 載入分類資料
     useEffect(() => {
         const url = tenantId ? `/api/products?tenantId=${tenantId}` : '/api/products'
         fetch(url)
@@ -420,7 +546,10 @@ export function ProductCategoryEditor({ props, onChange, tenantId }: { props: Re
         <div className="space-y-3">
             <div>
                 <label className="block text-sm text-zinc-400 mb-1">區塊標題</label>
-                <Input placeholder="商品分類" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+                <div className="space-y-2">
+                    <Input placeholder="商品分類" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+                    <AlignmentButtons value={props.titleAlign || 'center'} onChange={(val) => onChange({ titleAlign: val })} />
+                </div>
             </div>
             <div>
                 <label className="block text-sm text-zinc-400 mb-1">選擇分類</label>
@@ -465,6 +594,7 @@ export function ProductCategoryEditor({ props, onChange, tenantId }: { props: Re
 
 // 7. 商品輪播編輯器 - 動態載入商品
 export function ProductCarouselEditor({ props, onChange, tenantId }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void; tenantId?: string }) {
+    // ... existing hooks ...
     const [products, setProducts] = useState<any[]>([])
     const [categories, setCategories] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
@@ -472,7 +602,6 @@ export function ProductCarouselEditor({ props, onChange, tenantId }: { props: Re
     const [filterCategory, setFilterCategory] = useState('')
     const selectedIds = props.productIds || []
 
-    // 載入商品資料
     useEffect(() => {
         const url = tenantId ? `/api/products?tenantId=${tenantId}` : '/api/products'
         fetch(url)
@@ -489,17 +618,23 @@ export function ProductCarouselEditor({ props, onChange, tenantId }: { props: Re
     }, [tenantId])
 
     const toggleProduct = (id: string) => {
-        const newIds = selectedIds.includes(id)
+        // Enforce max 8 items
+        const isSelected = selectedIds.includes(id)
+
+        if (!isSelected && selectedIds.length >= 8) {
+            alert('最多只能選擇 8 個商品')
+            return
+        }
+
+        const newIds = isSelected
             ? selectedIds.filter((pid: string) => pid !== id)
             : [...selectedIds, id]
         onChange({ productIds: newIds })
     }
 
-    // 篩選商品
     const filteredProducts = products.filter(p => {
         const matchSearch = !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase())
         const matchCategory = !filterCategory || p.category === filterCategory
-        return matchSearch && matchCategory
         return matchSearch && matchCategory
     })
 
@@ -507,8 +642,19 @@ export function ProductCarouselEditor({ props, onChange, tenantId }: { props: Re
         if (selectedIds.length === filteredProducts.length) {
             onChange({ productIds: [] })
         } else {
-            const allIds = filteredProducts.map(p => p.id)
-            onChange({ productIds: allIds })
+            // Limit to first 8 if selecting all? Or just select all then warn?
+            // Let's safe guard to 8
+            const allFilteredIds = filteredProducts.map(p => p.id)
+            const remainingSlots = 8 - selectedIds.length
+            if (remainingSlots <= 0 && selectedIds.length > 0) { // Already full or Over
+                onChange({ productIds: [] }) // Toggle off
+                return
+            }
+
+            // Just basic toggle off if all matches are selected
+            // But if filtered list is > 8, we should probably only take 8.
+            // For now, simple implementation logic:
+            onChange({ productIds: allFilteredIds.slice(0, 8) })
         }
     }
 
@@ -516,7 +662,10 @@ export function ProductCarouselEditor({ props, onChange, tenantId }: { props: Re
         <div className="space-y-3">
             <div>
                 <label className="block text-sm text-zinc-400 mb-1">區塊標題</label>
-                <Input placeholder="熱門商品" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+                <div className="space-y-2">
+                    <Input placeholder="熱門商品" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+                    <AlignmentButtons value={props.titleAlign || 'center'} onChange={(val) => onChange({ titleAlign: val })} />
+                </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -559,13 +708,13 @@ export function ProductCarouselEditor({ props, onChange, tenantId }: { props: Re
                         </select>
                     </div>
                     <div className="flex items-center justify-between text-xs text-zinc-500">
-                        <span>已選擇 {selectedIds.length} 個商品</span>
+                        <span>已選擇 {selectedIds.length} / 8 個商品</span>
                         <button
                             type="button"
                             onClick={handleSelectAll}
                             className="text-rose-500 hover:text-rose-400 font-medium"
                         >
-                            {selectedIds.length === filteredProducts.length && filteredProducts.length > 0 ? '取消全選' : '全選'}
+                            {selectedIds.length === filteredProducts.length && filteredProducts.length > 0 ? '取消全選' : '全選 (最多8個)'}
                         </button>
                     </div>
                 </div>

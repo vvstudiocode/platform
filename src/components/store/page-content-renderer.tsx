@@ -19,28 +19,39 @@ interface PageComponent {
     backgroundUrl?: string
 }
 
+import { ReactNode } from 'react'
+
+// ... imports
+
 interface Props {
     content: PageComponent[]
     storeSlug?: string
     tenantId?: string
     preview?: boolean
+    previewDevice?: 'mobile' | 'desktop'
     backgroundColor?: string
+    children?: ReactNode
 }
 
-export function PageContentRenderer({ content, storeSlug = '', tenantId = '', preview = false, backgroundColor = '#ffffff' }: Props) {
+export function PageContentRenderer({ content, storeSlug = '', tenantId = '', preview = false, previewDevice = 'desktop', backgroundColor = '#ffffff', children }: Props) {
     return (
         <div
-            className="space-y-8 min-h-full p-4 md:p-0"
+            className="min-h-full w-full py-12"
             style={{ backgroundColor: backgroundColor || '#ffffff' }}
         >
-            {content.map((block, index) => (
-                <ContentBlock key={block.id || index} block={block} storeSlug={storeSlug} tenantId={tenantId} preview={preview} />
-            ))}
+            <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+                {children}
+                {content.map((block, index) => (
+                    <div key={block.id || index} id={`preview-${block.id}`}>
+                        <ContentBlock block={block} storeSlug={storeSlug} tenantId={tenantId} preview={preview} previewDevice={previewDevice} />
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }
 
-function ContentBlock({ block, storeSlug, tenantId, preview }: { block: PageComponent; storeSlug: string; tenantId: string; preview: boolean }) {
+function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { block: PageComponent; storeSlug: string; tenantId: string; preview: boolean; previewDevice: 'mobile' | 'desktop' }) {
     // 兼容新舊格式的取值函數
     const getVal = (key: string) => block.props?.[key] ?? (block as any)[key]
 
@@ -77,6 +88,7 @@ function ContentBlock({ block, storeSlug, tenantId, preview }: { block: PageComp
                 columnsMobile={block.props?.columnsMobile}
                 storeSlug={storeSlug}
                 preview={preview}
+                previewDevice={previewDevice}
             />
         case 'product_category':
             return <ProductCategoryBlock
@@ -92,9 +104,10 @@ function ContentBlock({ block, storeSlug, tenantId, preview }: { block: PageComp
                 storeSlug={storeSlug}
                 tenantId={tenantId}
                 preview={preview}
+                previewDevice={previewDevice}
             />
         case 'product_carousel':
-            return <ProductCarouselBlock productIds={block.props?.productIds || []} title={block.props?.title} autoplay={block.props?.autoplay} interval={block.props?.interval} storeSlug={storeSlug} preview={preview} />
+            return <ProductCarouselBlock productIds={block.props?.productIds || []} title={block.props?.title} autoplay={block.props?.autoplay} interval={block.props?.interval} storeSlug={storeSlug} preview={preview} previewDevice={previewDevice} />
         default:
             return null
     }
@@ -135,21 +148,56 @@ function HeroBlock({ block }: { block: PageComponent }) {
     )
 }
 
-// 文字區塊
+// 文字區塊 (Rich Text)
 function TextBlock({ block }: { block: PageComponent }) {
-    const content = block.props?.content ?? block.content
+    const {
+        title,
+        subtitle,
+        content,
+        align = 'center',
+        textColor = '#000000',
+        showButton = false,
+        buttonText,
+        buttonUrl
+    } = block.props || {}
+
+    const alignClass = {
+        left: 'text-left',
+        center: 'text-center',
+        right: 'text-right'
+    }[align as string] || 'text-center'
+
     return (
-        <div className="prose prose-lg max-w-none">
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{content}</p>
+        <div className={`py-12 max-w-4xl mx-auto ${alignClass}`} style={{ color: textColor }}>
+            {title && <h2 className="text-3xl font-bold mb-4">{title}</h2>}
+            {subtitle && <p className="text-xl opacity-80 mb-6">{subtitle}</p>}
+            {content && (
+                <div className="prose prose-lg max-w-none mb-8" style={{ color: textColor }}>
+                    <p className="leading-relaxed whitespace-pre-wrap">{content}</p>
+                </div>
+            )}
+            {showButton && buttonText && (
+                <div className="mt-8">
+                    <Link
+                        href={buttonUrl || '#'}
+                        className={`inline-block px-8 py-3 rounded-full transition-all ${textColor
+                            ? 'border-2 border-current hover:opacity-80'
+                            : 'bg-zinc-900 text-white hover:bg-zinc-800'
+                            }`}
+                    >
+                        {buttonText}
+                    </Link>
+                </div>
+            )}
         </div>
     )
 }
 
-// 標題
+// 標題 (Legacy, now can be handled by TextBlock)
 function HeadingBlock({ block }: { block: PageComponent }) {
     const content = block.props?.content ?? block.content
     return (
-        <h2 className="text-3xl font-bold text-gray-900 mt-12 mb-6">{content}</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mt-12 mb-6 text-center">{content}</h2>
     )
 }
 
@@ -197,7 +245,7 @@ function FAQBlock({ block }: { block: PageComponent }) {
     return (
         <div className="py-12">
             {title && (
-                <h2 className="text-2xl font-bold text-gray-800 mb-8">{title}</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center">{title}</h2>
             )}
             <div className="space-y-4">
                 {items.map((item: any, i: number) => (
@@ -208,36 +256,16 @@ function FAQBlock({ block }: { block: PageComponent }) {
     )
 }
 
-// FAQ 單項（可展開/收合）
-function FAQItem({ question, answer }: { question: string; answer: string }) {
-    const [isOpen, setIsOpen] = useState(false)
-
-    return (
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between p-4 text-left bg-white hover:bg-gray-50 transition-colors"
-            >
-                <span className="font-medium text-gray-900">{question}</span>
-                <ChevronDown
-                    className={`h-5 w-5 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                />
-            </button>
-            {isOpen && (
-                <div className="px-4 pb-4 bg-white">
-                    <p className="text-gray-600 leading-relaxed">{answer}</p>
-                </div>
-            )}
-        </div>
-    )
-}
+// ... FAQItem ...
 
 // ======================================
 // 新增元件
 // ======================================
 
-// 1. 輪播圖
+// 1. 輪播圖 (Banner)
 function CarouselBlock({ block }: { block: PageComponent }) {
+    // ... (No title usually, or maybe inside?)
+    // Keeping as is for now unless asked
     const images = block.props?.images ?? []
     const autoplay = block.props?.autoplay ?? true
     const interval = block.props?.interval ?? 5
@@ -317,7 +345,7 @@ function ImageTextBlock({ block }: { block: PageComponent }) {
             )}
 
             {/* 文字 */}
-            <div className="w-full md:w-1/2 space-y-4">
+            <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
                 {title && <h2 className="text-3xl font-bold text-gray-900">{title}</h2>}
                 {content && <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">{content}</p>}
                 {buttonText && (
@@ -385,3 +413,23 @@ function ImageGridBlock({ block }: { block: PageComponent }) {
 }
 
 // 商品元件已從 product-blocks.tsx 導入，不需要在此定義
+
+function FAQItem({ question, answer }: { question: string; answer: string }) {
+    const [isOpen, setIsOpen] = useState(false)
+    return (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors text-left"
+            >
+                <span className="font-medium text-gray-900">{question}</span>
+                <ChevronDown className={`h-5 w-5 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isOpen && (
+                <div className="p-4 bg-gray-50 border-t border-gray-200 text-gray-600">
+                    {answer}
+                </div>
+            )}
+        </div>
+    )
+}

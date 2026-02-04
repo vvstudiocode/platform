@@ -402,16 +402,32 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                             </button>
                         </div>
                     </div>
-                    <div className="p-6 flex justify-center">
-                        <div className={`transition-all ${previewMode === 'mobile' ? 'max-w-[375px] w-full' : 'w-full'
+                    <div className="p-6 flex justify-center min-h-screen bg-zinc-50/50">
+                        <div className={`transition-all duration-300 mx-auto bg-white relative ${previewMode === 'mobile'
+                            ? 'w-[375px] min-h-[667px] border-[14px] border-zinc-900 rounded-[3rem] shadow-2xl overflow-hidden'
+                            : 'w-full min-h-screen shadow-sm'
                             }`}>
-                            {components.length === 0 ? (
-                                <div className="text-center py-20 text-zinc-400">
-                                    尚無內容
-                                </div>
-                            ) : (
-                                <PageContentRenderer content={components} storeSlug={storeSlug} tenantId={tenantId} preview={true} backgroundColor={backgroundColor} />
+                            {/* Mobile Notch Simulation */}
+                            {previewMode === 'mobile' && (
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-zinc-900 rounded-b-2xl z-50"></div>
                             )}
+
+                            <div className={`h-full ${previewMode === 'mobile' ? 'overflow-y-auto scrollbar-hide h-[800px]' : ''}`}>
+                                {components.length === 0 ? (
+                                    <div className="text-center py-20 text-zinc-400">
+                                        尚無內容
+                                    </div>
+                                ) : (
+                                    <PageContentRenderer
+                                        content={components}
+                                        storeSlug={storeSlug}
+                                        tenantId={tenantId}
+                                        preview={true}
+                                        backgroundColor={backgroundColor}
+                                        previewDevice={previewMode}
+                                    />
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
