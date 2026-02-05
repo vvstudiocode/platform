@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { updateGeneralSettings } from './actions'
+import { updateGeneralSettings, State } from './actions'
 import { Loader2 } from 'lucide-react'
 
 interface Props {
@@ -17,8 +17,8 @@ interface Props {
 }
 
 export function GeneralSettingsForm({ tenant }: Props) {
-    const initialState = { error: '', success: '' }
-    const [state, formAction, isPending] = useActionState(updateGeneralSettings, initialState) // @ts-ignore
+    const initialState: State = { error: '', success: '' }
+    const [state, formAction, isPending] = useActionState(updateGeneralSettings, initialState)
 
     // Initial values
     const settings = tenant.settings || {}
@@ -58,7 +58,7 @@ export function GeneralSettingsForm({ tenant }: Props) {
 
                 <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                        <Label htmlFor="primary_color">品牌主色</Label>
+                        <Label htmlFor="primary_color_text">品牌主色</Label>
                         <div className="flex gap-2">
                             <Input
                                 type="color"
@@ -71,11 +71,11 @@ export function GeneralSettingsForm({ tenant }: Props) {
                                 }}
                             />
                             <Input
-                                id="primary_color"
+                                id="primary_color_text"
                                 name="primary_color"
                                 defaultValue={settings.primary_color || '#000000'}
                                 placeholder="#000000"
-                                id="primary_color_text"
+
                             />
                         </div>
                     </div>

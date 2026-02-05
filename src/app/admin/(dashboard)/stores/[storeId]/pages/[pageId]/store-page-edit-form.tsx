@@ -231,20 +231,9 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
                         </Link>
                     )}
                     <Button onClick={saveContent} disabled={saving || isSaved} className="min-w-[110px]">
-                        {/* Saving State */}
-                        <span className={`flex items-center gap-2 ${saving ? '' : 'hidden'}`}>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            儲存中...
-                        </span>
-
-                        {/* Saved State */}
-                        <span className={`flex items-center gap-2 ${isSaved ? '' : 'hidden'}`}>
-                            已儲存
-                        </span>
-
-                        {/* Default State */}
-                        <span className={`${!saving && !isSaved ? '' : 'hidden'}`}>
-                            儲存內容
+                        <Loader2 className={`h-4 w-4 animate-spin mr-2 ${saving ? '' : 'hidden'}`} />
+                        <span>
+                            {saving ? '儲存中...' : isSaved ? '已儲存' : '儲存內容'}
                         </span>
                     </Button>
                 </div>

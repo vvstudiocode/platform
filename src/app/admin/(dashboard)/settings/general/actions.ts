@@ -11,7 +11,12 @@ const settingsSchema = z.object({
     support_email: z.string().email('Email 格式錯誤').optional().or(z.literal(''))
 })
 
-export async function updateGeneralSettings(prevState: any, formData: FormData) {
+export type State = {
+    error?: string | null
+    success?: string | null
+}
+
+export async function updateGeneralSettings(prevState: any, formData: FormData): Promise<State> {
     const supabase = await createClient()
 
     // 取得當前管理的商店 (HQ 或 Store)
