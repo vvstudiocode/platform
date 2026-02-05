@@ -54,7 +54,7 @@ interface Props {
 // Recursive helper to flatten tree
 function flattenTree(items: NavItem[], parentId: string | null = null, depth = 0): NavItem[] {
     return items.reduce<NavItem[]>((acc, item) => {
-        const flattened = [{ ...item, parent_id: parentId, depth }]
+        const flattened: NavItem[] = [{ ...item, parent_id: parentId, depth }]
         if (item.children) {
             flattened.push(...flattenTree(item.children, item.id, depth + 1))
         }
