@@ -33,7 +33,7 @@ interface Props {
     children?: ReactNode
 }
 
-export function PageContentRenderer({ content, storeSlug = '', tenantId = '', preview = false, previewDevice = 'desktop', backgroundColor = '#ffffff', children }: Props) {
+export function PageContentRenderer({ content, storeSlug = '', tenantId = '', preview = false, previewDevice = 'desktop', backgroundColor = '#ffffff', selectedId, children }: Props & { selectedId?: string }) {
     return (
         <div
             className="min-h-full w-full py-12"
@@ -42,7 +42,14 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
             <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
                 {children}
                 {content.map((block, index) => (
-                    <div key={block.id || index} id={`preview-${block.id}`}>
+                    <div
+                        key={block.id || index}
+                        id={`preview-${block.id}`}
+                        className={`scroll-mt-32 transition-all duration-300 ${block.id === selectedId
+                            ? 'ring-2 ring-rose-500 ring-offset-4 rounded-lg'
+                            : ''
+                            }`}
+                    >
                         <ContentBlock block={block} storeSlug={storeSlug} tenantId={tenantId} preview={preview} previewDevice={previewDevice} />
                     </div>
                 ))}

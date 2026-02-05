@@ -75,7 +75,13 @@ const allComponentTypes = componentCategories.flatMap(cat => cat.components)
 
 export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateAction }: Props) {
     const [state, formAction, pending] = useActionState(updateAction, { error: '' })
-    const [components, setComponents] = useState<PageComponent[]>(page.content || [])
+    // Ensure all components have an ID on load
+    const [components, setComponents] = useState<PageComponent[]>(() => {
+        return (page.content || []).map(c => ({
+            ...c,
+            id: c.id || crypto.randomUUID()
+        }))
+    })
     const [saving, setSaving] = useState(false)
     const [showAddModal, setShowAddModal] = useState(false)
     const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null)
@@ -101,25 +107,28 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
         } else {
             setSelectedComponentId(componentId)
             // 延遲滾動以確保展開動畫開始/DOM已更新
-            setTimeout(() => {
-                // 1. 滾動編輯器列表
-                const editorElement = document.getElementById(`component-${componentId}`)
-                if (editorElement) {
-                    editorElement.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    })
-                }
+            // Use requestAnimationFrame for better timing
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    // 1. 滾動編輯器列表
+                    const editorElement = document.getElementById(`component-${componentId}`)
+                    if (editorElement) {
+                        editorElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        })
+                    }
 
-                // 2. 滾動預覽畫面
-                const previewElement = document.getElementById(`preview-${componentId}`)
-                if (previewElement) {
-                    previewElement.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    })
-                }
-            }, 150)
+                    // 2. 滾動預覽畫面
+                    const previewElement = document.getElementById(`preview-${componentId}`)
+                    if (previewElement) {
+                        previewElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        })
+                    }
+                }, 100)
+            })
         }
     }
 
@@ -424,6 +433,7 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
                                         tenantId={storeId}
                                         preview={true}
                                         previewDevice={previewMode}
+                                        selectedId={selectedComponentId || undefined}
                                     />
                                 )}
                             </div>
@@ -490,7 +500,14 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
                                 尚無內容
                             </div>
                         ) : (
-                            <PageContentRenderer content={components} storeSlug={storeSlug} tenantId={storeId} preview={true} previewDevice="mobile" />
+                            <PageContentRenderer
+                                content={components}
+                                storeSlug={storeSlug}
+                                tenantId={storeId}
+                                preview={true}
+                                previewDevice="mobile"
+                                selectedId={selectedComponentId || undefined}
+                            />
                         )}
                     </div>
                 </div>

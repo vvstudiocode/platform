@@ -78,7 +78,13 @@ const allComponentTypes = componentCategories.flatMap(cat => cat.components)
 
 export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props) {
     const [state, formAction, pending] = useActionState(updateAction, { error: '' })
-    const [components, setComponents] = useState<PageComponent[]>(page.content || [])
+    // Ensure all components have an ID on load
+    const [components, setComponents] = useState<PageComponent[]>(() => {
+        return (page.content || []).map(c => ({
+            ...c,
+            id: c.id || crypto.randomUUID()
+        }))
+    })
     const [saving, setSaving] = useState(false)
     const [showAddModal, setShowAddModal] = useState(false)
     const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null)
@@ -101,10 +107,31 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
     // 切換元件展開/收合
     const toggleComponent = (componentId: string) => {
         if (selectedComponentId === componentId) {
-            setSelectedComponentId(null)  // 如果已選中則收合
+            setSelectedComponentId(null)
         } else {
             setSelectedComponentId(componentId)
-            setTimeout(() => scrollToComponent(componentId), 100)
+            // Use requestAnimationFrame for better timing
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    // 1. 滾動編輯器列表
+                    const editorElement = document.getElementById(`component-${componentId}`)
+                    if (editorElement) {
+                        editorElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        })
+                    }
+
+                    // 2. 滾動預覽畫面
+                    const previewElement = document.getElementById(`preview-${componentId}`)
+                    if (previewElement) {
+                        previewElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        })
+                    }
+                }, 100)
+            })
         }
     }
 
@@ -425,6 +452,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                         preview={true}
                                         backgroundColor={backgroundColor}
                                         previewDevice={previewMode}
+                                        selectedId={selectedComponentId || undefined}
                                     />
                                 )}
                             </div>
@@ -491,9 +519,15 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                 尚無內容
                             </div>
                         ) : (
-                            components.map((component) => (
-                                <ComponentPreview key={component.id} type={component.type} props={component.props} />
-                            ))
+                            <PageContentRenderer
+                                content={components}
+                                storeSlug={storeSlug}
+                                tenantId={tenantId}
+                                preview={true}
+                                backgroundColor={backgroundColor}
+                                previewDevice="mobile"
+                                selectedId={selectedComponentId || undefined}
+                            />
                         )}
                     </div>
                 </div>

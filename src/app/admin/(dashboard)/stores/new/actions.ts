@@ -113,6 +113,56 @@ export async function createStore(prevState: { error: string }, formData: FormDa
         }
     }
 
+    // 6. 建立預設首頁與導覽
+    if (tenant) {
+        // 建立預設首頁內容
+        const { data: homePage, error: pageError } = await supabase
+            .from('pages')
+            .insert({
+                tenant_id: tenant.id,
+                title: '首頁',
+                slug: 'home',
+                is_homepage: true,
+                published: true,
+                show_in_nav: true,
+                nav_order: 0,
+                content: [
+                    {
+                        id: crypto.randomUUID(),
+                        type: 'hero',
+                        props: {
+                            title: '歡迎',
+                            subtitle: '這是副標題',
+                            align: 'center',
+                            textColor: '#ffffff',
+                            buttonText: '了解更多',
+                            buttonUrl: '#'
+                        }
+                    }
+                ]
+            })
+            .select()
+            .single()
+
+        if (pageError) {
+            console.error('建立預設首頁失敗:', pageError)
+        } else if (homePage) {
+            // 建立首頁導覽連結
+            const { error: navError } = await supabase
+                .from('nav_items')
+                .insert({
+                    tenant_id: tenant.id,
+                    title: '首頁',
+                    page_id: homePage.id,
+                    position: 0
+                })
+
+            if (navError) {
+                console.error('建立預設導覽失敗:', navError)
+            }
+        }
+    }
+
     revalidatePath('/admin/stores')
     redirect('/admin/stores')
 }

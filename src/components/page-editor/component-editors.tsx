@@ -401,14 +401,25 @@ export function ProductListEditor({ props, onChange, tenantId }: { props: Record
     useEffect(() => {
         const url = tenantId ? `/api/products?tenantId=${tenantId}` : '/api/products'
         fetch(url)
-            .then(res => res.json())
+            .then(res => {
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    return res.json().then(data => {
+                        if (!res.ok) throw new Error(data.error || 'Fetch failed')
+                        return data
+                    })
+                }
+                return res.text().then(text => {
+                    throw new Error(`Expected JSON, got ${text.slice(0, 50)}...`)
+                })
+            })
             .then(data => {
                 setProducts(data.products || [])
                 setCategories(data.categories || [])
                 setLoading(false)
             })
             .catch(err => {
-                console.error('載入商品失敗:', err)
+                console.error('載入商品失敗:', err.message)
                 setLoading(false)
             })
     }, [tenantId])
@@ -531,13 +542,24 @@ export function ProductCategoryEditor({ props, onChange, tenantId }: { props: Re
     useEffect(() => {
         const url = tenantId ? `/api/products?tenantId=${tenantId}` : '/api/products'
         fetch(url)
-            .then(res => res.json())
+            .then(res => {
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    return res.json().then(data => {
+                        if (!res.ok) throw new Error(data.error || 'Fetch failed')
+                        return data
+                    })
+                }
+                return res.text().then(text => {
+                    throw new Error(`Expected JSON, got ${text.slice(0, 50)}...`)
+                })
+            })
             .then(data => {
                 setCategories(data.categories || [])
                 setLoading(false)
             })
             .catch(err => {
-                console.error('載入分類失敗:', err)
+                console.error('載入分類失敗:', err.message)
                 setLoading(false)
             })
     }, [tenantId])
@@ -605,14 +627,25 @@ export function ProductCarouselEditor({ props, onChange, tenantId }: { props: Re
     useEffect(() => {
         const url = tenantId ? `/api/products?tenantId=${tenantId}` : '/api/products'
         fetch(url)
-            .then(res => res.json())
+            .then(res => {
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    return res.json().then(data => {
+                        if (!res.ok) throw new Error(data.error || 'Fetch failed')
+                        return data
+                    })
+                }
+                return res.text().then(text => {
+                    throw new Error(`Expected JSON, got ${text.slice(0, 50)}...`)
+                })
+            })
             .then(data => {
                 setProducts(data.products || [])
                 setCategories(data.categories || [])
                 setLoading(false)
             })
             .catch(err => {
-                console.error('載入商品失敗:', err)
+                console.error('載入商品失敗:', err.message)
                 setLoading(false)
             })
     }, [tenantId])
