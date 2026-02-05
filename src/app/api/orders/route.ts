@@ -19,6 +19,11 @@ export async function POST(request: NextRequest) {
             storeAddress,
             items,
             notes,
+            subtotal: bodySubtotal,
+            shippingFee,
+            total: bodyTotal,
+            discountType,
+            discountValue,
         } = body
 
         // 取得商店
@@ -159,7 +164,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             orderNumber,
-            total,
+            total: finalTotal,
         })
     } catch (error) {
         console.error('Order creation error:', error)
