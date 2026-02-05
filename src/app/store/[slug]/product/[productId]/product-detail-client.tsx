@@ -102,7 +102,7 @@ export function ProductDetailClient({ store, product, navItems, homeSlug }: Prop
             {/* Navbar */}
             <SiteHeader
                 storeName={store.name}
-                logoUrl={null} // Modify if logo is available in props
+                logoUrl={undefined} // Modify if logo is available in props
                 navItems={navItems || []}
                 homeSlug={homeSlug}
                 basePath={`/store/${store.slug}`}

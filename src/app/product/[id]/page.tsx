@@ -62,7 +62,7 @@ export default async function HQProductPage({ params }: Props) {
     // 從 nav_items 取得導覽選單項目
     const { data: navItems } = await supabase
         .from('nav_items')
-        .select('title, page_id, pages(slug)')
+        .select('title, page_id, position, parent_id, pages(slug)')
         .eq('tenant_id', hqStore?.id)
         .order('position', { ascending: true })
 
@@ -71,6 +71,8 @@ export default async function HQProductPage({ params }: Props) {
         title: item.title,
         slug: item.pages?.slug || '',
         is_homepage: false,
+        position: item.position || 0,
+        parent_id: item.parent_id,
     }))
 
     // 取得設定的首頁
