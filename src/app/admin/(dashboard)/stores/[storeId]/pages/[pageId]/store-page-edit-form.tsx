@@ -292,7 +292,7 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
                                         </label>
                                     </div>
                                     <Button type="submit" variant="outline" size="sm" className="w-full" disabled={pending}>
-                                        {pending && <Loader2 className="h-3 w-3 mr-2 animate-spin" />}
+                                        <Loader2 className={`h-3 w-3 mr-2 animate-spin ${pending ? '' : 'hidden'}`} />
                                         更新設定
                                     </Button>
                                 </form>

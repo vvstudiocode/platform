@@ -112,6 +112,19 @@ export default async function StoreDetailPage({ params }: Props) {
         },
     ]
 
+    // 取得設定的首頁
+    const { data: homepage } = await supabase
+        .from('pages')
+        .select('slug')
+        .eq('tenant_id', storeId)
+        .eq('is_homepage', true)
+        .eq('published', true)
+        .maybeSingle()
+
+    const homeUrl = homepage?.slug
+        ? `/store/${store.slug}/${homepage.slug}`
+        : `/store/${store.slug}`
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -137,7 +150,7 @@ export default async function StoreDetailPage({ params }: Props) {
                         </div>
                     </div>
                 </div>
-                <Link href={`/store/${store.slug}`} target="_blank">
+                <Link href={homeUrl} target="_blank">
                     <Button variant="outline" className="border-zinc-700 text-zinc-300 hover:text-white">
                         <ExternalLink className="h-4 w-4 mr-2" />
                         造訪商店

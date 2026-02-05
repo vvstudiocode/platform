@@ -24,7 +24,12 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
     const [isMenuOpen, setIsMenuOpen] = useState(false)
 
     // 首頁連結：如果有設定首頁則連到該頁面，否則連到基本路徑
-    const homePath = homeSlug ? `${basePath}/p/${homeSlug}` : (basePath || '/')
+    // 如果是商店頁面 (basePath 包含 /store)，路徑不需要加 /p/ (因為路徑是 /store/[slug]/[pageSlug])
+    // 如果是總部頁面 (basePath 為空)，路徑需要加 /p/ (因為路徑是 /p/[slug])
+    const isStorePath = basePath.includes('/store')
+    const pagePrefix = isStorePath ? '' : '/p'
+
+    const homePath = homeSlug ? `${basePath}${pagePrefix}/${homeSlug}` : (basePath || '/')
 
     // Build recursive tree for navigation
     const navTree = navItems.reduce<any[]>((acc, item: any) => {
@@ -66,7 +71,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                     {navTree.map((item) => (
                         <div key={item.slug} className="relative group">
                             <Link
-                                href={`${basePath}/p/${item.slug}`}
+                                href={`${basePath}${pagePrefix}/${item.slug}`}
                                 className="text-gray-600 hover:text-black transition-colors py-2 inline-flex items-center gap-1"
                             >
                                 {item.title}
@@ -79,7 +84,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                                         {item.children.map((child: any) => (
                                             <Link
                                                 key={child.slug}
-                                                href={`${basePath}/p/${child.slug}`}
+                                                href={`${basePath}${pagePrefix}/${child.slug}`}
                                                 className="block px-4 py-2 text-sm text-gray-600 hover:text-black hover:bg-gray-50 bg-white"
                                             >
                                                 {child.title}
@@ -109,7 +114,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                         {navTree.map((item) => (
                             <div key={item.slug}>
                                 <Link
-                                    href={`${basePath}/p/${item.slug}`}
+                                    href={`${basePath}${pagePrefix}/${item.slug}`}
                                     className="block py-3 text-gray-600 hover:text-black border-b border-gray-100"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
@@ -120,7 +125,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                                         {item.children.map((child: any) => (
                                             <Link
                                                 key={child.slug}
-                                                href={`${basePath}/p/${child.slug}`}
+                                                href={`${basePath}${pagePrefix}/${child.slug}`}
                                                 className="block py-3 text-sm text-gray-500 hover:text-black border-b border-gray-100 last:border-0"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
