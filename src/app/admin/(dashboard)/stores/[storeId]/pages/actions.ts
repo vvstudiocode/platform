@@ -163,7 +163,7 @@ export async function updateStorePageContent(storeId: string, pageId: string, co
     }
 
     revalidatePath(`/admin/stores/${storeId}/pages`)
-    revalidatePath(`/admin/stores/${storeId}/pages/${pageId}`)
+    // revalidatePath(`/admin/stores/${storeId}/pages/${pageId}`) // Disable revalidation of editor page to prevent client-side removeChild error
 
     // 取得 store slug 進行 revalidate
     const { data: page } = await supabase

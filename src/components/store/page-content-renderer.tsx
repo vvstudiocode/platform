@@ -141,7 +141,7 @@ function HeroBlock({ block }: { block: PageComponent }) {
             <div className="absolute inset-0 bg-black/40" />
             <div className="relative z-10">
                 {title && <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{title}</h1>}
-                {subtitle && <p className="text-xl text-gray-200">{subtitle}</p>}
+                {subtitle && <div className="text-xl text-gray-200">{subtitle}</div>}
                 {buttonText && (
                     <Link
                         href={buttonUrl || '#'}
@@ -177,10 +177,10 @@ function TextBlock({ block }: { block: PageComponent }) {
     return (
         <div className={`py-12 max-w-4xl mx-auto ${alignClass}`} style={{ color: textColor }}>
             {title && <h2 className="text-3xl font-bold mb-4">{title}</h2>}
-            {subtitle && <p className="text-xl opacity-80 mb-6">{subtitle}</p>}
+            {subtitle && <div className="text-xl opacity-80 mb-6">{subtitle}</div>}
             {content && (
                 <div className="prose prose-lg max-w-none mb-8" style={{ color: textColor }}>
-                    <p className="leading-relaxed whitespace-pre-wrap">{content}</p>
+                    <div className="leading-relaxed whitespace-pre-wrap">{content}</div>
                 </div>
             )}
             {showButton && buttonText && (
@@ -236,7 +236,7 @@ function FeaturesBlock({ block }: { block: PageComponent }) {
                     <div key={i} className="text-center">
                         <div className="text-4xl mb-4">{item.icon}</div>
                         <h3 className="font-semibold text-gray-800 mb-2">{item.title}</h3>
-                        <p className="text-gray-600">{item.description}</p>
+                        <div className="text-gray-600">{item.description}</div>
                     </div>
                 ))}
             </div>
@@ -354,7 +354,7 @@ function ImageTextBlock({ block }: { block: PageComponent }) {
             {/* 文字 */}
             <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
                 {title && <h2 className="text-3xl font-bold text-gray-900">{title}</h2>}
-                {content && <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">{content}</p>}
+                {content && <div className="text-gray-600 leading-relaxed whitespace-pre-wrap">{content}</div>}
                 {buttonText && (
                     <Link
                         href={buttonUrl || '#'}
@@ -378,7 +378,7 @@ function TextColumnsBlock({ block }: { block: PageComponent }) {
             {columns.map((col: any, i: number) => (
                 <div key={i} className="space-y-3">
                     {col.title && <h3 className="text-xl font-semibold text-gray-900">{col.title}</h3>}
-                    {col.content && <p className="text-gray-600 leading-relaxed">{col.content}</p>}
+                    {col.content && <div className="text-gray-600 leading-relaxed">{col.content}</div>}
                 </div>
             ))}
         </div>

@@ -231,10 +231,7 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
                         </Link>
                     )}
                     <Button onClick={saveContent} disabled={saving || isSaved} className="min-w-[110px]">
-                        <Loader2 className={`h-4 w-4 animate-spin mr-2 ${saving ? '' : 'hidden'}`} />
-                        <span>
-                            {saving ? '儲存中...' : isSaved ? '已儲存' : '儲存內容'}
-                        </span>
+                        {saving ? '儲存中...' : isSaved ? '已儲存' : '儲存內容'}
                     </Button>
                 </div>
             </div>

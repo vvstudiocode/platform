@@ -207,8 +207,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                         </Link>
                     )}
                     <Button id="save-btn" onClick={saveContent} disabled={saving}>
-                        {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                        儲存內容
+                        {saving ? '儲存中...' : '儲存內容'}
                     </Button>
                 </div>
             </div>
