@@ -1,0 +1,52 @@
+# Zeabur 部署優化規則  
+
+## Docker 構建規則
+- 始終使用 node:22-slim 作為基礎鏡像（不要用 node:22 完整版）
+- 在 Dockerfile 中使用 npm ci --only=production 安裝生產依賴
+- 在構建後清理 .git, .next/cache, node_modules/.cache 目錄
+- 使用 .dockerignore 排除不必要的文件
+- 不要在 Dockerfile 中包含開發工具（typescript, eslint, prettier 等）  
+
+## 依賴管理規則
+- 所有開發工具必須在 package.json 的 devDependencies 中
+- 開發工具包括：typescript, @types/*, eslint, prettier, jest, @testing-library/*
+- 只有生產需要的包才能在 dependencies 中
+- 定期檢查 node_modules 大小，移除不必要的依賴  
+
+## 項目配置
+- 項目名稱：platform
+- 框架：Next.js 16.1.6
+- Node.js 版本：22
+- 包管理器：npm
+- 應用監聽端口：8080
+- 部署平台：Zeabur  
+
+## 構建流程
+1. npm ci --only=production（安裝生產依賴）
+2. npm run build（構建 Next.js 應用）
+3. npm start（啟動應用）  
+
+## 常見問題排查
+- 如果部署失敗，檢查 Dockerfile 是否遵循優化規則
+- 如果鏡像過大（>500MB），檢查：  
+  - .dockerignore 是否完整  
+  - package.json 中是否有不必要的生產依賴  
+  - node_modules 中是否有大型包
+- 如果應用無法啟動，檢查：  
+  - npm run build 是否成功  
+  - npm start 命令是否正確  
+  - 環境變量是否正確設置  
+
+## Git 提交規則
+- 修改 Dockerfile 時，提交信息格式：optimize: [具體優化內容]
+- 修改 package.json 時，提交信息格式：deps: [具體修改內容]
+- 修改 .dockerignore 時，提交信息格式：build: update .dockerignore  
+
+## 部署檢查清單
+- [ ] .dockerignore 文件已創建
+- [ ] Dockerfile 已優化
+- [ ] package.json 依賴分類正確
+- [ ] npm run build 本地測試成功
+- [ ] git push 到主分支
+- [ ] Zeabur 部署成功
+- [ ] 應用可以正常訪問  

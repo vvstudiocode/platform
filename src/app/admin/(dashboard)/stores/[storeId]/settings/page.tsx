@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Settings } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { StoreSettingsClient } from './store-settings-client'
 
 interface Props {
     params: Promise<{ storeId: string }>
@@ -25,6 +25,9 @@ export default async function StoreSettingsPage({ params }: Props) {
     if (!store) {
         notFound()
     }
+
+    // 商店網址
+    const storeUrl = `https://omoselect.zeabur.app/store/${store.slug}`
 
     return (
         <div className="space-y-6">
@@ -51,43 +54,32 @@ export default async function StoreSettingsPage({ params }: Props) {
 
                 <div className="space-y-2">
                     <Label className="text-zinc-300">網址代號</Label>
-                    <div className="flex items-center gap-2 max-w-md">
-                        <span className="text-zinc-500 text-sm">https://</span>
+                    <div className="flex items-center gap-2 max-w-lg">
                         <Input
-                            defaultValue={store.slug}
-                            className="bg-zinc-800 border-zinc-700 text-white"
-                            disabled
+                            value={storeUrl}
+                            className="bg-zinc-800 border-zinc-700 text-white flex-1"
+                            readOnly
                         />
-                        <span className="text-zinc-500 text-sm">.yourdomain.com</span>
+                        <a
+                            href={storeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-lg"
+                        >
+                            <ExternalLink className="h-4 w-4" />
+                        </a>
                     </div>
+                    <p className="text-xs text-zinc-500">這是您商店的公開網址</p>
                 </div>
 
-                <div className="space-y-2">
-                    <Label className="text-zinc-300">訂閱方案</Label>
-                    <Input
-                        defaultValue={store.subscription_tier || 'Free'}
-                        className="bg-zinc-800 border-zinc-700 text-white max-w-md"
-                        disabled
-                    />
-                </div>
-
-                <div className="pt-4 border-t border-zinc-800">
-                    <Button className="bg-white text-black hover:bg-zinc-200" disabled>
-                        儲存變更（即將推出）
-                    </Button>
-                </div>
-            </div>
-
-            {/* Danger Zone */}
-            <div className="rounded-xl border border-red-900/50 bg-red-950/20 p-6">
-                <h3 className="text-lg font-medium text-red-400">危險區域</h3>
-                <p className="text-sm text-zinc-400 mt-1 mb-4">
-                    刪除商店將永久移除所有相關資料，此操作無法復原
-                </p>
-                <Button variant="outline" className="border-red-900 text-red-400 hover:bg-red-950" disabled>
-                    刪除商店（即將推出）
-                </Button>
+                {/* 可編輯設定 */}
+                <StoreSettingsClient
+                    storeId={store.id}
+                    storeName={store.name}
+                    currentTier={store.subscription_tier || 'free'}
+                />
             </div>
         </div>
     )
 }
+

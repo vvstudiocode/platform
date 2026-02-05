@@ -99,10 +99,32 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
     // 切換元件展開/收合
     const toggleComponent = (componentId: string) => {
         if (selectedComponentId === componentId) {
-            setSelectedComponentId(null)  // 如果已選中則收合
+            setSelectedComponentId(null)
         } else {
             setSelectedComponentId(componentId)
-            setTimeout(() => scrollToComponent(componentId), 100)
+            // 延遲滾動以確保展開動畫開始/DOM已更新
+            // Use requestAnimationFrame for better timing
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    // 1. 滾動編輯器列表
+                    const editorElement = document.getElementById(`component-${componentId}`)
+                    if (editorElement) {
+                        editorElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        })
+                    }
+
+                    // 2. 滾動預覽畫面
+                    const previewElement = document.getElementById(`preview-${componentId}`)
+                    if (previewElement) {
+                        previewElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        })
+                    }
+                }, 100)
+            })
         }
     }
 
@@ -398,7 +420,14 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                     尚無內容
                                 </div>
                             ) : (
-                                <PageContentRenderer content={components} storeSlug={storeSlug} tenantId={tenantId} preview={true} />
+                                <PageContentRenderer
+                                    content={components}
+                                    storeSlug={storeSlug}
+                                    tenantId={tenantId}
+                                    preview={true}
+                                    previewDevice={previewMode}
+                                    selectedId={selectedComponentId || undefined}
+                                />
                             )}
                         </div>
                     </div>
@@ -463,9 +492,14 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                 尚無內容
                             </div>
                         ) : (
-                            components.map((component) => (
-                                <ComponentPreview key={component.id} type={component.type} props={component.props} />
-                            ))
+                            <PageContentRenderer
+                                content={components}
+                                storeSlug={storeSlug}
+                                tenantId={tenantId}
+                                preview={true}
+                                previewDevice="mobile"
+                                selectedId={selectedComponentId || undefined}
+                            />
                         )}
                     </div>
                 </div>

@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
-import { SiteHeader } from '@/components/site-header'
-import { PageContentRenderer } from '@/components/store/page-content-renderer'
+import { HQPageClient } from './hq-page-client'
 
 interface Props {
     params: Promise<{ slug: string }>
@@ -51,7 +50,7 @@ export default async function HQPageRoute({ params }: Props) {
     // 取得總部商店
     const { data: hqStore } = await supabase
         .from('tenants')
-        .select('id, name, slug, logo_url')
+        .select('id, name, slug, logo_url, footer_settings')
         .eq('slug', 'hq')
         .single()
 
@@ -81,7 +80,7 @@ export default async function HQPageRoute({ params }: Props) {
 
     // 轉換成 SiteHeader 需要的格式
     const navMenuItems = (navItems || []).map((item: any) => ({
-        id: item.id, // Ensure ID is passed if used for key; though mapping usually uses slug/title.
+        id: item.id,
         title: item.title,
         slug: item.pages?.slug || '',
         is_homepage: false,
@@ -102,32 +101,22 @@ export default async function HQPageRoute({ params }: Props) {
     const content = (page.content as any[]) || []
 
     return (
-        <div className="min-h-screen bg-white">
-            <SiteHeader
-                storeName={hqStore.name}
-                logoUrl={hqStore.logo_url}
-                navItems={navMenuItems}
-                homeSlug={homepage?.slug}
-            />
-
-            {/* Page Content */}
-            <main>
-                <PageContentRenderer
-                    content={content}
-                    storeSlug={hqStore.slug}
-                    tenantId={hqStore.id}
-                    backgroundColor={page.background_color}
-                >
-                    <h1 className="text-4xl font-bold mb-8">{page.title}</h1>
-                </PageContentRenderer>
-            </main>
-
-            {/* Footer */}
-            <footer className="border-t bg-gray-50 py-8">
-                <div className="max-w-[1200px] mx-auto px-4 text-center text-gray-500 text-sm">
-                    © {new Date().getFullYear()} {hqStore.name}. All rights reserved.
-                </div>
-            </footer>
-        </div>
+        <HQPageClient
+            store={{
+                id: hqStore.id,
+                name: hqStore.name,
+                slug: hqStore.slug,
+                logoUrl: hqStore.logo_url,
+                footerSettings: hqStore.footer_settings,
+            }}
+            page={{
+                title: page.title,
+                content: content,
+                backgroundColor: page.background_color,
+            }}
+            navItems={navMenuItems}
+            homeSlug={homepage?.slug}
+        />
     )
 }
+

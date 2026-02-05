@@ -2,40 +2,38 @@
 
 import { useState, useEffect } from 'react'
 import { useCart } from '@/lib/cart-context'
+import { SiteHeader } from '@/components/site-header'
 import { CartSidebar } from '@/components/store/cart-sidebar'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
-import { SiteHeader } from '@/components/site-header'
 import { StoreFooter } from '@/components/store/store-footer'
+
+interface NavItem {
+    id: string
+    title: string
+    slug: string
+    is_homepage: boolean
+    parent_id?: string | null
+    position: number
+}
 
 interface Props {
     store: {
+        id: string
         name: string
         slug: string
         logoUrl?: string | null
-        settings?: {
-            primaryColor?: string
-        }
         footerSettings?: any
-        id: string
     }
     page: {
         title: string
         content: any[]
+        backgroundColor?: string
     }
-    navItems: Array<{
-        id: string
-        title: string
-        page_id: string
-        slug?: string
-        parent_id?: string | null
-        position: number
-        pages?: { slug: string } | null
-    }>
+    navItems: NavItem[]
     homeSlug?: string
 }
 
-
-export function HomePageClient({ store, page, navItems, homeSlug }: Props) {
+export function HQPageClient({ store, page, navItems, homeSlug }: Props) {
     const { setStoreSlug } = useCart()
     const [isCartOpen, setIsCartOpen] = useState(false)
 
@@ -43,41 +41,36 @@ export function HomePageClient({ store, page, navItems, homeSlug }: Props) {
         setStoreSlug(store.slug)
     }, [store.slug, setStoreSlug])
 
-    // 準備導覽項目
-    const navMenuItems = navItems.map(item => ({
-        id: item.id,
-        title: item.title,
-        slug: item.pages?.slug || '',
-        is_homepage: false,
-        parent_id: item.parent_id,
-        position: item.position
-    }))
-
     return (
         <div className="min-h-screen bg-white flex flex-col">
-            {/* 響應式導覽列 */}
             <SiteHeader
                 storeName={store.name}
                 logoUrl={store.logoUrl || undefined}
-                navItems={navMenuItems}
+                navItems={navItems}
                 homeSlug={homeSlug}
-                basePath={`/store/${store.slug}`}
                 onCartClick={() => setIsCartOpen(true)}
             />
 
-            {/* 頁面內容 */}
+            {/* Page Content */}
             <main className="flex-1">
-                <PageContentRenderer content={page.content} storeSlug={store.slug} tenantId={store.id} />
+                <PageContentRenderer
+                    content={page.content}
+                    storeSlug={store.slug}
+                    tenantId={store.id}
+                    backgroundColor={page.backgroundColor}
+                >
+                    <h1 className="text-4xl font-bold mb-8">{page.title}</h1>
+                </PageContentRenderer>
             </main>
 
-            {/* 商店頁尾 */}
+            {/* Footer */}
             <StoreFooter
                 storeName={store.name}
                 storeSlug={store.slug}
                 settings={store.footerSettings}
             />
 
-            {/* 購物車側邊欄 */}
+            {/* Cart Sidebar */}
             <CartSidebar
                 isOpen={isCartOpen}
                 onClose={() => setIsCartOpen(false)}

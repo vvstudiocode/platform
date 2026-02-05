@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, ShoppingCart } from 'lucide-react'
+import { useCart } from '@/lib/cart-context'
 
 interface NavItem {
     title: string
@@ -18,10 +19,17 @@ interface SiteHeaderProps {
     navItems: NavItem[]
     homeSlug?: string  // 設定的首頁 slug
     basePath?: string  // 基本路徑前綴，例如 '' 或 '/store/nike'
+    onCartClick?: () => void  // 購物車按鈕點擊回調
 }
 
-export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = '' }: SiteHeaderProps) {
+export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = '', onCartClick }: SiteHeaderProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const [mounted, setMounted] = useState(false)
+    const { getItemCount } = useCart()
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     // 首頁連結：如果有設定首頁則連到該頁面，否則連到基本路徑
     // 如果是商店頁面 (basePath 包含 /store)，路徑不需要加 /p/ (因為路徑是 /store/[slug]/[pageSlug])
@@ -97,14 +105,33 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                     ))}
                 </nav>
 
-                {/* Mobile Menu Button */}
-                <button
-                    className="md:hidden p-2 text-gray-600 hover:text-black"
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    aria-label="Toggle menu"
-                >
-                    {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                </button>
+                {/* Right side actions */}
+                <div className="flex items-center gap-2">
+                    {/* Cart Button */}
+                    {onCartClick && (
+                        <button
+                            onClick={onCartClick}
+                            className="relative p-2 text-gray-600 hover:text-black"
+                            aria-label="購物車"
+                        >
+                            <ShoppingCart className="h-6 w-6" />
+                            {mounted && getItemCount() > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                    {getItemCount()}
+                                </span>
+                            )}
+                        </button>
+                    )}
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        className="md:hidden p-2 text-gray-600 hover:text-black"
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        aria-label="Toggle menu"
+                    >
+                        {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                    </button>
+                </div>
             </div>
 
             {/* Mobile Navigation */}

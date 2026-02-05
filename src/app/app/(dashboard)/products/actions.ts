@@ -127,3 +127,36 @@ export async function deleteProduct(productId: string) {
     revalidatePath('/app/products')
     return { success: true }
 }
+
+// 更新商品上下架狀態
+export async function updateProductStatus(productId: string, status: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase
+        .from('products')
+        .update({ status })
+        .eq('id', productId)
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    // 不使用 revalidatePath 避免 Turbopack header 錯誤
+    return { success: true }
+}
+
+// 更新商品排序
+export async function updateProductOrder(orderData: { id: string; order: number }[]) {
+    const supabase = await createClient()
+
+    // 批次更新排序
+    for (const item of orderData) {
+        await supabase
+            .from('products')
+            .update({ sort_order: item.order })
+            .eq('id', item.id)
+    }
+
+    // 不使用 revalidatePath 避免 Turbopack header 錯誤
+    return { success: true }
+}

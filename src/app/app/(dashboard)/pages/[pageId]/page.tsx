@@ -13,20 +13,7 @@ export default async function EditPagePage({ params }: Props) {
     const supabase = await createClient()
     const cookieStore = await cookies()
 
-    // 取得 tenant_id
-    const tenantId = cookieStore.get('tenant_id')?.value
-
-    // 取得商店 slug
-    let storeSlug: string | undefined
-    if (tenantId) {
-        const { data: tenant } = await supabase
-            .from('tenants')
-            .select('slug')
-            .eq('id', tenantId)
-            .single()
-        storeSlug = tenant?.slug
-    }
-
+    // 1. 先取得頁面資料
     const { data: page } = await supabase
         .from('pages')
         .select('*')
@@ -35,6 +22,21 @@ export default async function EditPagePage({ params }: Props) {
 
     if (!page) {
         notFound()
+    }
+
+    // 2. 決定 tenant_id (優先使用 cookie，若無則使用頁面的 tenant_id)
+    const cookieTenantId = cookieStore.get('tenant_id')?.value
+    const tenantId = cookieTenantId || page.tenant_id
+
+    // 3. 取得商店 slug
+    let storeSlug: string | undefined
+    if (tenantId) {
+        const { data: tenant } = await supabase
+            .from('tenants')
+            .select('slug')
+            .eq('id', tenantId)
+            .single()
+        storeSlug = tenant?.slug
     }
 
     const boundUpdatePage = updatePage.bind(null, pageId)

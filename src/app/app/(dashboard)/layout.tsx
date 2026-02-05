@@ -39,6 +39,20 @@ export default async function AppLayout({
 
     const store = userRole.tenants as any
 
+    // 取得設定的首頁
+    const { data: homepage } = await supabase
+        .from('pages')
+        .select('slug')
+        .eq('tenant_id', store.id)
+        .eq('is_homepage', true)
+        .eq('published', true)
+        .maybeSingle()
+
+    // 如果有設定首頁，指向該頁面；否則指向商店首頁（商品列表）
+    const homeUrl = homepage?.slug
+        ? `/store/${store.slug}/page/${homepage.slug}`
+        : `/store/${store.slug}`
+
     // navItems 使用字串名稱而非組件，以便序列化傳遞給 Client Component
     const navItems = [
         { href: '/app', icon: 'LayoutDashboard', label: '儀表板' },
@@ -61,14 +75,14 @@ export default async function AppLayout({
                     <span className="font-bold text-white">{store.name}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                    <Link
-                        href={`/store/${store.slug}`}
+                    <a
+                        href={homeUrl}
                         target="_blank"
-                        className="flex items-center gap-1 text-sm text-zinc-400 hover:text-white"
+                        rel="noopener noreferrer"
+                        className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm border border-zinc-700 rounded-lg px-3 py-1.5 hover:bg-zinc-800 transition-colors"
                     >
-                        <ExternalLink className="h-4 w-4" />
-                        查看商店
-                    </Link>
+                        前往首頁
+                    </a>
                     <span className="text-sm text-zinc-400">{user.email}</span>
                     <form action="/api/auth/signout" method="POST">
                         <button type="submit" className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm">
