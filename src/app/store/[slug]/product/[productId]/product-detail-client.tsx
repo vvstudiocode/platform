@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useCart } from '@/lib/cart-context'
 import { Minus, Plus, ShoppingCart, Check } from 'lucide-react'
 import Link from 'next/link'
-import { CartSidebar } from '@/components/store/cart-sidebar'
 import { SiteHeader } from '@/components/site-header'
 
 interface Props {
@@ -41,10 +40,9 @@ interface Props {
 }
 
 export function ProductDetailClient({ store, product, navItems, homeSlug }: Props) {
-    const { addItem, getItemCount, setStoreSlug } = useCart()
+    const { addItem, getItemCount, setStoreSlug, isCartOpen, setIsCartOpen } = useCart()
     const [quantity, setQuantity] = useState(1)
     const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
-    const [isCartOpen, setIsCartOpen] = useState(false)
     const [isAdded, setIsAdded] = useState(false)
     const [mounted, setMounted] = useState(false)
 
@@ -106,6 +104,7 @@ export function ProductDetailClient({ store, product, navItems, homeSlug }: Prop
                 navItems={navItems || []}
                 homeSlug={homeSlug}
                 basePath={`/store/${store.slug}`}
+                onCartClick={() => setIsCartOpen(true)}
             />
 
             <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -239,12 +238,7 @@ export function ProductDetailClient({ store, product, navItems, homeSlug }: Prop
                 </div>
             </main>
 
-            {/* Cart Sidebar */}
-            <CartSidebar
-                isOpen={isCartOpen}
-                onClose={() => setIsCartOpen(false)}
-                storeSlug={store.slug}
-            />
+
         </div>
     )
 }

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import {
     Store,
     LogOut,
+    Settings,
 } from 'lucide-react'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
 
@@ -58,7 +59,9 @@ export default async function AdminLayout({
         .eq('published', true)
         .maybeSingle()
 
-    const homeUrl = homepage?.slug ? `/p/${homepage.slug}` : '/p/home'
+    const homeUrl = hqStore?.slug
+        ? `/store/${hqStore.slug}${homepage?.slug ? `/${homepage.slug}` : ''}`
+        : '/'
 
     // 導覽分區（使用字串圖標名稱以便序列化）
     const navSections = [
@@ -94,7 +97,6 @@ export default async function AdminLayout({
                     總部管理後台
                 </Link>
                 <div className="flex items-center gap-4">
-                    <span className="text-sm text-zinc-400 hidden sm:block">{user.email}</span>
                     <a
                         href={homeUrl}
                         target="_blank"
@@ -103,6 +105,7 @@ export default async function AdminLayout({
                     >
                         前往首頁
                     </a>
+                    <span className="text-sm text-zinc-400 hidden sm:block">{user.email}</span>
                     <form action="/api/auth/signout" method="POST">
                         <button type="submit" className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm">
                             <LogOut className="h-4 w-4" />

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useCart } from '@/lib/cart-context'
-import { CartSidebar } from '@/components/store/cart-sidebar'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
 import { SiteHeader } from '@/components/site-header'
 import { StoreFooter } from '@/components/store/store-footer'
@@ -36,8 +35,7 @@ interface Props {
 
 
 export function HomePageClient({ store, page, navItems, homeSlug }: Props) {
-    const { setStoreSlug } = useCart()
-    const [isCartOpen, setIsCartOpen] = useState(false)
+    const { setStoreSlug, isCartOpen, setIsCartOpen } = useCart()
 
     useEffect(() => {
         setStoreSlug(store.slug)
@@ -77,12 +75,7 @@ export function HomePageClient({ store, page, navItems, homeSlug }: Props) {
                 settings={store.footerSettings}
             />
 
-            {/* 購物車側邊欄 */}
-            <CartSidebar
-                isOpen={isCartOpen}
-                onClose={() => setIsCartOpen(false)}
-                storeSlug={store.slug}
-            />
+
         </div>
     )
 }

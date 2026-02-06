@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import { ProductListBlock, ProductCategoryBlock, ProductCarouselBlock } from './product-blocks'
@@ -19,6 +19,32 @@ interface PageComponent {
     backgroundUrl?: string
 }
 
+function useInView(options = {}) {
+    const ref = useRef(null)
+    const [isInView, setIsInView] = useState(false)
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                setIsInView(true)
+                observer.disconnect()
+            }
+        }, options)
+
+        if (ref.current) {
+            observer.observe(ref.current)
+        }
+
+        return () => {
+            if (ref.current) {
+                observer.disconnect()
+            }
+        }
+    }, [ref, options])
+
+    return [ref, isInView] as const
+}
+
 import { ReactNode } from 'react'
 
 // ... imports
@@ -33,6 +59,20 @@ interface Props {
     children?: ReactNode
 }
 
+function AnimationWrapper({ children, animation, className }: { children: ReactNode; animation?: any; className?: string }) {
+    const [ref, isInView] = useInView({ threshold: 0.1 })
+    // If no animation, just render
+    if (!animation || !animation.type || animation.type === 'none') {
+        return <div className={className}>{children}</div>
+    }
+
+    return (
+        <div ref={ref as any} className={`${className} ${isInView ? getAnimationClass(animation) : 'opacity-0'}`} style={getAnimationDelay(animation?.delay)}>
+            {children}
+        </div>
+    )
+}
+
 export function PageContentRenderer({ content, storeSlug = '', tenantId = '', preview = false, previewDevice = 'desktop', backgroundColor = '#ffffff', selectedId, children }: Props & { selectedId?: string }) {
     return (
         <div
@@ -43,19 +83,60 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
                 {children}
                 {content.map((block, index) => (
                     <div
-                        key={block.id || index}
+                        key={`${block.id || index}-${JSON.stringify(block.props?.animation)}`}
                         id={`preview-${block.id}`}
                         className={`scroll-mt-32 transition-all duration-300 ${block.id === selectedId
                             ? 'ring-2 ring-rose-500 ring-offset-4 rounded-lg'
                             : ''
+                            } ${preview && previewDevice === 'mobile'
+                                ? 'py-[var(--py-mobile)]'
+                                : 'py-[var(--py-mobile)] md:py-[var(--py-desktop)]'
                             }`}
+                        style={{
+                            '--py-desktop': `${block.props?.paddingYDesktop ?? 64}px`,
+                            '--py-mobile': `${block.props?.paddingYMobile ?? 32}px`,
+                        } as any}
                     >
-                        <ContentBlock block={block} storeSlug={storeSlug} tenantId={tenantId} preview={preview} previewDevice={previewDevice} />
+                        <AnimationWrapper animation={block.props?.animation}>
+                            <ContentBlock block={block} storeSlug={storeSlug} tenantId={tenantId} preview={preview} previewDevice={previewDevice} />
+                        </AnimationWrapper>
                     </div>
                 ))}
             </div>
         </div>
     )
+}
+
+function getAnimationClass(animation?: { type: string; duration?: string }) {
+    if (!animation || !animation.type || animation.type === 'none') return ''
+
+    const base = 'animate-in fill-mode-both'
+    const durations: Record<string, string> = {
+        slower: 'duration-1000',
+        slow: 'duration-700',
+        normal: 'duration-500',
+        fast: 'duration-300',
+        faster: 'duration-150'
+    }
+    const durationClass = durations[animation.duration || 'normal'] || 'duration-500'
+
+    const types: Record<string, string> = {
+        'fade-in': 'fade-in',
+        'fade-in-up': 'fade-in slide-in-from-bottom-10',
+        'fade-in-down': 'fade-in slide-in-from-top-10',
+        'fade-in-left': 'fade-in slide-in-from-right-10',
+        'fade-in-right': 'fade-in slide-in-from-left-10',
+        'zoom-in': 'zoom-in',
+        'zoom-out': 'zoom-out'
+    }
+    const typeClass = types[animation.type] || ''
+
+    return `${base} ${typeClass} ${durationClass}`
+}
+
+function getAnimationDelay(delay?: string) {
+    if (!delay) return {}
+    return { animationDelay: `${delay}ms` }
 }
 
 function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { block: PageComponent; storeSlug: string; tenantId: string; preview: boolean; previewDevice: 'mobile' | 'desktop' }) {
@@ -64,13 +145,13 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
 
     switch (block.type) {
         case 'hero':
-            return <HeroBlock block={block} />
+            return <HeroBlock block={block} preview={preview} previewDevice={previewDevice} />
         case 'text':
             return <TextBlock block={block} />
         case 'heading':
             return <HeadingBlock block={block} />
         case 'image':
-            return <ImageBlock block={block} />
+            return <ImageBlock block={block} preview={preview} previewDevice={previewDevice} />
         case 'features':
             return <FeaturesBlock block={block} />
         case 'faq':
@@ -78,15 +159,16 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
         case 'carousel':
             return <CarouselBlock block={block} />
         case 'image_text':
-            return <ImageTextBlock block={block} />
+            return <ImageTextBlock block={block} preview={preview} previewDevice={previewDevice} />
         case 'text_columns':
             return <TextColumnsBlock block={block} />
         case 'image_grid':
-            return <ImageGridBlock block={block} />
+            return <ImageGridBlock block={block} preview={preview} previewDevice={previewDevice} />
         case 'product_list':
             return <ProductListBlock
                 productIds={block.props?.productIds || []}
                 title={block.props?.title}
+                titleAlign={block.props?.titleAlign}
                 layout={block.props?.layout}
                 columns={block.props?.columns}
                 layoutDesktop={block.props?.layoutDesktop}
@@ -96,11 +178,16 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 storeSlug={storeSlug}
                 preview={preview}
                 previewDevice={previewDevice}
+                objectFitDesktop={block.props?.objectFitDesktop}
+                objectFitMobile={block.props?.objectFitMobile}
+                aspectRatioDesktop={block.props?.aspectRatioDesktop}
+                aspectRatioMobile={block.props?.aspectRatioMobile}
             />
         case 'product_category':
             return <ProductCategoryBlock
                 category={block.props?.category || ''}
                 title={block.props?.title}
+                titleAlign={block.props?.titleAlign}
                 limit={block.props?.limit}
                 layout={block.props?.layout}
                 columns={block.props?.columns}
@@ -112,32 +199,74 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 tenantId={tenantId}
                 preview={preview}
                 previewDevice={previewDevice}
+                objectFitDesktop={block.props?.objectFitDesktop}
+                objectFitMobile={block.props?.objectFitMobile}
+                aspectRatioDesktop={block.props?.aspectRatioDesktop}
+                aspectRatioMobile={block.props?.aspectRatioMobile}
             />
         case 'product_carousel':
-            return <ProductCarouselBlock productIds={block.props?.productIds || []} title={block.props?.title} autoplay={block.props?.autoplay} interval={block.props?.interval} storeSlug={storeSlug} preview={preview} previewDevice={previewDevice} />
+            return <ProductCarouselBlock
+                productIds={block.props?.productIds || []}
+                title={block.props?.title}
+                titleAlign={block.props?.titleAlign}
+                autoplay={block.props?.autoplay}
+                interval={block.props?.interval}
+                storeSlug={storeSlug}
+                preview={preview}
+                previewDevice={previewDevice}
+                objectFitDesktop={block.props?.objectFitDesktop}
+                objectFitMobile={block.props?.objectFitMobile}
+                aspectRatioDesktop={block.props?.aspectRatioDesktop}
+                aspectRatioMobile={block.props?.aspectRatioMobile}
+            />
         default:
             return null
     }
 }
 
 // Hero Banner
-function HeroBlock({ block }: { block: PageComponent }) {
+function HeroBlock({ block, preview, previewDevice }: { block: PageComponent; preview?: boolean; previewDevice?: 'mobile' | 'desktop' }) {
     const title = block.props?.title ?? block.title
     const subtitle = block.props?.subtitle ?? block.subtitle
     const backgroundUrl = block.props?.backgroundUrl ?? block.backgroundUrl ?? block.imageUrl
     const buttonText = block.props?.buttonText
     const buttonUrl = block.props?.buttonUrl
 
+    const fitDesktop = block.props?.objectFitDesktop || 'cover'
+    const fitMobile = block.props?.objectFitMobile || 'cover'
+    const aspectRatioDesktop = block.props?.aspectRatioDesktop || 'auto'
+    const aspectRatioMobile = block.props?.aspectRatioMobile || 'auto'
+
     return (
         <div
-            className="relative py-24 px-8 rounded-2xl overflow-hidden text-center"
+            className={`relative w-full flex flex-col justify-center items-center text-center px-8 transition-all duration-300 ${aspectRatioDesktop === 'auto' && aspectRatioMobile === 'auto' ? 'min-h-[calc(100vh-5rem)]' : ''} ${block.props && previewDevice === 'mobile' && preview
+                ? 'aspect-[var(--aspect-mobile)]'
+                : 'aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)]'
+                }`}
             style={{
                 backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : undefined,
                 backgroundColor: backgroundUrl ? undefined : '#1f2937',
-                backgroundSize: 'cover',
                 backgroundPosition: 'center',
-            }}
+                paddingTop: previewDevice === 'mobile' ? `${block.props?.paddingYMobile ?? 32}px` : `${block.props?.paddingYDesktop ?? 64}px`,
+                paddingBottom: previewDevice === 'mobile' ? `${block.props?.paddingYMobile ?? 32}px` : `${block.props?.paddingYDesktop ?? 64}px`,
+                // Use background-size directly from variables doesn't work well in style attribute for responsive without media queries or CSS variables trick
+                // So we will use the --bg-size var approach which works with the JSX style below
+                '--bg-size-desktop': fitDesktop,
+                '--bg-size-mobile': fitMobile,
+                '--aspect-desktop': aspectRatioDesktop,
+                '--aspect-mobile': aspectRatioMobile,
+            } as any}
         >
+            <style jsx>{`
+                div {
+                    background-size: var(--bg-size-mobile);
+                }
+                @media (min-width: 768px) {
+                    div {
+                        background-size: var(--bg-size-desktop);
+                    }
+                }
+            `}</style>
             <div className="absolute inset-0 bg-black/40" />
             <div className="relative z-10">
                 {title && <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{title}</h1>}
@@ -209,14 +338,27 @@ function HeadingBlock({ block }: { block: PageComponent }) {
 }
 
 // 圖片
-function ImageBlock({ block }: { block: PageComponent }) {
+function ImageBlock({ block, preview, previewDevice }: { block: PageComponent; preview?: boolean; previewDevice?: 'mobile' | 'desktop' }) {
     const url = block.props?.url ?? block.url
     const alt = block.props?.alt ?? block.alt ?? ''
+    const fitDesktop = block.props?.objectFitDesktop || 'cover'
+    const fitMobile = block.props?.objectFitMobile || 'cover'
+
     return (
         <img
             src={url}
             alt={alt}
-            className="w-full rounded-lg shadow-lg"
+            className={`w-full rounded-lg shadow-lg ${block.props && previewDevice === 'mobile' && preview
+                ? 'object-[var(--fit-mobile)] aspect-[var(--aspect-mobile)]'
+                : 'object-[var(--fit-mobile)] md:object-[var(--fit-desktop)] aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)]'
+                }`}
+            style={{
+                '--fit-desktop': fitDesktop,
+                '--fit-mobile': fitMobile,
+                '--aspect-desktop': block.props?.aspectRatioDesktop || 'auto',
+                '--aspect-mobile': block.props?.aspectRatioMobile || 'auto',
+                objectFit: (preview && previewDevice === 'mobile') ? fitMobile : fitDesktop,
+            } as React.CSSProperties}
         />
     )
 }
@@ -224,12 +366,13 @@ function ImageBlock({ block }: { block: PageComponent }) {
 // 特色區塊
 function FeaturesBlock({ block }: { block: PageComponent }) {
     const title = block.props?.title ?? block.title
+    const titleAlign = block.props?.titleAlign || 'center'
     const items = block.props?.items ?? []
 
     return (
         <div className="py-12 bg-gray-50 rounded-2xl">
             {title && (
-                <h2 className="text-2xl font-bold text-gray-800 text-center mb-8">{title}</h2>
+                <h2 className={`text-2xl font-bold text-gray-800 mb-8 text-${titleAlign}`}>{title}</h2>
             )}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-8">
                 {items.map((item: any, i: number) => (
@@ -247,12 +390,13 @@ function FeaturesBlock({ block }: { block: PageComponent }) {
 // FAQ 問答區塊
 function FAQBlock({ block }: { block: PageComponent }) {
     const title = block.props?.title ?? block.title
+    const titleAlign = block.props?.titleAlign || 'center'
     const items = block.props?.items ?? []
 
     return (
         <div className="py-12">
             {title && (
-                <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center">{title}</h2>
+                <h2 className={`text-2xl font-bold text-gray-800 mb-8 text-${titleAlign}`}>{title}</h2>
             )}
             <div className="space-y-4">
                 {items.map((item: any, i: number) => (
@@ -291,7 +435,13 @@ function CarouselBlock({ block }: { block: PageComponent }) {
 
     return (
         <div className="relative rounded-2xl overflow-hidden bg-gray-100">
-            <div className="aspect-[21/9] relative">
+            <div
+                className="relative aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)]"
+                style={{
+                    '--aspect-desktop': block.props?.aspectRatioDesktop || '21/9',
+                    '--aspect-mobile': block.props?.aspectRatioMobile || '16/9',
+                } as React.CSSProperties}
+            >
                 {images.map((img: any, i: number) => (
                     <div
                         key={i}
@@ -303,14 +453,22 @@ function CarouselBlock({ block }: { block: PageComponent }) {
                                 <img
                                     src={img.url}
                                     alt={img.alt || ''}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-[var(--fit-mobile)] md:object-[var(--fit-desktop)]"
+                                    style={{
+                                        '--fit-desktop': block.props?.objectFitDesktop || 'cover',
+                                        '--fit-mobile': block.props?.objectFitMobile || 'cover',
+                                    } as React.CSSProperties}
                                 />
                             </Link>
                         ) : (
                             <img
                                 src={img.url}
                                 alt={img.alt || ''}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-[var(--fit-mobile)] md:object-[var(--fit-desktop)]"
+                                style={{
+                                    '--fit-desktop': block.props?.objectFitDesktop || 'cover',
+                                    '--fit-mobile': block.props?.objectFitMobile || 'cover',
+                                } as React.CSSProperties}
                             />
                         )}
                     </div>
@@ -333,13 +491,15 @@ function CarouselBlock({ block }: { block: PageComponent }) {
 }
 
 // 2. 圖文組合
-function ImageTextBlock({ block }: { block: PageComponent }) {
+function ImageTextBlock({ block, preview, previewDevice }: { block: PageComponent; preview?: boolean; previewDevice?: 'mobile' | 'desktop' }) {
     const layout = block.props?.layout ?? 'left'
     const imageUrl = block.props?.imageUrl
     const title = block.props?.title
     const content = block.props?.content
     const buttonText = block.props?.buttonText
     const buttonUrl = block.props?.buttonUrl
+    const fitDesktop = block.props?.objectFitDesktop || 'cover'
+    const fitMobile = block.props?.objectFitMobile || 'cover'
 
     return (
         <div className={`flex flex-col md:flex-row gap-8 items-center ${layout === 'right' ? 'md:flex-row-reverse' : ''
@@ -347,7 +507,21 @@ function ImageTextBlock({ block }: { block: PageComponent }) {
             {/* 圖片 */}
             {imageUrl && (
                 <div className="w-full md:w-1/2">
-                    <img src={imageUrl} alt={title || ''} className="w-full rounded-lg shadow-lg" />
+                    <img
+                        src={imageUrl}
+                        alt={title || ''}
+                        className={`w-full rounded-lg shadow-lg ${block.props && previewDevice === 'mobile' && preview
+                            ? 'object-[var(--fit-mobile)] aspect-[var(--aspect-mobile)]'
+                            : 'object-[var(--fit-mobile)] md:object-[var(--fit-desktop)] aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)]'
+                            }`}
+                        style={{
+                            '--fit-desktop': fitDesktop,
+                            '--fit-mobile': fitMobile,
+                            '--aspect-desktop': block.props?.aspectRatioDesktop || 'auto',
+                            '--aspect-mobile': block.props?.aspectRatioMobile || 'auto',
+                            objectFit: (preview && previewDevice === 'mobile') ? fitMobile : fitDesktop,
+                        } as React.CSSProperties}
+                    />
                 </div>
             )}
 
@@ -386,7 +560,7 @@ function TextColumnsBlock({ block }: { block: PageComponent }) {
 }
 
 // 4. 圖片組合
-function ImageGridBlock({ block }: { block: PageComponent }) {
+function ImageGridBlock({ block, preview, previewDevice }: { block: PageComponent; preview?: boolean; previewDevice?: 'mobile' | 'desktop' }) {
     const images = block.props?.images ?? []
     const columns = block.props?.columns ?? 3
     const gap = block.props?.gap ?? 16
@@ -397,20 +571,44 @@ function ImageGridBlock({ block }: { block: PageComponent }) {
             style={{ gap: `${gap}px` }}
         >
             {images.map((img: any, i: number) => (
-                <div key={i} className="relative rounded-lg overflow-hidden bg-gray-100">
+                <div
+                    key={i}
+                    className={`relative rounded-lg overflow-hidden bg-gray-100 ${block.props && previewDevice === 'mobile' && preview
+                        ? 'aspect-[var(--aspect-mobile)]'
+                        : 'aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)]'
+                        }`}
+                    style={{
+                        '--aspect-desktop': block.props?.aspectRatioDesktop || '1/1',
+                        '--aspect-mobile': block.props?.aspectRatioMobile || '1/1',
+                    } as React.CSSProperties}
+                >
                     {img.link ? (
                         <Link href={img.link}>
                             <img
                                 src={img.url}
                                 alt={img.alt || ''}
-                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                className="w-full h-full transition-transform duration-300 object-[var(--fit-mobile)] md:object-[var(--fit-desktop)]"
+                                style={{
+                                    '--fit-desktop': block.props?.objectFitDesktop || 'cover',
+                                    '--fit-mobile': block.props?.objectFitMobile || 'cover',
+                                } as React.CSSProperties}
                             />
                         </Link>
                     ) : (
                         <img
                             src={img.url}
                             alt={img.alt || ''}
-                            className="w-full h-full object-cover"
+                            className={`w-full h-full object-[var(--fit-mobile)] ${block.props && previewDevice === 'mobile' && preview
+                                ? ''
+                                : 'md:object-[var(--fit-desktop)]'
+                                }`}
+                            style={{
+                                '--fit-desktop': block.props?.objectFitDesktop || 'cover',
+                                '--fit-mobile': block.props?.objectFitMobile || 'cover',
+                                objectFit: (block.props && previewDevice === 'mobile' && preview)
+                                    ? (block.props?.objectFitMobile || 'cover')
+                                    : (block.props?.objectFitDesktop || 'cover'),
+                            } as React.CSSProperties}
                         />
                     )}
                 </div>

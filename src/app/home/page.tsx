@@ -10,7 +10,7 @@ export default async function HomePage() {
     const { data: hqStore } = await supabase
         .from('tenants')
         .select('id, name, slug, logo_url')
-        .eq('slug', 'hq')
+        .eq('slug', 'omo')
         .single()
 
     if (!hqStore) {

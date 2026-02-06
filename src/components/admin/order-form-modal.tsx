@@ -136,13 +136,11 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger }:
     const total = Math.max(0, subtotal - discountAmount + shippingFee)
 
     const addItem = () => {
-        // Don't auto-add a specific product, just add an empty row? 
-        // Combobox handles selection.
-        // But for UX, maybe adding an empty row is confusing if we don't pick a product immediately.
-        // Let's add a row with the first product as default for speed, or null?
-        // My Combobox needs a value.
-
-        if (products.length === 0) return
+        // Show feedback if no products available
+        if (products.length === 0) {
+            alert('尚無可用商品，請先在商品管理中新增商品')
+            return
+        }
         const product = products[0]
         setItems([...items, {
             productId: product.id,
@@ -274,7 +272,7 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger }:
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-zinc-900 border-zinc-800 text-zinc-200">
                 <DialogHeader>
                     <DialogTitle>{isEdit ? '編輯訂單' : '建立新訂單'}</DialogTitle>
                     <DialogDescription>
@@ -285,31 +283,31 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger }:
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
                     {/* Customer Info */}
                     <div className="space-y-4">
-                        <h3 className="font-medium border-b pb-2">客戶資訊</h3>
+                        <h3 className="font-medium border-b border-zinc-700 pb-2 text-zinc-200">客戶資訊</h3>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label>姓名 *</Label>
-                                <Input required value={customerName} onChange={e => setCustomerName(e.target.value)} />
+                                <Input required value={customerName} onChange={e => setCustomerName(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white focus:ring-zinc-600 focus:border-zinc-600" />
                             </div>
                             <div className="space-y-2">
                                 <Label>電話 *</Label>
-                                <Input required value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
+                                <Input required value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white focus:ring-zinc-600 focus:border-zinc-600" />
                             </div>
                             <div className="space-y-2">
                                 <Label>Email</Label>
-                                <Input type="email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} />
+                                <Input type="email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white focus:ring-zinc-600 focus:border-zinc-600" />
                             </div>
                         </div>
                     </div>
 
                     {/* Shipping Info with Fee Override */}
                     <div className="space-y-4">
-                        <h3 className="font-medium border-b pb-2">配送與運費</h3>
+                        <h3 className="font-medium border-b border-zinc-700 pb-2 text-zinc-200">配送與運費</h3>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label>運送方式</Label>
                                 <Select value={shippingMethod} onValueChange={setShippingMethod}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white focus:ring-zinc-600">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -330,6 +328,7 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger }:
                                             setShippingFee(Number(e.target.value))
                                             setIsManualShipping(true)
                                         }}
+                                        className="bg-zinc-800 border-zinc-700 text-white focus:ring-zinc-600 focus:border-zinc-600"
                                     />
                                 </div>
                             </div>
@@ -337,18 +336,18 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger }:
                             {shippingMethod === 'home' && (
                                 <div className="space-y-2 col-span-2">
                                     <Label>地址 *</Label>
-                                    <Input required value={address} onChange={e => setAddress(e.target.value)} />
+                                    <Input required value={address} onChange={e => setAddress(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white focus:ring-zinc-600 focus:border-zinc-600" />
                                 </div>
                             )}
                             {shippingMethod === '711' && (
                                 <>
                                     <div className="space-y-2">
                                         <Label>門市名稱</Label>
-                                        <Input value={storeName} onChange={e => setStoreName(e.target.value)} />
+                                        <Input value={storeName} onChange={e => setStoreName(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white focus:ring-zinc-600 focus:border-zinc-600" />
                                     </div>
                                     <div className="space-y-2">
                                         <Label>門市代號</Label>
-                                        <Input value={storeCode} onChange={e => setStoreCode(e.target.value)} />
+                                        <Input value={storeCode} onChange={e => setStoreCode(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white focus:ring-zinc-600 focus:border-zinc-600" />
                                     </div>
                                 </>
                             )}
@@ -366,7 +365,7 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger }:
                         </div>
 
                         {items.length === 0 && (
-                            <div className="text-center py-8 text-zinc-500 bg-zinc-50 rounded-lg border border-dashed">
+                            <div className="text-center py-8 text-zinc-500 bg-zinc-800/50 rounded-lg border border-dashed border-zinc-700">
                                 尚未加入商品
                             </div>
                         )}
@@ -391,6 +390,7 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger }:
                                             min={1}
                                             value={item.quantity}
                                             onChange={(e) => updateItem(index, 'quantity', e.target.value)}
+                                            className="bg-zinc-800 border-zinc-700 text-white focus:ring-zinc-600 focus:border-zinc-600"
                                         />
                                     </div>
                                     <div className="w-24 pt-6 text-right font-medium text-sm">
@@ -401,7 +401,7 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger }:
                                             type="button"
                                             variant="ghost"
                                             size="icon"
-                                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                                             onClick={() => removeItem(index)}
                                         >
                                             <Trash2 className="h-4 w-4" />
@@ -413,13 +413,13 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger }:
                     </div>
 
                     {/* Discount & Total */}
-                    <div className="space-y-4 border-t pt-4 bg-zinc-50/50 p-4 rounded-lg">
-                        <h3 className="font-medium">金額計算</h3>
+                    <div className="space-y-4 border-t border-zinc-700 pt-4 bg-zinc-800/50 p-4 rounded-lg">
+                        <h3 className="font-medium text-zinc-200">金額計算</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label>折扣類型</Label>
                                 <Select value={discountType} onValueChange={(v: any) => setDiscountType(v)}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white focus:ring-zinc-600">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -435,6 +435,7 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger }:
                                     min={0}
                                     value={discountValue}
                                     onChange={e => setDiscountValue(Number(e.target.value))}
+                                    className="bg-zinc-800 border-zinc-700 text-white focus:ring-zinc-600 focus:border-zinc-600"
                                 />
                             </div>
                         </div>
@@ -461,7 +462,7 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger }:
 
                     <div className="space-y-2">
                         <Label>備註</Label>
-                        <Input value={notes} onChange={e => setNotes(e.target.value)} />
+                        <Input value={notes} onChange={e => setNotes(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white focus:ring-zinc-600 focus:border-zinc-600" />
                     </div>
 
                     <DialogFooter>

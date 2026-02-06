@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
     CarouselEditor,
+    HeroEditor,
     ImageTextEditor,
     TextColumnsEditor,
     TextEditor,
@@ -16,6 +17,7 @@ import {
     ProductCategoryEditor,
     ProductCarouselEditor
 } from '@/components/page-editor/component-editors'
+import { SpacingControls, ImageControls, AspectRatioControls } from '@/components/page-editor/responsive-controls'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
 import { updateStorePageContent } from '../actions'
 
@@ -115,7 +117,7 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
                     if (editorElement) {
                         editorElement.scrollIntoView({
                             behavior: 'smooth',
-                            block: 'center'
+                            block: 'start'
                         })
                     }
 
@@ -345,7 +347,15 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
                                             </div>
                                         </div>
                                         {selectedComponentId === component.id && (
-                                            <div className="p-3 border-t border-zinc-700">
+                                            <div
+                                                className="p-3 border-t border-zinc-700 cursor-auto"
+                                                draggable={true}
+                                                onDragStart={(e) => {
+                                                    e.preventDefault()
+                                                    e.stopPropagation()
+                                                }}
+                                                onPointerDown={(e) => e.stopPropagation()}
+                                            >
                                                 <ComponentEditor
                                                     type={component.type}
                                                     props={component.props}
@@ -539,32 +549,7 @@ function getDefaultProps(type: string): Record<string, any> {
 function ComponentEditor({ type, props, onChange, tenantId }: { type: string; props: Record<string, any>; onChange: (props: Record<string, any>) => void; tenantId?: string }) {
     switch (type) {
         case 'hero':
-            return (
-                <div className="space-y-3">
-                    <div>
-                        <label className="block text-sm text-zinc-400 mb-1">標題</label>
-                        <Input placeholder="標題" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
-                    </div>
-                    <div>
-                        <label className="block text-sm text-zinc-400 mb-1">副標題</label>
-                        <Input placeholder="副標題" value={props.subtitle || ''} onChange={(e) => onChange({ subtitle: e.target.value })} />
-                    </div>
-                    <div>
-                        <label className="block text-sm text-zinc-400 mb-1">背景圖片網址</label>
-                        <Input placeholder="https://..." value={props.backgroundUrl || ''} onChange={(e) => onChange({ backgroundUrl: e.target.value })} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-sm text-zinc-400 mb-1">按鈕文字</label>
-                            <Input placeholder="了解更多" value={props.buttonText || ''} onChange={(e) => onChange({ buttonText: e.target.value })} />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-zinc-400 mb-1">按鈕連結</label>
-                            <Input placeholder="https://..." value={props.buttonUrl || ''} onChange={(e) => onChange({ buttonUrl: e.target.value })} />
-                        </div>
-                    </div>
-                </div>
-            )
+            return <HeroEditor props={props} onChange={onChange} />
         case 'carousel':
             return <CarouselEditor props={props} onChange={onChange} />
         case 'image_text':

@@ -24,11 +24,12 @@ const productSchema = z.object({
 })
 
 // 取得總部商店 ID
+// 取得總部商店 ID
 async function getHQStoreId(supabase: any, userId: string) {
     const { data } = await supabase
         .from('tenants')
         .select('id')
-        .or(`slug.eq.hq,managed_by.eq.${userId}`)
+        .eq('managed_by', userId)
         .order('created_at', { ascending: true })
         .limit(1)
         .single()

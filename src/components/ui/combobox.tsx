@@ -27,77 +27,122 @@ export interface ComboboxOption {
 interface ComboboxProps {
     options: ComboboxOption[]
     value?: string
-    onChange: (value: string) => void
+    defaultValue?: string
+    onChange?: (value: string) => void
     placeholder?: string
     searchPlaceholder?: string
     emptyText?: string
     className?: string
     disabled?: boolean
+    name?: string
+    allowCustom?: boolean
 }
 
 export function Combobox({
     options,
-    value,
+    value: controlledValue,
+    defaultValue,
     onChange,
     placeholder = "Select...",
     searchPlaceholder = "Search...",
     emptyText = "No results found.",
     className,
-    disabled = false
+    disabled = false,
+    name,
+    allowCustom = false
 }: ComboboxProps) {
     const [open, setOpen] = React.useState(false)
+    const [internalValue, setInternalValue] = React.useState(defaultValue || "")
+    const [search, setSearch] = React.useState("")
+
+    const value = controlledValue !== undefined ? controlledValue : internalValue
+
+    const handleSelect = (currentValue: string) => {
+        const newValue = currentValue === value ? "" : currentValue
+        if (controlledValue === undefined) {
+            setInternalValue(newValue)
+        }
+        onChange?.(newValue)
+        setOpen(false)
+        setSearch("")
+    }
+
+    const handleCustom = () => {
+        if (!allowCustom || !search) return
+        if (controlledValue === undefined) {
+            setInternalValue(search)
+        }
+        onChange?.(search)
+        setOpen(false)
+        setSearch("")
+    }
+
+    const selectedLabel = options.find((option) => option.value === value)?.label || value
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className={cn("w-full justify-between", className, !value && "text-muted-foreground")}
-                    disabled={disabled}
-                >
-                    {value
-                        ? options.find((option) => option.value === value)?.label
-                        : placeholder}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0 z-[100]">
-                <Command>
-                    <CommandInput placeholder={searchPlaceholder} />
-                    <CommandList>
-                        <CommandEmpty>{emptyText}</CommandEmpty>
-                        <CommandGroup>
-                            {options.map((option) => (
-                                <CommandItem
-                                    key={option.value}
-                                    value={option.label} // Search by label
-                                    onSelect={(currentValue) => {
-                                        // On select, we want the ID (option.value), but cmdk often gives normalized label
-                                        // Here we just map back or use the option.value if possible.
-                                        // But wait, cmdk onSelect passes the *value* prop if present, or children text.
-                                        // shadcn implementation passes `value` prop which is usually lowercased label for filtering.
-                                        // To get the actual ID, we should iterate. 
-
-                                        // IMPROVEMENT: Let's trust that we want to notify parent with Option Value (ID)
-                                        onChange(option.value === value ? "" : option.value)
-                                        setOpen(false)
-                                    }}
-                                >
-                                    <Check
-                                        className={cn(
-                                            "mr-2 h-4 w-4",
-                                            value === option.value ? "opacity-100" : "opacity-0"
-                                        )}
-                                    />
-                                    {option.label}
-                                </CommandItem>
-                            ))}
-                        </CommandGroup>
-                    </CommandList>
-                </Command>
-            </PopoverContent>
-        </Popover>
+        <>
+            {name && <input type="hidden" name={name} value={value} />}
+            <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        className={cn(
+                            "w-full justify-between bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700 hover:text-white",
+                            className,
+                            !value && "text-zinc-400"
+                        )}
+                        disabled={disabled}
+                    >
+                        {value ? selectedLabel : placeholder}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0 z-[100] bg-zinc-900 border-zinc-800 text-white">
+                    <Command className="bg-zinc-900 text-white">
+                        <CommandInput
+                            placeholder={searchPlaceholder}
+                            value={search}
+                            onValueChange={setSearch}
+                            className="text-white placeholder:text-zinc-500"
+                        />
+                        <CommandList>
+                            <CommandEmpty className="py-2 text-sm text-center text-zinc-500">
+                                {allowCustom && search ? (
+                                    <div
+                                        className="px-2 py-1 cursor-pointer hover:bg-zinc-800 text-blue-400 flex items-center justify-center gap-1"
+                                        onClick={handleCustom}
+                                    >
+                                        <Check className="h-3 w-3 opacity-0" />
+                                        使用 "{search}"
+                                    </div>
+                                ) : (
+                                    emptyText
+                                )}
+                            </CommandEmpty>
+                            <CommandGroup heading="選項" className="text-zinc-400">
+                                {options.map((option) => (
+                                    <CommandItem
+                                        key={option.value}
+                                        value={option.label}
+                                        onSelect={() => handleSelect(option.value)} // Use value not label
+                                        className="text-white aria-selected:bg-zinc-800 aria-selected:text-white cursor-pointer"
+                                    >
+                                        <Check
+                                            className={cn(
+                                                "mr-2 h-4 w-4",
+                                                value === option.value ? "opacity-100" : "opacity-0"
+                                            )}
+                                        />
+                                        {option.label}
+                                    </CommandItem>
+                                ))}
+                            </CommandGroup>
+                        </CommandList>
+                    </Command>
+                </PopoverContent>
+            </Popover>
+        </>
     )
 }

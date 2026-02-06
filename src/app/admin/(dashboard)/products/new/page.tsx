@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Combobox } from '@/components/ui/combobox'
 
 const initialState = { error: '' }
 
@@ -16,6 +17,19 @@ export default function NewProductPage() {
     const [price, setPrice] = useState('')
     const [cost, setCost] = useState('')
     const [generatingSku, setGeneratingSku] = useState(false)
+    const [brands, setBrands] = useState<{ id: string, name: string }[]>([])
+    const [categories, setCategories] = useState<{ id: string, name: string }[]>([])
+
+    useEffect(() => {
+        // Fetch brands and categories
+        fetch('/api/products/attributes')
+            .then(res => res.json())
+            .then(data => {
+                if (data.brands) setBrands(data.brands)
+                if (data.categories) setCategories(data.categories)
+            })
+            .catch(err => console.error('Failed to fetch attributes', err))
+    }, [])
 
     // 計算利潤
     const profit = price && cost ? Number(price) - Number(cost) : null
@@ -81,11 +95,23 @@ export default function NewProductPage() {
                         </div>
                         <div>
                             <Label htmlFor="brand">品牌</Label>
-                            <Input id="brand" name="brand" placeholder="品牌名稱" />
+                            <Combobox
+                                name="brand"
+                                options={brands.map(b => ({ value: b.name, label: b.name }))}
+                                placeholder="選擇或輸入品牌"
+                                searchPlaceholder="搜尋品牌..."
+                                allowCustom
+                            />
                         </div>
                         <div>
                             <Label htmlFor="category">分類</Label>
-                            <Input id="category" name="category" placeholder="商品分類" />
+                            <Combobox
+                                name="category"
+                                options={categories.map(c => ({ value: c.name, label: c.name }))}
+                                placeholder="選擇或輸入分類"
+                                searchPlaceholder="搜尋分類..."
+                                allowCustom
+                            />
                         </div>
                         <div className="sm:col-span-2">
                             <Label htmlFor="description">商品描述</Label>

@@ -78,7 +78,13 @@ export default async function AppPagesPage() {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <Link href={`/store/${store.slug}/${page.slug}`} target="_blank">
+                                            <Link
+                                                href={page.is_homepage
+                                                    ? `/store/${store.slug}`
+                                                    : `/store/${store.slug}/${page.slug}`
+                                                }
+                                                target="_blank"
+                                            >
                                                 <button className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-lg">
                                                     <Globe className="h-4 w-4" />
                                                 </button>

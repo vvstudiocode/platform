@@ -54,7 +54,7 @@ export default async function HQProductPage({ params }: Props) {
     const { data: hqStore } = await supabase
         .from('tenants')
         .select('id, name, logo_url')
-        .eq('slug', 'hq')
+        .eq('slug', 'omo')
         .single()
 
     const storeName = hqStore?.name || 'OMOSELECT'

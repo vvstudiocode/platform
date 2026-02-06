@@ -21,19 +21,29 @@ const MD_GRID_COLS: Record<number, string> = {
 }
 
 // 商品卡片元件（共用）
-function ProductCard({ product, storeSlug }: { product: any; storeSlug: string }) {
+function ProductCard({ product, storeSlug, fitDesktop = 'cover', fitMobile = 'cover', aspectRatioDesktop = '1/1', aspectRatioMobile = '1/1' }: { product: any; storeSlug: string; fitDesktop?: string; fitMobile?: string; aspectRatioDesktop?: string; aspectRatioMobile?: string }) {
     return (
         <Link
             href={`/store/${storeSlug}/product/${product.id}`}
             className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300"
         >
             {/* 商品圖片 */}
-            <div className="aspect-square bg-gray-100 relative overflow-hidden">
+            <div
+                className="relative overflow-hidden bg-gray-100 aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)]"
+                style={{
+                    '--aspect-desktop': typeof fitDesktop === 'string' && fitDesktop.includes('/') ? fitDesktop : '1/1',
+                    '--aspect-mobile': typeof fitMobile === 'string' && fitMobile.includes('/') ? fitMobile : '1/1',
+                } as React.CSSProperties}
+            >
                 {product.image_url ? (
                     <img
                         src={product.image_url}
                         alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="w-full h-full group-hover:scale-110 transition-transform duration-500 object-[var(--fit-mobile)] md:object-[var(--fit-desktop)]"
+                        style={{
+                            '--fit-desktop': fitDesktop && !fitDesktop.includes('/') ? fitDesktop : 'cover',
+                            '--fit-mobile': fitMobile && !fitMobile.includes('/') ? fitMobile : 'cover',
+                        } as React.CSSProperties}
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -91,7 +101,11 @@ export function ProductListBlock({
     columnsMobile,
     storeSlug,
     preview,
-    previewDevice = 'desktop'
+    previewDevice = 'desktop',
+    objectFitDesktop = 'cover',
+    objectFitMobile = 'cover',
+    aspectRatioDesktop = '1/1',
+    aspectRatioMobile = '1/1'
 }: {
     productIds: string[]
     title?: string
@@ -105,6 +119,10 @@ export function ProductListBlock({
     storeSlug: string
     preview?: boolean
     previewDevice?: 'mobile' | 'desktop'
+    objectFitDesktop?: 'cover' | 'contain'
+    objectFitMobile?: 'cover' | 'contain'
+    aspectRatioDesktop?: string
+    aspectRatioMobile?: string
 }) {
     const [products, setProducts] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -213,7 +231,11 @@ export function ProductCategoryBlock({
     storeSlug,
     tenantId,
     preview,
-    previewDevice = 'desktop'
+    previewDevice = 'desktop',
+    objectFitDesktop = 'cover',
+    objectFitMobile = 'cover',
+    aspectRatioDesktop = '1/1',
+    aspectRatioMobile = '1/1'
 }: {
     category: string
     title?: string
@@ -229,6 +251,10 @@ export function ProductCategoryBlock({
     tenantId: string
     preview?: boolean
     previewDevice?: 'mobile' | 'desktop'
+    objectFitDesktop?: 'cover' | 'contain'
+    objectFitMobile?: 'cover' | 'contain'
+    aspectRatioDesktop?: string
+    aspectRatioMobile?: string
 }) {
     const [products, setProducts] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -316,7 +342,15 @@ export function ProductCategoryBlock({
             {title && <h2 className={`text-3xl font-bold text-gray-900 ${getTitleClass(titleAlign)}`}>{title}</h2>}
             <div className={className}>
                 {products.map((product) => (
-                    <ProductCard key={product.id} product={product} storeSlug={storeSlug} />
+                    <ProductCard
+                        key={product.id}
+                        product={product}
+                        storeSlug={storeSlug}
+                        fitDesktop={objectFitDesktop}
+                        fitMobile={objectFitMobile}
+                        aspectRatioDesktop={aspectRatioDesktop}
+                        aspectRatioMobile={aspectRatioMobile}
+                    />
                 ))}
             </div>
             <div className="text-center">
@@ -337,7 +371,11 @@ export function ProductCarouselBlock({
     interval = 5,
     storeSlug,
     preview,
-    previewDevice = 'desktop'
+    previewDevice = 'desktop',
+    objectFitDesktop = 'cover',
+    objectFitMobile = 'cover',
+    aspectRatioDesktop = '1/1',
+    aspectRatioMobile = '1/1'
 }: {
     productIds: string[]
     title?: string
@@ -347,6 +385,10 @@ export function ProductCarouselBlock({
     storeSlug: string
     preview?: boolean
     previewDevice?: 'mobile' | 'desktop'
+    objectFitDesktop?: 'cover' | 'contain'
+    objectFitMobile?: 'cover' | 'contain'
+    aspectRatioDesktop?: string
+    aspectRatioMobile?: string
 }) {
     const [products, setProducts] = useState<any[]>([])
     const [currentIndex, setCurrentIndex] = useState(0)
@@ -389,7 +431,14 @@ export function ProductCarouselBlock({
     }
 
     if (loading) return <div className="py-12 text-center text-gray-400">載入輪播中...</div>
-    if (products.length === 0) return null
+    if (products.length === 0) {
+        return (
+            <div className="py-12 text-center text-gray-500">
+                {title && <h2 className={`text-3xl font-bold text-gray-900 mb-6 ${getTitleClass(titleAlign)}`}>{title}</h2>}
+                <p>目前沒有商品</p>
+            </div>
+        )
+    }
 
     const isMobile = preview && previewDevice === 'mobile'
     const itemWidthClass = isMobile ? 'w-full' : 'w-full md:w-1/2 lg:w-1/4'
@@ -412,7 +461,14 @@ export function ProductCarouselBlock({
                             key={product.id}
                             className={`flex-shrink-0 px-3 ${itemWidthClass} transition-opacity duration-300`}
                         >
-                            <ProductCard product={product} storeSlug={storeSlug} />
+                            <ProductCard
+                                product={product}
+                                storeSlug={storeSlug}
+                                fitDesktop={objectFitDesktop}
+                                fitMobile={objectFitMobile}
+                                aspectRatioDesktop={aspectRatioDesktop}
+                                aspectRatioMobile={aspectRatioMobile}
+                            />
                         </div>
                     ))}
                 </div>
@@ -435,17 +491,19 @@ export function ProductCarouselBlock({
                 )}
             </div>
 
-            {products.length > 0 && (
-                <div className="flex justify-center gap-1.5 mt-2">
-                    {products.map((_, i) => (
-                        <div
-                            key={i}
-                            className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-6 bg-rose-600' : 'w-1.5 bg-gray-300'
-                                }`}
-                        />
-                    ))}
-                </div>
-            )}
+            {
+                products.length > 0 && (
+                    <div className="flex justify-center gap-1.5 mt-2">
+                        {products.map((_, i) => (
+                            <div
+                                key={i}
+                                className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-6 bg-rose-600' : 'w-1.5 bg-gray-300'
+                                    }`}
+                            />
+                        ))}
+                    </div>
+                )
+            }
         </div>
     )
 }

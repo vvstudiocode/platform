@@ -98,8 +98,16 @@ export async function createStore(prevState: { error: string }, formData: FormDa
     }
 
     // 5. 如果有擁有者，建立 users_roles 關聯
+    // 使用 Admin client 繞過 RLS 限制
     if (ownerUserId && tenant) {
-        const { error: roleError } = await supabase
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+        const adminSupabase = createAdminClient(supabaseUrl, serviceRoleKey, {
+            auth: { autoRefreshToken: false, persistSession: false }
+        })
+
+        const { error: roleError } = await adminSupabase
             .from('users_roles')
             .insert({
                 user_id: ownerUserId,

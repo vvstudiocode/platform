@@ -22,38 +22,54 @@ interface CartContextType {
     getSubtotal: () => number
     storeSlug: string | null
     setStoreSlug: (slug: string) => void
+    isCartOpen: boolean
+    setIsCartOpen: (open: boolean) => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
-const CART_STORAGE_KEY = 'shopping_cart'
+// 使用商店專屬的 localStorage key，確保不同商店的購物車資料隔離
+const getCartStorageKey = (slug: string | null) => `cart_${slug || 'default'}`
 
 export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([])
-    const [storeSlug, setStoreSlug] = useState<string | null>(null)
+    const [storeSlug, setStoreSlugState] = useState<string | null>(null)
     const [isHydrated, setIsHydrated] = useState(false)
+    const [isCartOpen, setIsCartOpen] = useState(false)
 
-    // 從 localStorage 載入購物車
+    // 從 localStorage 載入購物車（當 storeSlug 改變時重新載入）
     useEffect(() => {
-        const stored = localStorage.getItem(CART_STORAGE_KEY)
+        if (!storeSlug) return
+
+        const stored = localStorage.getItem(getCartStorageKey(storeSlug))
         if (stored) {
             try {
                 const parsed = JSON.parse(stored)
                 setItems(parsed.items || [])
-                setStoreSlug(parsed.storeSlug || null)
             } catch (e) {
                 console.error('Failed to parse cart:', e)
+                setItems([])
             }
+        } else {
+            setItems([])
         }
         setIsHydrated(true)
-    }, [])
+    }, [storeSlug])
 
-    // 儲存到 localStorage
+    // 儲存到 localStorage（商店專屬）
     useEffect(() => {
-        if (isHydrated) {
-            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items, storeSlug }))
+        if (isHydrated && storeSlug) {
+            localStorage.setItem(getCartStorageKey(storeSlug), JSON.stringify({ items }))
         }
     }, [items, storeSlug, isHydrated])
+
+    // 當設定新的 storeSlug 時，重置購物車狀態
+    const setStoreSlug = (slug: string) => {
+        if (slug !== storeSlug) {
+            setIsHydrated(false)
+            setStoreSlugState(slug)
+        }
+    }
 
     const getItemKey = (productId: string, options?: Record<string, string>) => {
         return options ? `${productId}_${JSON.stringify(options)}` : productId
@@ -79,6 +95,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
             return [...prev, { ...item, quantity }]
         })
+        setIsCartOpen(true) // 自動打開購物車
     }
 
     const removeItem = (productId: string, options?: Record<string, string>) => {
@@ -124,6 +141,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             getSubtotal,
             storeSlug,
             setStoreSlug,
+            isCartOpen,
+            setIsCartOpen
         }}>
             {children}
         </CartContext.Provider>

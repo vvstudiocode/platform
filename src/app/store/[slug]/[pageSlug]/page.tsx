@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ShoppingCart } from 'lucide-react'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
 import { SiteHeader } from '@/components/site-header'
+import { StorePageClient } from '@/components/store/store-page-client'
 
 interface Props {
     params: Promise<{ slug: string; pageSlug: string }>
@@ -51,7 +52,7 @@ export default async function StoreCustomPage({ params }: Props) {
     // 取得商店資訊
     const { data: store } = await supabase
         .from('tenants')
-        .select('id, name, slug, logo_url')
+        .select('id, name, slug, logo_url, footer_settings')
         .eq('slug', slug)
         .single()
 
@@ -96,38 +97,21 @@ export default async function StoreCustomPage({ params }: Props) {
         position: item.position
     }))
 
-    const content = (page.content as any[]) || []
+    // Transform store data to match StorePageClient props
+    const storeData = {
+        id: store.id,
+        name: store.name,
+        slug: store.slug,
+        logoUrl: store.logo_url,
+        footerSettings: store.footer_settings
+    }
 
     return (
-        <div className="min-h-screen bg-white">
-            {/* Header */}
-            {/* Header */}
-            <SiteHeader
-                storeName={store.name}
-                logoUrl={store.logo_url}
-                navItems={navMenuItems}
-                homeSlug={homepage?.slug}
-                basePath={`/store/${store.slug}`}
-            />
-
-
-            <main>
-                <PageContentRenderer
-                    content={(page.content as any[]) || []}
-                    storeSlug={store.slug}
-                    tenantId={store.id}
-                    backgroundColor={page.background_color}
-                >
-                    <h1 className="text-3xl font-bold text-gray-900 mb-6">{page.title}</h1>
-                </PageContentRenderer>
-            </main>
-
-            {/* Footer */}
-            <footer className="border-t bg-gray-50 py-8">
-                <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
-                    © {new Date().getFullYear()} {store.name}. All rights reserved.
-                </div>
-            </footer>
-        </div>
+        <StorePageClient
+            store={storeData}
+            page={page}
+            navItems={navMenuItems}
+            homeSlug={homepage?.slug}
+        />
     )
 }

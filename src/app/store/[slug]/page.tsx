@@ -22,24 +22,28 @@ export default async function StorefrontPage({ params }: Props) {
         notFound()
     }
 
-    // 檢查是否有設定首頁
-    const { data: homepage } = await supabase
+    // 取得導覽項目 (Fetch Nav Items unconditionally)
+    const { data: navItemsRaw } = await supabase
+        .from('nav_items')
+        .select('id, title, page_id, parent_id, position, pages(slug)')
+        .eq('tenant_id', store.id)
+        .order('position', { ascending: true })
+
+    const navItems = navItemsRaw || []
+
+    // 檢查是否有設定首頁 (Use limit(1) for safety)
+    const { data: homepages } = await supabase
         .from('pages')
         .select('*')
         .eq('tenant_id', store.id)
         .eq('is_homepage', true)
         .eq('published', true)
-        .single()
+        .limit(1)
+
+    const homepage = homepages && homepages.length > 0 ? homepages[0] : null
 
     // 如果有首頁，用 HomePageClient 渲染
     if (homepage) {
-        // 取得導覽項目
-        const { data: navItems } = await supabase
-            .from('nav_items')
-            .select('id, title, page_id, parent_id, position, pages(slug)')
-            .eq('tenant_id', store.id)
-            .order('position', { ascending: true })
-
         return (
             <HomePageClient
                 store={{
@@ -54,13 +58,13 @@ export default async function StorefrontPage({ params }: Props) {
                     title: homepage.title,
                     content: (homepage.content as any[]) || [],
                 }}
-                navItems={(navItems || []) as any}
+                navItems={navItems as any}
                 homeSlug={homepage.slug}
             />
         )
     }
 
-    // 沒有首頁，顯示商品列表
+    // 沒有首頁，顯示商品列表 (Fallback)
     const { data: products } = await supabase
         .from('products')
         .select('id, name, description, price, stock, image_url, category, brand')
@@ -68,6 +72,15 @@ export default async function StorefrontPage({ params }: Props) {
         .eq('status', 'active')
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false })
+
+    // Transform navItems for StorefrontClient
+    const clientNavItems = navItems.map((item: any) => ({
+        title: item.title,
+        slug: item.pages?.slug || '',
+        is_homepage: false,
+        parent_id: item.parent_id,
+        position: item.position
+    }))
 
     return (
         <StorefrontClient
@@ -78,6 +91,7 @@ export default async function StorefrontPage({ params }: Props) {
                 footerSettings: store.footer_settings as any,
             }}
             products={products || []}
+            navItems={clientNavItems}
         />
     )
 }

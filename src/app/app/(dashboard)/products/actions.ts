@@ -17,6 +17,10 @@ const productSchema = z.object({
     sku: z.string().nullish().transform(v => v || undefined),
     image_url: z.string().nullish().transform(v => v || undefined),
     status: z.enum(['draft', 'active', 'archived']).default('draft'),
+    // SEO 欄位
+    seo_title: z.string().nullish().transform(v => v || undefined),
+    seo_description: z.string().nullish().transform(v => v || undefined),
+    seo_keywords: z.string().nullish().transform(v => v || undefined),
 })
 
 async function getUserStoreId(supabase: any, userId: string) {
@@ -27,6 +31,29 @@ async function getUserStoreId(supabase: any, userId: string) {
         .in('role', ['store_owner', 'store_admin'])
         .single()
     return data?.tenant_id
+}
+
+// 自動生成商品編號 (複製自 admin actions)
+async function generateSKU(supabase: any, tenantId: string): Promise<string> {
+    // 取得目前最大編號
+    const { data } = await supabase
+        .from('products')
+        .select('sku')
+        .eq('tenant_id', tenantId)
+        .not('sku', 'is', null)
+        .order('sku', { ascending: false })
+        .limit(1)
+        .single()
+
+    let nextNum = 1
+    if (data?.sku) {
+        const match = data.sku.match(/P(\d+)/)
+        if (match) {
+            nextNum = parseInt(match[1]) + 1
+        }
+    }
+
+    return `P${String(nextNum).padStart(6, '0')}`
 }
 
 export async function createProduct(prevState: any, formData: FormData) {
@@ -50,10 +77,20 @@ export async function createProduct(prevState: any, formData: FormData) {
         sku: formData.get('sku'),
         image_url: formData.get('image_url'),
         status: formData.get('status'),
+        // SEO 欄位
+        seo_title: formData.get('seo_title'),
+        seo_description: formData.get('seo_description'),
+        seo_keywords: formData.get('seo_keywords'),
     })
 
     if (!validated.success) {
         return { error: validated.error.issues[0].message }
+    }
+
+    // 如果沒有輸入 SKU，自動生成
+    let sku = validated.data.sku
+    if (!sku || sku.trim() === '') {
+        sku = await generateSKU(supabase, storeId)
     }
 
     const { error } = await supabase
@@ -61,7 +98,11 @@ export async function createProduct(prevState: any, formData: FormData) {
         .insert({
             tenant_id: storeId,
             ...validated.data,
+            sku,
             image_url: validated.data.image_url || null,
+            seo_title: validated.data.seo_title || null,
+            seo_description: validated.data.seo_description || null,
+            seo_keywords: validated.data.seo_keywords || null,
         })
 
     if (error) {

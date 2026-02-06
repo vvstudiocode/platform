@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useCart } from '@/lib/cart-context'
 import { ShoppingCart, Search, Menu } from 'lucide-react'
 import Link from 'next/link'
-import { CartSidebar } from '@/components/store/cart-sidebar'
+import { SiteHeader } from '@/components/site-header'
 import { ResponsiveNav } from '@/components/store/responsive-nav'
 import { StoreFooter } from '@/components/store/store-footer'
 
@@ -28,11 +28,17 @@ interface Props {
         category: string | null
         brand: string | null
     }>
+    navItems?: Array<{
+        title: string
+        slug: string
+        is_homepage: boolean
+        parent_id?: string | null
+        position: number
+    }>
 }
 
-export function StorefrontClient({ store, products }: Props) {
-    const { getItemCount, setStoreSlug } = useCart()
-    const [isCartOpen, setIsCartOpen] = useState(false)
+export function StorefrontClient({ store, products, navItems = [] }: Props) {
+    const { getItemCount, setStoreSlug, isCartOpen, setIsCartOpen } = useCart()
     const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
@@ -45,35 +51,14 @@ export function StorefrontClient({ store, products }: Props) {
     return (
         <div className="min-h-screen bg-white">
             {/* Navbar */}
-            <nav className="sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm">
-                <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        <Link href={`/store/${store.slug}`} className="flex items-center gap-3">
-                            {settings.logoUrl ? (
-                                <img src={settings.logoUrl} alt={store.name} className="h-8 w-auto" />
-                            ) : (
-                                <span className="font-bold text-xl text-gray-900">{store.name}</span>
-                            )}
-                        </Link>
-                        <div className="flex items-center gap-4">
-                            <button className="p-2 text-gray-500 hover:text-gray-900">
-                                <Search className="h-5 w-5" />
-                            </button>
-                            <button
-                                onClick={() => setIsCartOpen(true)}
-                                className="relative p-2 text-gray-500 hover:text-gray-900"
-                            >
-                                <ShoppingCart className="h-5 w-5" />
-                                {mounted && getItemCount() > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                                        {getItemCount()}
-                                    </span>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </nav>
+            <SiteHeader
+                storeName={store.name}
+                logoUrl={settings.logoUrl || undefined}
+                navItems={navItems}
+                homeSlug={undefined}
+                basePath={`/store/${store.slug}`}
+                onCartClick={() => setIsCartOpen(true)}
+            />
 
             {/* Products */}
             <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -126,6 +111,7 @@ export function StorefrontClient({ store, products }: Props) {
             </main>
 
             {/* Footer */}
+            {/* Footer */}
             <footer className="bg-gray-50 border-t border-gray-100 py-8">
                 <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <p className="text-gray-500 text-sm">
@@ -133,13 +119,6 @@ export function StorefrontClient({ store, products }: Props) {
                     </p>
                 </div>
             </footer>
-
-            {/* Cart Sidebar */}
-            <CartSidebar
-                isOpen={isCartOpen}
-                onClose={() => setIsCartOpen(false)}
-                storeSlug={store.slug}
-            />
         </div>
     )
 }

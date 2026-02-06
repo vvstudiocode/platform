@@ -9,8 +9,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
     CarouselEditor,
+    HeroEditor,
     ImageTextEditor,
     TextColumnsEditor,
+    TextEditor,
     ImageGridEditor,
     ProductListEditor,
     ProductCategoryEditor,
@@ -111,7 +113,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                     if (editorElement) {
                         editorElement.scrollIntoView({
                             behavior: 'smooth',
-                            block: 'center'
+                            block: 'start'
                         })
                     }
 
@@ -360,7 +362,15 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                             </div>
                                         </div>
                                         {selectedComponentId === component.id && (
-                                            <div className="p-3 border-t border-zinc-700">
+                                            <div
+                                                className="p-3 border-t border-zinc-700 cursor-auto"
+                                                draggable={true}
+                                                onDragStart={(e) => {
+                                                    e.preventDefault()
+                                                    e.stopPropagation()
+                                                }}
+                                                onPointerDown={(e) => e.stopPropagation()}
+                                            >
                                                 <ComponentEditor
                                                     type={component.type}
                                                     props={component.props}
@@ -412,23 +422,33 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                             </button>
                         </div>
                     </div>
-                    <div className="p-6 flex justify-center">
-                        <div className={`transition-all ${previewMode === 'mobile' ? 'max-w-[375px] w-full' : 'w-full'
+                    <div className="p-6 flex justify-center min-h-screen bg-zinc-50/50">
+                        <div className={`transition-all duration-300 mx-auto bg-white relative ${previewMode === 'mobile'
+                            ? 'w-[375px] min-h-[667px] border-[14px] border-zinc-900 rounded-[3rem] shadow-2xl overflow-hidden'
+                            : 'w-full min-h-screen shadow-sm'
                             }`}>
-                            {components.length === 0 ? (
-                                <div className="text-center py-20 text-zinc-400">
-                                    尚無內容
-                                </div>
-                            ) : (
-                                <PageContentRenderer
-                                    content={components}
-                                    storeSlug={storeSlug}
-                                    tenantId={tenantId}
-                                    preview={true}
-                                    previewDevice={previewMode}
-                                    selectedId={selectedComponentId || undefined}
-                                />
+                            {/* Mobile Notch Simulation */}
+                            {previewMode === 'mobile' && (
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-zinc-900 rounded-b-2xl z-50"></div>
                             )}
+
+                            <div className={`h-full ${previewMode === 'mobile' ? 'overflow-y-auto scrollbar-hide h-[800px]' : ''}`}>
+                                {components.length === 0 ? (
+                                    <div className="text-center py-20 text-zinc-400">
+                                        尚無內容
+                                    </div>
+                                ) : (
+                                    <PageContentRenderer
+                                        content={components}
+                                        storeSlug={storeSlug}
+                                        tenantId={tenantId}
+                                        preview={true}
+                                        backgroundColor={backgroundColor}
+                                        previewDevice={previewMode}
+                                        selectedId={selectedComponentId || undefined}
+                                    />
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -545,32 +565,7 @@ function getDefaultProps(type: string): Record<string, any> {
 function ComponentEditor({ type, props, onChange, tenantId }: { type: string; props: Record<string, any>; onChange: (props: Record<string, any>) => void; tenantId?: string }) {
     switch (type) {
         case 'hero':
-            return (
-                <div className="space-y-3">
-                    <div>
-                        <label className="block text-sm text-zinc-400 mb-1">標題</label>
-                        <Input placeholder="標題" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
-                    </div>
-                    <div>
-                        <label className="block text-sm text-zinc-400 mb-1">副標題</label>
-                        <Input placeholder="副標題" value={props.subtitle || ''} onChange={(e) => onChange({ subtitle: e.target.value })} />
-                    </div>
-                    <div>
-                        <label className="block text-sm text-zinc-400 mb-1">背景圖片網址</label>
-                        <Input placeholder="https://..." value={props.backgroundUrl || ''} onChange={(e) => onChange({ backgroundUrl: e.target.value })} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-sm text-zinc-400 mb-1">按鈕文字</label>
-                            <Input placeholder="了解更多" value={props.buttonText || ''} onChange={(e) => onChange({ buttonText: e.target.value })} />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-zinc-400 mb-1">按鈕連結</label>
-                            <Input placeholder="https://..." value={props.buttonUrl || ''} onChange={(e) => onChange({ buttonUrl: e.target.value })} />
-                        </div>
-                    </div>
-                </div>
-            )
+            return <HeroEditor props={props} onChange={onChange} />
         case 'carousel':
             return <CarouselEditor props={props} onChange={onChange} />
         case 'image_text':
@@ -578,61 +573,8 @@ function ComponentEditor({ type, props, onChange, tenantId }: { type: string; pr
         case 'image_grid':
             return <ImageGridEditor props={props} onChange={onChange} />
         case 'text':
-            return (
-                <div className="space-y-3">
-                    <div>
-                        <label className="block text-sm text-zinc-400 mb-1">內容</label>
-                        <textarea
-                            className="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white placeholder:text-zinc-400"
-                            rows={4}
-                            placeholder="輸入內容..."
-                            value={props.content || ''}
-                            onChange={(e) => onChange({ ...props, content: e.target.value })}
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-sm text-zinc-400 mb-1">文字對齊</label>
-                            <div className="flex gap-1 bg-zinc-700 p-1 rounded-lg">
-                                {[
-                                    { value: 'left', label: '左' },
-                                    { value: 'center', label: '中' },
-                                    { value: 'right', label: '右' },
-                                ].map((align) => (
-                                    <button
-                                        key={align.value}
-                                        type="button"
-                                        onClick={() => onChange({ ...props, textAlign: align.value })}
-                                        className={`flex-1 py-1.5 text-xs rounded transition-colors ${(props.textAlign || 'left') === align.value
-                                            ? 'bg-rose-500 text-white'
-                                            : 'text-zinc-400 hover:text-white'
-                                            }`}
-                                    >
-                                        {align.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm text-zinc-400 mb-1">文字顏色</label>
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="color"
-                                    value={props.textColor || '#374151'}
-                                    onChange={(e) => onChange({ ...props, textColor: e.target.value })}
-                                    className="w-8 h-8 rounded cursor-pointer bg-transparent border border-zinc-600"
-                                />
-                                <Input
-                                    value={props.textColor || '#374151'}
-                                    onChange={(e) => onChange({ ...props, textColor: e.target.value })}
-                                    className="h-8 text-sm flex-1"
-                                    placeholder="#374151"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
+        case 'text':
+            return <TextEditor props={props} onChange={onChange} />
         case 'text_columns':
             return <TextColumnsEditor props={props} onChange={onChange} />
         case 'features':

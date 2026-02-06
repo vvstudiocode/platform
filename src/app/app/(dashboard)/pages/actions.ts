@@ -53,19 +53,42 @@ export async function createPage(prevState: any, formData: FormData) {
             .eq('tenant_id', storeId)
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
         .from('pages')
         .insert({
             tenant_id: storeId,
             ...validated.data,
             content: [],
         })
+        .select()
+        .single()
 
     if (error) {
         if (error.code === '23505') {
             return { error: '此網址已被使用' }
         }
         return { error: error.message }
+    }
+
+    if (data) {
+        // 自動建立導覽列項目 (Auto-create nav item)
+        const { data: maxPosData } = await supabase
+            .from('nav_items')
+            .select('position')
+            .eq('tenant_id', storeId)
+            .order('position', { ascending: false })
+            .limit(1)
+            .single()
+
+        const nextPos = (maxPosData?.position || 0) + 1
+
+        await supabase.from('nav_items').insert({
+            tenant_id: storeId,
+            title: validated.data.title,
+            page_id: data.id,
+            position: nextPos,
+            parent_id: null
+        })
     }
 
     revalidatePath('/app/pages')
@@ -112,6 +135,14 @@ export async function updatePage(pageId: string, prevState: any, formData: FormD
         .from('pages')
         .update(validated.data)
         .eq('id', pageId)
+
+    if (!error) {
+        // 同步更新導覽列項目標題
+        await supabase
+            .from('nav_items')
+            .update({ title: validated.data.title })
+            .eq('page_id', pageId)
+    }
 
     if (error) {
         if (error.code === '23505') {
@@ -176,6 +207,27 @@ export async function deletePage(pageId: string) {
 
     const storeId = await getUserStoreId(supabase, user.id)
     if (!storeId) return { error: '找不到商店' }
+
+    // 檢查是否為首頁
+    const { data: page } = await supabase
+        .from('pages')
+        .select('is_homepage')
+        .eq('id', pageId)
+        .single()
+
+    if (page?.is_homepage) {
+        return { error: '不能刪除首頁' }
+    }
+
+    // 檢查是否為最後一頁
+    const { count } = await supabase
+        .from('pages')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', storeId)
+
+    if (count !== null && count <= 1) {
+        return { error: '商店必須至少保留一個頁面' }
+    }
 
     const { error } = await supabase
         .from('pages')

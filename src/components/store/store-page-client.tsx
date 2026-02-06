@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useCart } from '@/lib/cart-context'
 import { SiteHeader } from '@/components/site-header'
-import { CartSidebar } from '@/components/store/cart-sidebar'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
 import { StoreFooter } from '@/components/store/store-footer'
 
@@ -33,9 +32,8 @@ interface Props {
     homeSlug?: string
 }
 
-export function HQPageClient({ store, page, navItems, homeSlug }: Props) {
-    const { setStoreSlug } = useCart()
-    const [isCartOpen, setIsCartOpen] = useState(false)
+export function StorePageClient({ store, page, navItems, homeSlug }: Props) {
+    const { setStoreSlug, isCartOpen, setIsCartOpen } = useCart()
 
     useEffect(() => {
         setStoreSlug(store.slug)
@@ -48,6 +46,7 @@ export function HQPageClient({ store, page, navItems, homeSlug }: Props) {
                 logoUrl={store.logoUrl || undefined}
                 navItems={navItems}
                 homeSlug={homeSlug}
+                basePath={`/store/${store.slug}`}
                 onCartClick={() => setIsCartOpen(true)}
             />
 
@@ -58,9 +57,7 @@ export function HQPageClient({ store, page, navItems, homeSlug }: Props) {
                     storeSlug={store.slug}
                     tenantId={store.id}
                     backgroundColor={page.backgroundColor}
-                >
-                    <h1 className="text-4xl font-bold mb-8">{page.title}</h1>
-                </PageContentRenderer>
+                />
             </main>
 
             {/* Footer */}
@@ -68,13 +65,6 @@ export function HQPageClient({ store, page, navItems, homeSlug }: Props) {
                 storeName={store.name}
                 storeSlug={store.slug}
                 settings={store.footerSettings}
-            />
-
-            {/* Cart Sidebar */}
-            <CartSidebar
-                isOpen={isCartOpen}
-                onClose={() => setIsCartOpen(false)}
-                storeSlug={store.slug}
             />
         </div>
     )

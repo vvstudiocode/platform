@@ -2,7 +2,67 @@
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Trash2 } from 'lucide-react'
-import { ResponsiveControls } from './responsive-controls'
+import { ResponsiveControls, SpacingControls, ImageControls, AspectRatioControls } from './responsive-controls'
+import { AnimationControls } from './animation-controls'
+
+// 0. Hero Banner 編輯器
+export function HeroEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+    return (
+        <div className="space-y-3">
+            <div>
+                <label className="block text-sm text-zinc-400 mb-1">標題</label>
+                <Input placeholder="標題" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+            </div>
+            <div>
+                <label className="block text-sm text-zinc-400 mb-1">副標題</label>
+                <Input placeholder="副標題" value={props.subtitle || ''} onChange={(e) => onChange({ subtitle: e.target.value })} />
+            </div>
+            <div>
+                <label className="block text-sm text-zinc-400 mb-1">背景圖片網址</label>
+                <Input placeholder="https://..." value={props.backgroundUrl || ''} onChange={(e) => onChange({ backgroundUrl: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className="block text-sm text-zinc-400 mb-1">按鈕文字</label>
+                    <Input placeholder="了解更多" value={props.buttonText || ''} onChange={(e) => onChange({ buttonText: e.target.value })} />
+                </div>
+                <div>
+                    <label className="block text-sm text-zinc-400 mb-1">按鈕連結</label>
+                    <Input placeholder="https://..." value={props.buttonUrl || ''} onChange={(e) => onChange({ buttonUrl: e.target.value })} />
+                </div>
+            </div>
+
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 64,
+                    mobile: props.paddingYMobile ?? 32
+                }}
+                onChange={onChange}
+            />
+
+            <AspectRatioControls
+                aspectRatio={{
+                    desktop: props.aspectRatioDesktop || 'auto',
+                    mobile: props.aspectRatioMobile || 'auto'
+                }}
+                onChange={onChange}
+            />
+
+            <ImageControls
+                objectFit={{
+                    desktop: props.objectFitDesktop || 'cover',
+                    mobile: props.objectFitMobile || 'cover'
+                }}
+                onChange={onChange}
+            />
+
+            <AnimationControls
+                animation={props.animation}
+                onChange={onChange}
+            />
+        </div>
+    )
+}
 
 // 1. 輪播圖編輯器 - 整合圖片上傳
 export function CarouselEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
@@ -72,7 +132,36 @@ export function CarouselEditor({ props, onChange }: { props: Record<string, any>
                     + 新增圖片
                 </button>
             </div>
-        </div>
+
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 64,
+                    mobile: props.paddingYMobile ?? 32
+                }}
+                onChange={onChange}
+            />
+
+            <ImageControls
+                objectFit={{
+                    desktop: props.objectFitDesktop || 'cover',
+                    mobile: props.objectFitMobile || 'cover'
+                }}
+                onChange={onChange}
+            />
+
+            <AspectRatioControls
+                aspectRatio={{
+                    desktop: props.aspectRatioDesktop || 'auto',
+                    mobile: props.aspectRatioMobile || 'auto'
+                }}
+                onChange={onChange}
+            />
+
+            <AnimationControls
+                animation={props.animation}
+                onChange={onChange}
+            />
+        </div >
     )
 }
 
@@ -122,7 +211,36 @@ export function ImageTextEditor({ props, onChange }: { props: Record<string, any
                     <Input placeholder="https://..." value={props.buttonUrl || ''} onChange={(e) => onChange({ buttonUrl: e.target.value })} />
                 </div>
             </div>
-        </div>
+
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 64,
+                    mobile: props.paddingYMobile ?? 32
+                }}
+                onChange={onChange}
+            />
+
+            <ImageControls
+                objectFit={{
+                    desktop: props.objectFitDesktop || 'cover',
+                    mobile: props.objectFitMobile || 'cover'
+                }}
+                onChange={onChange}
+            />
+
+            <AspectRatioControls
+                aspectRatio={{
+                    desktop: props.aspectRatioDesktop || 'auto',
+                    mobile: props.aspectRatioMobile || 'auto'
+                }}
+                onChange={onChange}
+            />
+
+            <AnimationControls
+                animation={props.animation}
+                onChange={onChange}
+            />
+        </div >
     )
 }
 
@@ -185,7 +303,20 @@ export function TextColumnsEditor({ props, onChange }: { props: Record<string, a
                     + 新增欄位
                 </button>
             </div>
-        </div>
+
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 64,
+                    mobile: props.paddingYMobile ?? 32
+                }}
+                onChange={onChange}
+            />
+
+            <AnimationControls
+                animation={props.animation}
+                onChange={onChange}
+            />
+        </div >
     )
 }
 
@@ -224,21 +355,7 @@ export function TextEditor({ props, onChange }: { props: Record<string, any>; on
             <div className="grid grid-cols-2 gap-3 p-3 bg-zinc-700/30 rounded-lg border border-zinc-700">
                 <div>
                     <label className="block text-xs text-zinc-500 mb-1">對齊方式</label>
-                    <div className="flex bg-zinc-800 rounded-md p-0.5">
-                        {['left', 'center', 'right'].map((align) => (
-                            <button
-                                key={align}
-                                type="button"
-                                onClick={() => onChange({ align })}
-                                className={`flex-1 py-1 text-xs capitalize rounded ${(props.align || 'center') === align
-                                    ? 'bg-zinc-600 text-white shadow-sm'
-                                    : 'text-zinc-400 hover:text-zinc-300'
-                                    }`}
-                            >
-                                {align}
-                            </button>
-                        ))}
-                    </div>
+                    <AlignmentButtons value={props.align || 'center'} onChange={(val) => onChange({ align: val })} />
                 </div>
                 <div>
                     <label className="block text-xs text-zinc-500 mb-1">文字顏色</label>
@@ -284,7 +401,20 @@ export function TextEditor({ props, onChange }: { props: Record<string, any>; on
                     </div>
                 )}
             </div>
-        </div>
+
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 64,
+                    mobile: props.paddingYMobile ?? 32
+                }}
+                onChange={onChange}
+            />
+
+            <AnimationControls
+                animation={props.animation}
+                onChange={onChange}
+            />
+        </div >
     )
 }
 
@@ -332,6 +462,7 @@ export function ImageGridEditor({ props, onChange }: { props: Record<string, any
                     />
                 </div>
             </div>
+
             <div className="space-y-2">
                 <label className="block text-sm text-zinc-400">圖片列表</label>
                 {images.map((img: any, index: number) => (
@@ -357,6 +488,35 @@ export function ImageGridEditor({ props, onChange }: { props: Record<string, any
                     + 新增圖片
                 </button>
             </div>
+
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 64,
+                    mobile: props.paddingYMobile ?? 32
+                }}
+                onChange={onChange}
+            />
+
+            <ImageControls
+                objectFit={{
+                    desktop: props.objectFitDesktop || 'cover',
+                    mobile: props.objectFitMobile || 'cover'
+                }}
+                onChange={onChange}
+            />
+
+            <AspectRatioControls
+                aspectRatio={{
+                    desktop: props.aspectRatioDesktop || 'auto',
+                    mobile: props.aspectRatioMobile || 'auto'
+                }}
+                onChange={onChange}
+            />
+
+            <AnimationControls
+                animation={props.animation}
+                onChange={onChange}
+            />
         </div>
     )
 }
@@ -530,6 +690,33 @@ export function ProductListEditor({ props, onChange, tenantId }: { props: Record
                     )}
                 </div>
             </div>
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 64,
+                    mobile: props.paddingYMobile ?? 32
+                }}
+                onChange={onChange}
+            />
+
+            <ImageControls
+                objectFit={{
+                    desktop: props.objectFitDesktop || 'cover',
+                    mobile: props.objectFitMobile || 'cover'
+                }}
+                onChange={onChange}
+            />
+
+            <AspectRatioControls
+                aspectRatio={{
+                    desktop: props.aspectRatioDesktop || 'auto',
+                    mobile: props.aspectRatioMobile || 'auto'
+                }}
+                onChange={onChange}
+            />
+            <AnimationControls
+                animation={props.animation}
+                onChange={onChange}
+            />
         </div>
     )
 }
@@ -608,6 +795,34 @@ export function ProductCategoryEditor({ props, onChange, tenantId }: { props: Re
                     desktop: props.columnsDesktop || props.columns || 3,
                     mobile: props.columnsMobile || 1
                 }}
+                onChange={onChange}
+            />
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 64,
+                    mobile: props.paddingYMobile ?? 32
+                }}
+                onChange={onChange}
+            />
+
+            <ImageControls
+                objectFit={{
+                    desktop: props.objectFitDesktop || 'cover',
+                    mobile: props.objectFitMobile || 'cover'
+                }}
+                onChange={onChange}
+            />
+
+            <AspectRatioControls
+                aspectRatio={{
+                    desktop: props.aspectRatioDesktop || 'auto',
+                    mobile: props.aspectRatioMobile || 'auto'
+                }}
+                onChange={onChange}
+            />
+
+            <AnimationControls
+                animation={props.animation}
                 onChange={onChange}
             />
         </div>
@@ -781,6 +996,172 @@ export function ProductCarouselEditor({ props, onChange, tenantId }: { props: Re
                     )}
                 </div>
             </div>
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 64,
+                    mobile: props.paddingYMobile ?? 32
+                }}
+                onChange={onChange}
+            />
+
+            <ImageControls
+                objectFit={{
+                    desktop: props.objectFitDesktop || 'cover',
+                    mobile: props.objectFitMobile || 'cover'
+                }}
+                onChange={onChange}
+            />
+
+            <AspectRatioControls
+                aspectRatio={{
+                    desktop: props.aspectRatioDesktop || 'auto',
+                    mobile: props.aspectRatioMobile || 'auto'
+                }}
+                onChange={onChange}
+            />
+            <AnimationControls
+                animation={props.animation}
+                onChange={onChange}
+            />
+        </div>
+    )
+}
+
+// 8. 特色區塊編輯器
+export function FeaturesEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+    const items = props.items || []
+
+    const addItem = () => {
+        onChange({ items: [...items, { icon: '✨', title: '特色', description: '特色說明' }] })
+    }
+
+    const removeItem = (index: number) => {
+        onChange({ items: items.filter((_: any, i: number) => i !== index) })
+    }
+
+    const updateItem = (index: number, field: string, value: string) => {
+        const newItems = [...items]
+        newItems[index] = { ...newItems[index], [field]: value }
+        onChange({ items: newItems })
+    }
+
+    return (
+        <div className="space-y-3">
+            <div>
+                <label className="block text-sm text-zinc-400 mb-1">區塊標題</label>
+                <div className="space-y-2">
+                    <Input placeholder="標題" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+                    <AlignmentButtons value={props.titleAlign || 'center'} onChange={(val) => onChange({ titleAlign: val })} />
+                </div>
+            </div>
+            <div className="space-y-2">
+                <label className="block text-sm text-zinc-400">特色項目</label>
+                {items.map((item: any, index: number) => (
+                    <div key={index} className="flex gap-2 items-start p-3 bg-zinc-700/50 rounded-lg">
+                        <div className="flex-1 space-y-2">
+                            <div className="grid grid-cols-2 gap-2">
+                                <Input placeholder="圖標 (emoji)" value={item.icon || ''} onChange={(e) => updateItem(index, 'icon', e.target.value)} />
+                                <Input placeholder="標題" value={item.title || ''} onChange={(e) => updateItem(index, 'title', e.target.value)} />
+                            </div>
+                            <Input placeholder="說明" value={item.description || ''} onChange={(e) => updateItem(index, 'description', e.target.value)} />
+                        </div>
+                        <button type="button" onClick={() => removeItem(index)} className="p-1 text-zinc-500 hover:text-red-400">
+                            <Trash2 className="h-4 w-4" />
+                        </button>
+                    </div>
+                ))}
+                <button
+                    type="button"
+                    onClick={addItem}
+                    className="w-full py-2 border-2 border-dashed border-zinc-600 rounded-lg text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors"
+                >
+                    + 新增特色
+                </button>
+            </div>
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 64,
+                    mobile: props.paddingYMobile ?? 32
+                }}
+                onChange={onChange}
+            />
+
+            <AnimationControls
+                animation={props.animation}
+                onChange={onChange}
+            />
+        </div>
+    )
+}
+
+// 9. 常見問題編輯器
+export function FAQEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+    const items = props.items || []
+
+    const addItem = () => {
+        onChange({ items: [...items, { question: '問題', answer: '答案' }] })
+    }
+
+    const removeItem = (index: number) => {
+        onChange({ items: items.filter((_: any, i: number) => i !== index) })
+    }
+
+    const updateItem = (index: number, field: string, value: string) => {
+        const newItems = [...items]
+        newItems[index] = { ...newItems[index], [field]: value }
+        onChange({ items: newItems })
+    }
+
+    return (
+        <div className="space-y-3">
+            <div>
+                <label className="block text-sm text-zinc-400 mb-1">區塊標題</label>
+                <div className="space-y-2">
+                    <Input placeholder="常見問題" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+                    <AlignmentButtons value={props.titleAlign || 'center'} onChange={(val) => onChange({ titleAlign: val })} />
+                </div>
+            </div>
+            <div className="space-y-2">
+                <label className="block text-sm text-zinc-400">問答項目</label>
+                {items.map((item: any, index: number) => (
+                    <div key={index} className="p-3 bg-zinc-700/50 rounded-lg space-y-2">
+                        <div className="flex gap-2 items-center">
+                            <div className="flex-1">
+                                <Input placeholder="問題" value={item.question || ''} onChange={(e) => updateItem(index, 'question', e.target.value)} />
+                            </div>
+                            <button type="button" onClick={() => removeItem(index)} className="p-1 text-zinc-500 hover:text-red-400">
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <textarea
+                            className="w-full px-3 py-2 bg-zinc-600 border border-zinc-500 rounded-lg text-white placeholder:text-zinc-400 text-sm"
+                            rows={2}
+                            placeholder="答案"
+                            value={item.answer || ''}
+                            onChange={(e) => updateItem(index, 'answer', e.target.value)}
+                        />
+                    </div>
+                ))}
+                <button
+                    type="button"
+                    onClick={addItem}
+                    className="w-full py-2 border-2 border-dashed border-zinc-600 rounded-lg text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors"
+                >
+                    + 新增問答
+                </button>
+            </div>
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 64,
+                    mobile: props.paddingYMobile ?? 32
+                }}
+                onChange={onChange}
+            />
+
+            <AnimationControls
+                animation={props.animation}
+                onChange={onChange}
+            />
         </div>
     )
 }

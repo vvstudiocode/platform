@@ -17,12 +17,14 @@ export default function AppLoginPage() {
             const password = formData.get('password') as string
 
             const supabase = createClient()
+            console.log('Attempting login with:', email) // Debug
             const { error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             })
 
             if (error) {
+                console.error('Login error:', error) // Debug
                 return { error: error.message }
             }
 

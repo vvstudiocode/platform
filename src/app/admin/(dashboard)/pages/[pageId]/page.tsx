@@ -21,6 +21,12 @@ export default async function EditPagePage({ params }: Props) {
         notFound()
     }
 
+    const { data: tenant } = await supabase
+        .from('tenants')
+        .select('slug')
+        .eq('id', page.tenant_id)
+        .single()
+
     const boundUpdatePage = updatePage.bind(null, pageId)
 
     return (
@@ -38,6 +44,7 @@ export default async function EditPagePage({ params }: Props) {
             }}
             updateAction={boundUpdatePage}
             tenantId={page.tenant_id}
+            storeSlug={tenant?.slug}
         />
     )
 }

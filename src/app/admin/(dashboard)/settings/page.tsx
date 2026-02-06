@@ -10,7 +10,20 @@ export default function SettingsPage() {
             status: '已啟用',
             href: '/admin/settings/general'
         },
-        // ...
+        {
+            icon: Database,
+            title: '品牌管理',
+            description: '管理商品品牌列表',
+            status: '已啟用',
+            href: '/admin/settings/brands'
+        },
+        {
+            icon: Database,
+            title: '分類管理',
+            description: '管理商品分類結構',
+            status: '已啟用',
+            href: '/admin/settings/categories'
+        },
     ]
 
     return (

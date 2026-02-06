@@ -161,6 +161,12 @@ export function NavigationManager({ navItems, availablePages }: Props) {
     const [adding, setAdding] = useState(false)
     const [selectedPageId, setSelectedPageId] = useState<string>('')
     const [activeId, setActiveId] = useState<string | null>(null)
+    const [isMounted, setIsMounted] = useState(false)
+
+    // Fix hydration mismatch: DndKit generates different IDs on server vs client
+    React.useEffect(() => {
+        setIsMounted(true)
+    }, [])
 
     // 已經在導覽中的頁面 ID
     const usedPageIds = new Set(items.map(item => item.page_id))
@@ -271,74 +277,90 @@ export function NavigationManager({ navItems, availablePages }: Props) {
                 </div>
             </div>
 
-            {/* DnD Context */}
-            <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-            >
-                <SortableContext
-                    items={items.map(i => i.id)}
-                    strategy={verticalListSortingStrategy}
+            {/* DnD Context - Only render after mount to prevent hydration mismatch */}
+            {isMounted ? (
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
                 >
-                    <div className="space-y-2">
-                        {items.length === 0 ? (
-                            <div className="p-8 text-center text-zinc-500">
-                                <Menu className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                <p>尚無導覽項目，請新增頁面</p>
-                            </div>
-                        ) : (
-                            items.map((item) => (
-                                <div key={item.id} className="group relative">
-                                    <div className="relative">
-                                        <SortableItem
-                                            id={item.id}
-                                            item={item}
-                                            onRemove={handleRemove}
-                                            depth={item.depth || 0}
-                                        />
-                                    </div>
-
-                                    {/* Indent Buttons (Always Visible) */}
-                                    <div className="absolute right-14 top-1/2 -translate-y-1/2 flex gap-1 z-10">
-                                        <button
-                                            onClick={() => updateDepth(item.id, -1)}
-                                            className={`p-1 rounded border transition-colors ${!item.depth || item.depth === 0
-                                                ? 'bg-zinc-900 border-zinc-800 text-zinc-700 cursor-not-allowed'
-                                                : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white'
-                                                }`}
-                                            disabled={!item.depth || item.depth === 0}
-                                            title="減少縮排 (移出子選單)"
-                                        >
-                                            &lt;
-                                        </button>
-                                        <button
-                                            onClick={() => updateDepth(item.id, 1)}
-                                            className={`p-1 rounded border transition-colors ${item.depth === 1
-                                                ? 'bg-zinc-900 border-zinc-800 text-zinc-700 cursor-not-allowed'
-                                                : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white'
-                                                }`}
-                                            disabled={item.depth === 1}
-                                            title="增加縮排 (成為子選單)"
-                                        >
-                                            &gt;
-                                        </button>
-                                    </div>
+                    <SortableContext
+                        items={items.map(i => i.id)}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        <div className="space-y-2">
+                            {items.length === 0 ? (
+                                <div className="p-8 text-center text-zinc-500">
+                                    <Menu className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                    <p>尚無導覽項目，請新增頁面</p>
                                 </div>
-                            ))
-                        )}
-                    </div>
-                </SortableContext>
-                <DragOverlay>
-                    {activeId ? (
-                        <div className="p-4 flex items-center gap-4 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg opacity-80">
-                            <GripVertical className="h-5 w-5 text-white" />
-                            <span className="text-white">移動中...</span>
+                            ) : (
+                                items.map((item) => (
+                                    <div key={item.id} className="group relative">
+                                        <div className="relative">
+                                            <SortableItem
+                                                id={item.id}
+                                                item={item}
+                                                onRemove={handleRemove}
+                                                depth={item.depth || 0}
+                                            />
+                                        </div>
+
+                                        {/* Indent Buttons (Always Visible) */}
+                                        <div className="absolute right-14 top-1/2 -translate-y-1/2 flex gap-1 z-10">
+                                            <button
+                                                onClick={() => updateDepth(item.id, -1)}
+                                                className={`p-1 rounded border transition-colors ${!item.depth || item.depth === 0
+                                                    ? 'bg-zinc-900 border-zinc-800 text-zinc-700 cursor-not-allowed'
+                                                    : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white'
+                                                    }`}
+                                                disabled={!item.depth || item.depth === 0}
+                                                title="減少縮排 (移出子選單)"
+                                            >
+                                                &lt;
+                                            </button>
+                                            <button
+                                                onClick={() => updateDepth(item.id, 1)}
+                                                className={`p-1 rounded border transition-colors ${item.depth === 1
+                                                    ? 'bg-zinc-900 border-zinc-800 text-zinc-700 cursor-not-allowed'
+                                                    : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white'
+                                                    }`}
+                                                disabled={item.depth === 1}
+                                                title="增加縮排 (成為子選單)"
+                                            >
+                                                &gt;
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
-                    ) : null}
-                </DragOverlay>
-            </DndContext>
+                    </SortableContext>
+                    <DragOverlay>
+                        {activeId ? (
+                            <div className="p-4 flex items-center gap-4 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg opacity-80">
+                                <GripVertical className="h-5 w-5 text-white" />
+                                <span className="text-white">移動中...</span>
+                            </div>
+                        ) : null}
+                    </DragOverlay>
+                </DndContext>
+            ) : (
+                <div className="space-y-2">
+                    {items.map((item) => (
+                        <div key={item.id} className="p-4 flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <div className="text-zinc-500"><GripVertical className="h-5 w-5" /></div>
+                                <div>
+                                    <p className="font-medium text-white">{item.title}</p>
+                                    <p className="text-sm text-zinc-500">/{item.pages?.slug}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* 儲存按鈕 */}
             {items.length > 0 && (

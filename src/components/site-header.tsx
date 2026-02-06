@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Menu, X, ShoppingCart } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
+import { CartPopover } from '@/components/store/cart-popover'
 
 interface NavItem {
     title: string
@@ -106,21 +107,24 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                 </nav>
 
                 {/* Right side actions */}
-                <div className="flex items-center gap-2">
-                    {/* Cart Button */}
-                    {onCartClick && (
-                        <button
-                            onClick={onCartClick}
-                            className="relative p-2 text-gray-600 hover:text-black"
-                            aria-label="購物車"
-                        >
-                            <ShoppingCart className="h-6 w-6" />
-                            {mounted && getItemCount() > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                                    {getItemCount()}
-                                </span>
-                            )}
-                        </button>
+                <div className="flex items-center gap-2 relative">
+                    {/* Cart Button with Popover */}
+                    {onCartClick && mounted && (
+                        <>
+                            <button
+                                onClick={onCartClick}
+                                className="relative p-2 text-gray-600 hover:text-black"
+                                aria-label="購物車"
+                            >
+                                <ShoppingCart className="h-6 w-6" />
+                                {getItemCount() > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                        {getItemCount()}
+                                    </span>
+                                )}
+                            </button>
+                            <CartPopover />
+                        </>
                     )}
 
                     {/* Mobile Menu Button */}

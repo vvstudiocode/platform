@@ -5,6 +5,7 @@ import {
     Store,
     LogOut,
     ExternalLink,
+    Settings,
 } from 'lucide-react'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
 
@@ -50,7 +51,7 @@ export default async function AppLayout({
 
     // 如果有設定首頁，指向該頁面；否則指向商店首頁（商品列表）
     const homeUrl = homepage?.slug
-        ? `/store/${store.slug}/page/${homepage.slug}`
+        ? `/store/${store.slug}/${homepage.slug}`
         : `/store/${store.slug}`
 
     // navItems 使用字串名稱而非組件，以便序列化傳遞給 Client Component
@@ -75,6 +76,10 @@ export default async function AppLayout({
                     <span className="font-bold text-white">{store.name}</span>
                 </div>
                 <div className="flex items-center gap-4">
+                    <Link href="/app/settings" className="md:hidden text-zinc-400 hover:text-white flex items-center gap-1 text-sm border border-zinc-700 rounded-lg px-3 py-1.5 hover:bg-zinc-800 transition-colors">
+                        <Settings className="h-4 w-4" />
+                        <span className="hidden sm:inline">設定</span>
+                    </Link>
                     <a
                         href={homeUrl}
                         target="_blank"
@@ -83,11 +88,11 @@ export default async function AppLayout({
                     >
                         前往首頁
                     </a>
-                    <span className="text-sm text-zinc-400">{user.email}</span>
+                    <span className="text-sm text-zinc-400 hidden sm:block">{user.email}</span>
                     <form action="/api/auth/signout" method="POST">
                         <button type="submit" className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm">
                             <LogOut className="h-4 w-4" />
-                            登出
+                            <span className="hidden sm:inline">登出</span>
                         </button>
                     </form>
                 </div>
