@@ -14,10 +14,11 @@ alter table public.plans enable row level security;
 create policy "Anyone can view plans" on public.plans for select using (true);
 
 -- Insert Default Data
+-- Update: 2026-02-06: All plans have unlimited products. Starter=$299, Growth=$599.
 insert into public.plans (id, name, price_monthly, transaction_fee_percent, max_products, features) values
-('free', '免費體驗', 0, 5.0, 10, '{"custom_domain": false, "storage_limit_mb": 50, "remove_branding": false}'),
-('starter', '起步方案', 499, 2.0, 100, '{"custom_domain": false, "storage_limit_mb": 1024, "remove_branding": true}'),
-('growth', '成長方案', 1299, 1.0, null, '{"custom_domain": true, "storage_limit_mb": 10240, "remove_branding": true, "line_notify": true}'),
+('free', '免費體驗', 0, 5.0, null, '{"custom_domain": false, "storage_limit_mb": 50, "remove_branding": false}'),
+('starter', '起步方案', 299, 2.0, null, '{"custom_domain": false, "storage_limit_mb": 1024, "remove_branding": true}'),
+('growth', '成長方案', 599, 1.0, null, '{"custom_domain": true, "storage_limit_mb": 10240, "remove_branding": true, "line_notify": true}'),
 ('scale', '企業方案', 2999, 0.5, null, '{"custom_domain": true, "storage_limit_mb": 51200, "remove_branding": true, "line_notify": true, "hq_support": true}')
 on conflict (id) do update set 
   price_monthly = excluded.price_monthly,
