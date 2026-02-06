@@ -8,8 +8,10 @@ import { z } from 'zod'
 const pageSchema = z.object({
     title: z.string().min(1, '請輸入頁面標題'),
     slug: z.string().min(1, '請輸入頁面網址').regex(/^[a-z0-9-]+$/, '只能使用小寫英文、數字和連字符'),
-    meta_title: z.string().nullish().transform(v => v || undefined),
-    meta_description: z.string().nullish().transform(v => v || undefined),
+    seo_title: z.string().nullish().transform(v => v || undefined),
+    seo_description: z.string().nullish().transform(v => v || undefined),
+    seo_keywords: z.string().nullish().transform(v => v || undefined),
+    background_color: z.string().nullish().transform(v => v || undefined),
     is_homepage: z.coerce.boolean().default(false),
     published: z.coerce.boolean().default(false),
 })
@@ -36,8 +38,10 @@ export async function createPage(prevState: any, formData: FormData) {
     const validated = pageSchema.safeParse({
         title: formData.get('title'),
         slug: formData.get('slug'),
-        meta_title: formData.get('meta_title'),
-        meta_description: formData.get('meta_description'),
+        seo_title: formData.get('seo_title'),
+        seo_description: formData.get('seo_description'),
+        seo_keywords: formData.get('seo_keywords'),
+        background_color: formData.get('background_color'),
         is_homepage: formData.get('is_homepage') === 'on',
         published: formData.get('published') === 'on',
     })
@@ -107,8 +111,10 @@ export async function updatePage(pageId: string, prevState: any, formData: FormD
     const validated = pageSchema.safeParse({
         title: formData.get('title'),
         slug: formData.get('slug'),
-        meta_title: formData.get('meta_title'),
-        meta_description: formData.get('meta_description'),
+        seo_title: formData.get('seo_title'),
+        seo_description: formData.get('seo_description'),
+        seo_keywords: formData.get('seo_keywords'),
+        background_color: formData.get('background_color'),
         is_homepage: formData.get('is_homepage') === 'on',
         published: formData.get('published') === 'on',
     })
@@ -116,6 +122,8 @@ export async function updatePage(pageId: string, prevState: any, formData: FormD
     if (!validated.success) {
         return { error: validated.error.issues[0].message }
     }
+
+    console.log('Updating page with data:', validated.data)
 
     if (validated.data.is_homepage) {
         await supabase

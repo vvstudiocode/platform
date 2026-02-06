@@ -44,12 +44,23 @@ export function CartPopover() {
             {/* Header */}
             <div className="relative p-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="font-bold text-gray-900">購物車 ({items.length})</h3>
-                <button
-                    onClick={() => setIsCartOpen(false)}
-                    className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                    <X className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-3">
+                    {items.length > 0 && (
+                        <button
+                            onClick={clearCart}
+                            className="p-1 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-500 transition-colors"
+                            title="清空購物車"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </button>
+                    )}
+                    <button
+                        onClick={() => setIsCartOpen(false)}
+                        className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
             </div>
 
             {/* Items */}

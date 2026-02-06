@@ -37,6 +37,9 @@ interface Props {
         show_in_nav: boolean
         nav_order: number
         background_color?: string
+        seo_title?: string
+        seo_description?: string
+        seo_keywords?: string
         content: PageComponent[]
     }
     updateAction: (prevState: any, formData: FormData) => Promise<{ error?: string }>
@@ -79,7 +82,20 @@ const allComponentTypes = componentCategories.flatMap(cat => cat.components)
 
 
 export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props) {
-    const [state, formAction, pending] = useActionState(updateAction, { error: '' })
+    // State for settings
+    const [title, setTitle] = useState(page.title)
+    const [slug, setSlug] = useState(page.slug)
+    const [seoTitle, setSeoTitle] = useState(page.seo_title || '')
+    const [seoDescription, setSeoDescription] = useState(page.seo_description || '')
+    const [seoKeywords, setSeoKeywords] = useState(page.seo_keywords || '')
+    const [backgroundColor, setBackgroundColor] = useState(page.background_color || '#ffffff')
+    const [isHomepage, setIsHomepage] = useState(page.is_homepage)
+    const [published, setPublished] = useState(page.published)
+    const [showInNav, setShowInNav] = useState(page.show_in_nav)
+    const [navOrder, setNavOrder] = useState(page.nav_order)
+
+    const [error, setError] = useState('')
+
     // Ensure all components have an ID on load
     const [components, setComponents] = useState<PageComponent[]>(() => {
         return (page.content || []).map(c => ({
@@ -95,7 +111,6 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
     const [showMobilePreview, setShowMobilePreview] = useState(false)
     const [isSaved, setIsSaved] = useState(false)
     const [settingsCollapsed, setSettingsCollapsed] = useState(true)  // 頁面設定預設收合
-    const [backgroundColor, setBackgroundColor] = useState(page.background_color || '#ffffff')
     const componentListRef = useRef<HTMLDivElement>(null)
 
     // 滾動到選中的元件
@@ -195,12 +210,43 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
     const saveContent = async () => {
         setSaving(true)
-        const result = await updatePageContent(page.id, components)
-        if (result?.success) {
-            setIsSaved(true)
-            setTimeout(() => { setIsSaved(false) }, 2000)
+        setError('')
+        try {
+            // 1. Save Settings
+            const formData = new FormData()
+            formData.append('title', title)
+            formData.append('slug', slug)
+            formData.append('background_color', backgroundColor)
+            formData.append('seo_title', seoTitle)
+            formData.append('seo_description', seoDescription)
+            formData.append('seo_keywords', seoKeywords)
+            if (isHomepage) formData.append('is_homepage', 'on')
+            if (published) formData.append('published', 'on')
+            // Preserve hidden fields if they exist in props but not form
+            if (showInNav) formData.append('show_in_nav', 'on')
+            formData.append('nav_order', navOrder.toString())
+
+            const settingsResult = await updateAction(null, formData)
+            if (settingsResult?.error) {
+                throw new Error(settingsResult.error)
+            }
+
+            // 2. Save Content
+            const contentResult = await updatePageContent(page.id, components)
+            if (contentResult?.error) {
+                throw new Error(contentResult.error)
+            }
+
+            if (!settingsResult?.error && !contentResult?.error) {
+                setIsSaved(true)
+                setTimeout(() => { setIsSaved(false) }, 2000)
+            }
+        } catch (error: any) {
+            console.error('Save failed:', error)
+            setError(error.message || '儲存失敗，請稍後再試')
+        } finally {
+            setSaving(false)
         }
-        setSaving(false)
     }
 
     return (
@@ -211,7 +257,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                     <Link href="/admin/pages" className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white">
                         <ArrowLeft className="h-5 w-5" />
                     </Link>
-                    <h1 className="text-xl font-bold text-white">{page.title}</h1>
+                    <h1 className="text-xl font-bold text-white">{title}</h1>
                 </div>
                 <div className="flex items-center gap-2">
                     {/* 手機版預覽按鈕 */}
@@ -222,7 +268,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                         <Eye className="h-4 w-4" />
                         預覽
                     </button>
-                    {storeSlug && page.published && (
+                    {storeSlug && published && (
                         <Link
                             href={`/store/${storeSlug}/${page.slug}`}
                             target="_blank"
@@ -241,9 +287,9 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                 </div>
             </div>
 
-            {state.error && (
+            {error && (
                 <div className="mx-6 mt-4 bg-red-500/20 border border-red-500 text-red-400 rounded-lg p-4">
-                    {state.error}
+                    {error}
                 </div>
             )}
 
@@ -263,48 +309,101 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                         </button>
                         {!settingsCollapsed && (
                             <div className="px-4 pb-4">
-                                <form action={formAction} className="space-y-3">
+                                <div className="space-y-3">
                                     <div>
                                         <Label htmlFor="title" className="text-xs text-zinc-400">頁面標題</Label>
-                                        <Input id="title" name="title" required defaultValue={page.title} className="h-8 text-sm" />
+                                        <Input
+                                            id="title"
+                                            value={title}
+                                            onChange={(e) => setTitle(e.target.value)}
+                                            className="h-8 text-sm bg-zinc-800 border-zinc-700 text-white"
+                                        />
                                     </div>
                                     <div>
                                         <Label htmlFor="slug" className="text-xs text-zinc-400">頁面網址</Label>
-                                        <Input id="slug" name="slug" required defaultValue={page.slug} className="h-8 text-sm" />
+                                        <Input
+                                            id="slug"
+                                            value={slug}
+                                            onChange={(e) => setSlug(e.target.value)}
+                                            className="h-8 text-sm bg-zinc-800 border-zinc-700 text-white"
+                                        />
                                     </div>
                                     <div>
                                         <Label className="text-xs text-zinc-400">背景顏色</Label>
                                         <div className="flex items-center gap-2 mt-1">
+                                            <Input
+                                                value={backgroundColor}
+                                                onChange={(e) => setBackgroundColor(e.target.value)}
+                                                className="h-8 text-sm flex-1 bg-zinc-800 border-zinc-700 text-white"
+                                                placeholder="#ffffff"
+                                            />
                                             <input
                                                 type="color"
                                                 value={backgroundColor}
                                                 onChange={(e) => setBackgroundColor(e.target.value)}
                                                 className="w-8 h-8 rounded cursor-pointer bg-transparent border border-zinc-600"
                                             />
-                                            <Input
-                                                name="background_color"
-                                                value={backgroundColor}
-                                                onChange={(e) => setBackgroundColor(e.target.value)}
-                                                className="h-8 text-sm flex-1"
-                                                placeholder="#ffffff"
-                                            />
                                         </div>
                                     </div>
+
+                                    {/* SEO Settings */}
+                                    <div className="pt-2 border-t border-zinc-800">
+                                        <h3 className="text-xs font-semibold text-zinc-400 mb-2">SEO 設定</h3>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <Label htmlFor="seo_title" className="text-xs text-zinc-500">SEO 標題 (Title)</Label>
+                                                <Input
+                                                    id="seo_title"
+                                                    value={seoTitle}
+                                                    onChange={(e) => setSeoTitle(e.target.value)}
+                                                    className="h-8 text-sm bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                                                    placeholder="預設使用頁面標題"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="seo_description" className="text-xs text-zinc-500">SEO 描述 (Description)</Label>
+                                                <textarea
+                                                    id="seo_description"
+                                                    value={seoDescription}
+                                                    onChange={(e) => setSeoDescription(e.target.value)}
+                                                    className="w-full flex min-h-[60px] rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm shadow-sm placeholder:text-zinc-500 text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    placeholder="簡短描述此頁面內容..."
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="seo_keywords" className="text-xs text-zinc-500">SEO 關鍵字 (Keywords)</Label>
+                                                <Input
+                                                    id="seo_keywords"
+                                                    value={seoKeywords}
+                                                    onChange={(e) => setSeoKeywords(e.target.value)}
+                                                    className="h-8 text-sm bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                                                    placeholder="例如: 產品, 服務, 優惠"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div className="flex items-center gap-4 text-sm">
-                                        <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                            <input type="checkbox" name="is_homepage" defaultChecked={page.is_homepage} className="rounded bg-zinc-800 border-zinc-600" />
+                                        <label className="flex items-center gap-2 text-zinc-300 cursor-pointer hover:text-white">
+                                            <input
+                                                type="checkbox"
+                                                checked={isHomepage}
+                                                onChange={(e) => setIsHomepage(e.target.checked)}
+                                                className="rounded bg-zinc-800 border-zinc-600 accent-rose-500"
+                                            />
                                             設為首頁
                                         </label>
-                                        <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                            <input type="checkbox" name="published" defaultChecked={page.published} className="rounded bg-zinc-800 border-zinc-600" />
+                                        <label className="flex items-center gap-2 text-zinc-300 cursor-pointer hover:text-white">
+                                            <input
+                                                type="checkbox"
+                                                checked={published}
+                                                onChange={(e) => setPublished(e.target.checked)}
+                                                className="rounded bg-zinc-800 border-zinc-600 accent-rose-500"
+                                            />
                                             發布
                                         </label>
                                     </div>
-                                    <Button type="submit" variant="outline" size="sm" className="w-full" disabled={pending}>
-                                        <Loader2 className={`h-3 w-3 mr-2 animate-spin ${pending ? '' : 'hidden'}`} />
-                                        更新設定
-                                    </Button>
-                                </form>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -436,13 +535,18 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                             {/* Mobile Notch Simulation */}
                             {/* Mobile Notch Simulation */}
                             {previewMode === 'mobile' && (
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[30px] bg-zinc-900 rounded-b-[18px] z-50 flex items-center justify-center gap-3 pointer-events-none shadow-md">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-zinc-800/50"></div>
-                                    <div className="w-16 h-1 rounded-full bg-zinc-800/50"></div>
-                                </div>
+                                <>
+                                    {/* Notch */}
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[30px] bg-zinc-900 rounded-b-[18px] z-50 flex items-center justify-center gap-3 pointer-events-none shadow-md">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-zinc-800/50"></div>
+                                        <div className="w-16 h-1 rounded-full bg-zinc-800/50"></div>
+                                    </div>
+                                    {/* Home Indicator */}
+                                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[130px] h-[5px] bg-black/20 rounded-full z-50 pointer-events-none backdrop-blur-sm"></div>
+                                </>
                             )}
 
-                            <div className={`h-full ${previewMode === 'mobile' ? 'overflow-y-auto scrollbar-hide h-[800px] pt-[30px]' : ''}`}>
+                            <div className={`h-full ${previewMode === 'mobile' ? 'overflow-y-auto scrollbar-hide h-[800px] pt-[30px] pb-[40px]' : ''}`}>
                                 {components.length === 0 ? (
                                     <div className="text-center py-20 text-zinc-400">
                                         尚無內容

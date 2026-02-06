@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, ShoppingCart } from 'lucide-react'
+import { Menu, X, ShoppingCart, ClipboardList } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
 import { CartPopover } from '@/components/store/cart-popover'
+import { OrderLookupModal } from '@/components/store/order-lookup-modal'
 
 interface NavItem {
     title: string
@@ -26,7 +27,8 @@ interface SiteHeaderProps {
 export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = '', onCartClick }: SiteHeaderProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [mounted, setMounted] = useState(false)
-    const { getItemCount } = useCart()
+    const [showOrderLookup, setShowOrderLookup] = useState(false)
+    const { getItemCount, storeSlug } = useCart()
 
     useEffect(() => {
         setMounted(true)
@@ -65,114 +67,143 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
     })
 
     return (
-        <header className="border-b bg-white sticky top-0 z-50">
-            <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                {/* Logo / Store Name */}
-                <Link href={homePath} className="flex items-center gap-2">
-                    {logoUrl && (
-                        <img src={logoUrl} alt="" className="h-8 w-8 rounded object-cover" />
-                    )}
-                    <span className="text-xl font-bold">{storeName}</span>
-                </Link>
+        <>
+            <header className="border-b bg-white sticky top-0 z-50">
+                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+                    {/* Logo / Store Name */}
+                    <Link href={homePath} className="flex items-center gap-2">
+                        {logoUrl && (
+                            <img src={logoUrl} alt="" className="h-8 w-8 rounded object-cover" />
+                        )}
+                        <span className="text-xl font-bold">{storeName}</span>
+                    </Link>
 
-                {/* Desktop Navigation */}
-                <nav className="hidden md:flex gap-8">
-                    {navTree.map((item) => (
-                        <div key={item.slug} className="relative group">
-                            <Link
-                                href={`${basePath}${pagePrefix}/${item.slug}`}
-                                className="text-gray-600 hover:text-black transition-colors py-2 inline-flex items-center gap-1"
-                            >
-                                {item.title}
-                            </Link>
+                    {/* Desktop Navigation */}
+                    <nav className="hidden md:flex gap-8">
+                        {navTree.map((item) => (
+                            <div key={item.slug} className="relative group">
+                                <Link
+                                    href={`${basePath}${pagePrefix}/${item.slug}`}
+                                    className="text-gray-600 hover:text-black transition-colors py-2 inline-flex items-center gap-1"
+                                >
+                                    {item.title}
+                                </Link>
 
-                            {/* Dropdown */}
-                            {item.children && item.children.length > 0 && (
-                                <div className="absolute top-full left-0 mt-0 w-48 bg-white border border-gray-100 shadow-lg rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50">
-                                    <div className="py-1">
+                                {/* Dropdown */}
+                                {item.children && item.children.length > 0 && (
+                                    <div className="absolute top-full left-0 mt-0 w-48 bg-white border border-gray-100 shadow-lg rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50">
+                                        <div className="py-1">
+                                            {item.children.map((child: any) => (
+                                                <Link
+                                                    key={child.slug}
+                                                    href={`${basePath}${pagePrefix}/${child.slug}`}
+                                                    className="block px-4 py-2 text-sm text-gray-600 hover:text-black hover:bg-gray-50 bg-white"
+                                                >
+                                                    {child.title}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </nav>
+
+                    {/* Right side actions */}
+                    <div className="flex items-center gap-2 relative">
+                        {/* Order Lookup Button (Desktop) */}
+                        <button
+                            onClick={() => setShowOrderLookup(true)}
+                            className="hidden md:flex items-center gap-1 p-2 text-gray-600 hover:text-black"
+                            title="訂單查詢"
+                        >
+                            <ClipboardList className="h-6 w-6" />
+                        </button>
+
+                        {/* Cart Button with Popover */}
+                        {onCartClick && mounted && (
+                            <>
+                                <button
+                                    onClick={onCartClick}
+                                    className="relative p-2 text-gray-600 hover:text-black"
+                                    aria-label="購物車"
+                                >
+                                    <ShoppingCart className="h-6 w-6" />
+                                    {getItemCount() > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                            {getItemCount()}
+                                        </span>
+                                    )}
+                                </button>
+                                <CartPopover />
+                            </>
+                        )}
+
+                        {/* Mobile Menu Button */}
+                        <button
+                            className="md:hidden p-2 text-gray-600 hover:text-black"
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            aria-label="Toggle menu"
+                        >
+                            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Mobile Navigation */}
+                <div
+                    className={`md:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-md shadow-xl border-t z-50 h-[calc(100vh-80px)] overflow-y-auto transition-all duration-300 ease-in-out origin-top ${isMenuOpen
+                        ? 'opacity-100 translate-y-0 visible pointer-events-auto'
+                        : 'opacity-0 -translate-y-4 invisible pointer-events-none'
+                        }`}
+                >
+                    <nav className="flex flex-col px-6 py-4 space-y-1">
+                        {navTree.map((item) => (
+                            <div key={item.slug} className="group">
+                                <Link
+                                    href={`${basePath}${pagePrefix}/${item.slug}`}
+                                    className="block py-4 text-lg font-medium text-gray-800 hover:text-black border-b border-gray-100 group-last:border-0 transition-colors"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    {item.title}
+                                </Link>
+                                {item.children && item.children.length > 0 && (
+                                    <div className="pl-4 space-y-1 bg-gray-50/50 rounded-lg mb-2">
                                         {item.children.map((child: any) => (
                                             <Link
                                                 key={child.slug}
                                                 href={`${basePath}${pagePrefix}/${child.slug}`}
-                                                className="block px-4 py-2 text-sm text-gray-600 hover:text-black hover:bg-gray-50 bg-white"
+                                                className="block py-3 text-base text-gray-600 hover:text-black hover:bg-gray-100/50 px-2 rounded-md transition-colors"
+                                                onClick={() => setIsMenuOpen(false)}
                                             >
                                                 {child.title}
                                             </Link>
                                         ))}
                                     </div>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </nav>
-
-                {/* Right side actions */}
-                <div className="flex items-center gap-2 relative">
-                    {/* Cart Button with Popover */}
-                    {onCartClick && mounted && (
-                        <>
-                            <button
-                                onClick={onCartClick}
-                                className="relative p-2 text-gray-600 hover:text-black"
-                                aria-label="購物車"
-                            >
-                                <ShoppingCart className="h-6 w-6" />
-                                {getItemCount() > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                                        {getItemCount()}
-                                    </span>
                                 )}
-                            </button>
-                            <CartPopover />
-                        </>
-                    )}
+                            </div>
+                        ))}
 
-                    {/* Mobile Menu Button */}
-                    <button
-                        className="md:hidden p-2 text-gray-600 hover:text-black"
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        aria-label="Toggle menu"
-                    >
-                        {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                    </button>
+                        {/* Order Lookup (Mobile) */}
+                        <button
+                            onClick={() => {
+                                setIsMenuOpen(false)
+                                setShowOrderLookup(true)
+                            }}
+                            className="w-full flex items-center gap-2 py-4 text-lg font-medium text-gray-800 hover:text-black border-b border-gray-100 transition-colors text-left"
+                        >
+                            <ClipboardList className="h-6 w-6" />
+                            訂單查詢
+                        </button>
+                    </nav>
                 </div>
-            </div>
+            </header>
 
-            {/* Mobile Navigation */}
-            <div
-                className={`md:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-md shadow-xl border-t z-50 h-[calc(100vh-80px)] overflow-y-auto transition-all duration-300 ease-in-out origin-top ${isMenuOpen
-                        ? 'opacity-100 translate-y-0 visible pointer-events-auto'
-                        : 'opacity-0 -translate-y-4 invisible pointer-events-none'
-                    }`}
-            >
-                <nav className="flex flex-col px-6 py-4 space-y-1">
-                    {navTree.map((item) => (
-                        <div key={item.slug} className="group">
-                            <Link
-                                href={`${basePath}${pagePrefix}/${item.slug}`}
-                                className="block py-4 text-lg font-medium text-gray-800 hover:text-black border-b border-gray-100 group-last:border-0 transition-colors"
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                {item.title}
-                            </Link>
-                            {item.children && item.children.length > 0 && (
-                                <div className="pl-4 space-y-1 bg-gray-50/50 rounded-lg mb-2">
-                                    {item.children.map((child: any) => (
-                                        <Link
-                                            key={child.slug}
-                                            href={`${basePath}${pagePrefix}/${child.slug}`}
-                                            className="block py-3 text-base text-gray-600 hover:text-black hover:bg-gray-100/50 px-2 rounded-md transition-colors"
-                                            onClick={() => setIsMenuOpen(false)}
-                                        >
-                                            {child.title}
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </nav>
-            </div>
-        </header>
+            <OrderLookupModal
+                isOpen={showOrderLookup}
+                onClose={() => setShowOrderLookup(false)}
+                storeSlug={storeSlug || ''}
+            />
+        </>
     )
 }

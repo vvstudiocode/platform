@@ -12,6 +12,14 @@ interface Props {
         name: string
         slug: string
         settings?: {
+            bank_name?: string
+            bank_account?: string
+            account_name?: string
+            payment_message?: string
+            shipping_pickup_fee?: number
+            shipping_711_fee?: number
+            shipping_home_fee?: number
+            // Legacy fallbacks
             bankName?: string
             bankAccount?: string
             accountName?: string
@@ -35,6 +43,7 @@ export function CheckoutClient({ store }: Props) {
     const [success, setSuccess] = useState(false)
     const [orderNumber, setOrderNumber] = useState('')
     const [error, setError] = useState('')
+    const [finalTotal, setFinalTotal] = useState(0)
 
     // Form State
     const [customerName, setCustomerName] = useState('')
@@ -52,10 +61,17 @@ export function CheckoutClient({ store }: Props) {
     }, [])
 
     const settings = store.settings || {}
+
+    // Normalize Data (Handle both snake_case from DB and legacy camelCase)
+    const bankName = settings.bank_name || settings.bankName
+    const bankAccount = settings.bank_account || settings.bankAccount
+    const accountName = settings.account_name || settings.accountName
+    const paymentMessage = settings.payment_message || settings.paymentMessage
+
     const shippingFees = settings.shippingFees || {
-        pickup: 0,
-        '711': 60,
-        home: 100,
+        pickup: settings.shipping_pickup_fee ?? 0,
+        '711': settings.shipping_711_fee ?? 60,
+        home: settings.shipping_home_fee ?? 100,
     }
 
     const subtotal = getSubtotal()
@@ -97,6 +113,7 @@ export function CheckoutClient({ store }: Props) {
             }
 
             setOrderNumber(data.orderNumber)
+            setFinalTotal(total)
             setSuccess(true)
             clearCart()
         } catch (err: any) {
@@ -137,22 +154,22 @@ export function CheckoutClient({ store }: Props) {
                     <p className="text-gray-500 mb-4">您的訂單編號</p>
                     <p className="text-3xl font-mono font-bold text-rose-500 mb-6">{orderNumber}</p>
 
-                    {settings.bankName && (
+                    {bankName && (
                         <div className="bg-gray-50 rounded-lg p-4 text-left mb-6">
                             <h3 className="font-semibold text-gray-900 mb-2">匯款資訊</h3>
                             <div className="space-y-1 text-sm text-gray-600">
-                                <p>銀行：{settings.bankName}</p>
-                                <p>帳號：{settings.bankAccount}</p>
-                                <p>戶名：{settings.accountName}</p>
+                                <p>銀行：{bankName}</p>
+                                <p>帳號：{bankAccount}</p>
+                                <p>戶名：{accountName}</p>
                             </div>
                             <p className="mt-3 text-rose-500 font-medium">
-                                應付金額：NT$ {total.toLocaleString()}
+                                應付金額：NT$ {finalTotal.toLocaleString()}
                             </p>
                         </div>
                     )}
 
-                    {settings.paymentMessage && (
-                        <p className="text-sm text-gray-500 mb-6">{settings.paymentMessage}</p>
+                    {paymentMessage && (
+                        <p className="text-sm text-gray-500 mb-6">{paymentMessage}</p>
                     )}
 
                     <Link
@@ -390,6 +407,23 @@ export function CheckoutClient({ store }: Props) {
                             </div>
                         </div>
                     </div>
+
+                    {/* Payment Info (Bank Transfer) */}
+                    {bankName && (
+                        <div className="bg-white rounded-xl shadow-sm p-6">
+                            <h2 className="font-semibold text-gray-900 mb-4">匯款資訊</h2>
+                            <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm text-gray-600">
+                                <p><span className="font-medium text-gray-900">銀行：</span>{bankName}</p>
+                                <p><span className="font-medium text-gray-900">帳號：</span>{bankAccount}</p>
+                                <p><span className="font-medium text-gray-900">戶名：</span>{accountName}</p>
+                                {paymentMessage && (
+                                    <p className="pt-2 text-gray-500 border-t border-gray-200 mt-2">
+                                        {paymentMessage}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     {error && (
                         <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg p-4">

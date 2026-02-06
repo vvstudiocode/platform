@@ -43,13 +43,13 @@ export function StoreFooter({ storeName, storeSlug, settings = {} }: Props) {
         Object.values(socialLinks).some(link => link)
 
     return (
-        <footer className="border-t bg-gray-50 pb-12 pt-0">
+        <footer className="border-t bg-gray-50 pb-12 pt-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {hasContent ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                    <div className="flex flex-col items-center text-center gap-8 mb-8">
                         {/* 關於我們 */}
                         {(about || contact) && (
-                            <div>
+                            <div className="max-w-2xl">
                                 <h3 className="font-semibold text-gray-900 mb-4">關於我們</h3>
                                 {about && <p className="text-sm text-gray-600 mb-2">{about}</p>}
                                 {contact && <p className="text-sm text-gray-600">{contact}</p>}
@@ -60,7 +60,7 @@ export function StoreFooter({ storeName, storeSlug, settings = {} }: Props) {
                         {(email || phone || address) && (
                             <div>
                                 <h3 className="font-semibold text-gray-900 mb-4">聯絡資訊</h3>
-                                <div className="space-y-2 text-sm text-gray-600">
+                                <div className="flex flex-col items-center space-y-2 text-sm text-gray-600">
                                     {email && (
                                         <div className="flex items-center gap-2">
                                             <Mail className="h-4 w-4 text-gray-400" />
@@ -90,8 +90,7 @@ export function StoreFooter({ storeName, storeSlug, settings = {} }: Props) {
                         {/* 社交媒體 */}
                         {Object.values(socialLinks).some(link => link) && (
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-4">追蹤我們</h3>
-                                <div className="flex gap-3">
+                                <div className="flex gap-3 justify-center">
                                     {socialLinks.line && (
                                         <a
                                             href={socialLinks.line}

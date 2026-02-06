@@ -39,11 +39,7 @@ function ProductCard({ product, storeSlug, fitDesktop = 'cover', fitMobile = 'co
                     <img
                         src={product.image_url}
                         alt={product.name}
-                        className="w-full h-full group-hover:scale-110 transition-transform duration-500 object-[var(--fit-mobile)] md:object-[var(--fit-desktop)]"
-                        style={{
-                            '--fit-desktop': fitDesktop && !fitDesktop.includes('/') ? fitDesktop : 'cover',
-                            '--fit-mobile': fitMobile && !fitMobile.includes('/') ? fitMobile : 'cover',
-                        } as React.CSSProperties}
+                        className="w-full h-full group-hover:scale-110 transition-transform duration-500 object-cover"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">

@@ -26,7 +26,7 @@ interface Props {
     page: {
         title: string
         content: any[]
-        backgroundColor?: string
+        background_color?: string
     }
     navItems: NavItem[]
     homeSlug?: string
@@ -39,8 +39,13 @@ export function StorePageClient({ store, page, navItems, homeSlug }: Props) {
         setStoreSlug(store.slug)
     }, [store.slug, setStoreSlug])
 
+    console.log('StorePageClient page data:', page)
+
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div
+            className="min-h-screen flex flex-col"
+            style={{ backgroundColor: page.background_color || '#ffffff' }}
+        >
             <SiteHeader
                 storeName={store.name}
                 logoUrl={store.logoUrl || undefined}
@@ -56,7 +61,7 @@ export function StorePageClient({ store, page, navItems, homeSlug }: Props) {
                     content={page.content}
                     storeSlug={store.slug}
                     tenantId={store.id}
-                    backgroundColor={page.backgroundColor}
+                    backgroundColor={page.background_color}
                 />
             </main>
 

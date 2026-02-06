@@ -40,6 +40,10 @@ export default async function EditPagePage({ params }: Props) {
                 published: page.published,
                 show_in_nav: page.show_in_nav ?? false,
                 nav_order: page.nav_order ?? 0,
+                background_color: page.background_color,
+                seo_title: page.seo_title,
+                seo_description: page.seo_description,
+                seo_keywords: page.seo_keywords,
                 content: (page.content as any[]) || [],
             }}
             updateAction={boundUpdatePage}
