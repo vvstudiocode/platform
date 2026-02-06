@@ -119,49 +119,49 @@ export function ProductListClient({ initialProducts }: Props) {
                                             <GripVertical className="h-4 w-4" />
                                         </div>
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <span className="text-zinc-400 font-mono text-sm">
+                                    <td className="px-2 md:px-4 py-3">
+                                        <span className="text-zinc-400 font-mono text-xs md:text-sm">
                                             {product.sku || '-'}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <div className="w-10 h-10 bg-zinc-800 rounded-lg overflow-hidden">
+                                    <td className="px-2 md:px-4 py-3">
+                                        <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-800 rounded-lg overflow-hidden">
                                             {product.image_url ? (
                                                 <img src={product.image_url} alt="" className="w-full h-full object-cover" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center">
-                                                    <Package className="h-4 w-4 text-zinc-600" />
+                                                    <Package className="h-3 w-3 md:h-4 md:w-4 text-zinc-600" />
                                                 </div>
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <p className="font-medium text-white">{product.name}</p>
+                                    <td className="px-2 md:px-4 py-3">
+                                        <p className="font-medium text-white text-xs md:text-sm">{product.name}</p>
                                         {product.brand && (
-                                            <p className="text-xs text-zinc-500">{product.brand}</p>
+                                            <p className="text-[10px] md:text-xs text-zinc-500">{product.brand}</p>
                                         )}
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <span className="text-white">
+                                    <td className="px-2 md:px-4 py-3">
+                                        <span className="text-white text-xs md:text-sm">
                                             {Number(product.price).toLocaleString()}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td className="px-2 md:px-4 py-3">
                                         {profit !== null ? (
-                                            <span className={profit > 0 ? 'text-emerald-400' : 'text-red-400'}>
+                                            <span className={`${profit > 0 ? 'text-emerald-400' : 'text-red-400'} text-xs md:text-sm`}>
                                                 {profit > 0 ? '+' : ''}{profit.toLocaleString()}
                                             </span>
                                         ) : (
                                             <span className="text-zinc-500">-</span>
                                         )}
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <span className="text-zinc-400">
+                                    <td className="px-2 md:px-4 py-3">
+                                        <span className="text-zinc-400 text-xs md:text-sm">
                                             {product.cost ? Number(product.cost).toLocaleString() : '-'}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <span className={product.stock <= 5 ? 'text-amber-400' : 'text-white'}>
+                                    <td className="px-2 md:px-4 py-3">
+                                        <span className={`${product.stock <= 5 ? 'text-amber-400' : 'text-white'} text-xs md:text-sm`}>
                                             {product.stock}
                                         </span>
                                     </td>

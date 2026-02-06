@@ -139,26 +139,26 @@ export function OrderTable({ orders, products, storeId, isHQ }: Props) {
                                         className={`group transition-colors cursor-pointer ${isExpanded ? 'bg-zinc-800/30' : 'hover:bg-zinc-800/30'}`}
                                         onClick={() => toggleRow(order.id)}
                                     >
-                                        <td className="px-6 py-4">
+                                        <td className="px-3 md:px-6 py-4">
                                             {isExpanded ? (
-                                                <ChevronUp className="h-4 w-4 text-zinc-400" />
+                                                <ChevronUp className="h-4 w-4 text-zinc-400 hidden md:block" />
                                             ) : (
-                                                <ChevronDown className="h-4 w-4 text-zinc-400 group-hover:text-zinc-600" />
+                                                <ChevronDown className="h-4 w-4 text-zinc-400 group-hover:text-zinc-600 hidden md:block" />
                                             )}
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className="font-mono text-sm font-medium text-zinc-200">
+                                        <td className="px-3 md:px-6 py-4">
+                                            <span className="font-mono text-xs md:text-sm font-medium text-zinc-200">
                                                 #{order.order_number}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-3 md:px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-medium text-zinc-200">{order.customer_name}</span>
-                                                <span className="text-xs text-zinc-500">{order.customer_phone}</span>
+                                                <span className="text-xs md:text-sm font-medium text-zinc-200">{order.customer_name}</span>
+                                                <span className="text-[10px] md:text-xs text-zinc-500">{order.customer_phone}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-sm font-medium text-zinc-200">
+                                        <td className="px-3 md:px-6 py-4">
+                                            <span className="text-xs md:text-sm font-medium text-zinc-200">
                                                 NT$ {Number(order.total).toLocaleString()}
                                             </span>
                                         </td>

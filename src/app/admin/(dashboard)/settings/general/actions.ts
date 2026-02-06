@@ -68,8 +68,8 @@ export async function updateGeneralSettings(prevState: any, formData: FormData):
         // If super admin, prioritize 'hq' tenant
         const { data: hqTenant } = await supabase
             .from('tenants')
-            .select('id, settings')
-            .eq('slug', 'hq')
+            .select('id, settings, footer_settings')
+            .eq('is_hq', true)
             .maybeSingle()
 
         console.log('[Debug Settings] HQ Tenant:', hqTenant)
@@ -80,7 +80,7 @@ export async function updateGeneralSettings(prevState: any, formData: FormData):
             // Fallback to managed_by if 'hq' not found
             const { data: managedTenant } = await supabase
                 .from('tenants')
-                .select('id, settings')
+                .select('id, settings, footer_settings')
                 .eq('managed_by', user.id)
                 .maybeSingle()
             console.log('[Debug Settings] Managed Tenant (Fallback):', managedTenant)
@@ -90,7 +90,7 @@ export async function updateGeneralSettings(prevState: any, formData: FormData):
         // Not super admin, must be managed_by
         const { data: managedTenant } = await supabase
             .from('tenants')
-            .select('id, settings')
+            .select('id, settings, footer_settings')
             .eq('managed_by', user.id)
             .maybeSingle()
 
@@ -150,7 +150,7 @@ export async function updateGeneralSettings(prevState: any, formData: FormData):
         footer_about, footer_copyright
     } = validated.data
 
-    // Merge settings
+    // Merge settings (Bank, Shipping, Basic)
     const currentSettings = (tenant.settings as Record<string, any>) || {}
     const newSettings = {
         ...currentSettings,
@@ -158,10 +158,26 @@ export async function updateGeneralSettings(prevState: any, formData: FormData):
         support_email,
         bank_name, bank_code, bank_account, payment_message,
         shipping_pickup_fee, shipping_711_fee, shipping_home_fee,
-        shipping_pickup_name, shipping_711_name, shipping_home_name,
-        footer_line, footer_facebook, footer_instagram, footer_threads,
-        footer_youtube, footer_email, footer_phone, footer_address,
-        footer_about, footer_copyright
+        shipping_pickup_name, shipping_711_name, shipping_home_name
+    }
+
+    // Construct footer_settings
+    // Match structure in GeneralSettingsForm: tenant.footer_settings.socialLinks
+    const currentFooter = (tenant.footer_settings as Record<string, any>) || {}
+    const newFooterSettings = {
+        ...currentFooter,
+        email: footer_email,
+        phone: footer_phone,
+        address: footer_address,
+        about: footer_about,
+        copyright: footer_copyright,
+        socialLinks: {
+            line: footer_line,
+            facebook: footer_facebook,
+            instagram: footer_instagram,
+            threads: footer_threads,
+            youtube: footer_youtube
+        }
     }
 
     const { error } = await supabase
@@ -169,7 +185,8 @@ export async function updateGeneralSettings(prevState: any, formData: FormData):
         .update({
             name,
             logo_url,
-            settings: newSettings
+            settings: newSettings,
+            footer_settings: newFooterSettings
         })
         .eq('id', tenant.id)
 
@@ -180,5 +197,5 @@ export async function updateGeneralSettings(prevState: any, formData: FormData):
     revalidatePath('/admin/settings/general')
     revalidatePath('/', 'layout') // 更新全站資訊 (Logo/Name 可能在 Header)
 
-    return { success: '設定已更新' }
+    return { success: '設定已儲存' }
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Facebook, Instagram, Youtube, MessageCircle, Phone, Mail, MapPin } from 'lucide-react'
+import { Facebook, Instagram, Youtube, MessageCircle, Phone, Mail, MapPin, CreditCard } from 'lucide-react'
 
 interface SocialLinks {
     line?: string
@@ -9,6 +9,12 @@ interface SocialLinks {
     threads?: string
     instagram?: string
     youtube?: string
+}
+
+interface BankInfo {
+    bankCode?: string
+    bankName?: string
+    bankAccount?: string
 }
 
 interface FooterSettings {
@@ -19,6 +25,7 @@ interface FooterSettings {
     phone?: string
     address?: string
     copyright?: string
+    bankInfo?: BankInfo
 }
 
 interface Props {
@@ -35,11 +42,12 @@ export function StoreFooter({ storeName, storeSlug, settings = {} }: Props) {
         email,
         phone,
         address,
-        copyright
+        copyright,
+        bankInfo
     } = settings
 
     // 如果沒有任何設定，顯示簡化版
-    const hasContent = about || contact || email || phone || address ||
+    const hasContent = about || contact || email || phone || address || bankInfo ||
         Object.values(socialLinks).some(link => link)
 
     return (
@@ -86,6 +94,8 @@ export function StoreFooter({ storeName, storeSlug, settings = {} }: Props) {
                                 </div>
                             </div>
                         )}
+
+
 
                         {/* 社交媒體 */}
                         {Object.values(socialLinks).some(link => link) && (
@@ -160,3 +170,4 @@ export function StoreFooter({ storeName, storeSlug, settings = {} }: Props) {
         </footer>
     )
 }
+

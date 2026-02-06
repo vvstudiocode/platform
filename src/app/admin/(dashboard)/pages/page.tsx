@@ -76,18 +76,18 @@ export default async function AdminPagesPage() {
                         {pages && pages.length > 0 ? (
                             pages.map((page) => (
                                 <tr key={page.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 md:px-6 py-4">
                                         <div className="flex items-center gap-2">
                                             {page.is_homepage && (
                                                 <Home className="h-4 w-4 text-blue-400" />
                                             )}
-                                            <span className="text-white font-medium">{page.title}</span>
+                                            <span className="text-white font-medium text-xs md:text-sm">{page.title}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-zinc-400 font-mono text-sm">/{page.slug}</span>
+                                    <td className="px-3 md:px-6 py-4">
+                                        <span className="text-zinc-400 font-mono text-xs md:text-sm">/{page.slug}</span>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 md:px-6 py-4">
                                         <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${page.published
                                             ? 'bg-emerald-500/20 text-emerald-400'
                                             : 'bg-zinc-500/20 text-zinc-400'
@@ -95,8 +95,8 @@ export default async function AdminPagesPage() {
                                             {page.published ? '已發布' : '草稿'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-zinc-400">
+                                    <td className="px-3 md:px-6 py-4">
+                                        <span className="text-zinc-400 text-xs md:text-sm">
                                             {new Date(page.updated_at).toLocaleDateString('zh-TW')}
                                         </span>
                                     </td>

@@ -1,0 +1,7 @@
+# Check if gitleaks is installed before running
+if command -v gitleaks >/dev/null 2>&1; then
+    gitleaks protect --verbose --staged
+else
+    echo "⚠️  [Warning] gitleaks is not installed. Skipping secret scan."
+    echo "👉 Please install it: 'brew install gitleaks'"
+fi

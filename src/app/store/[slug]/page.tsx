@@ -14,7 +14,7 @@ export default async function StorefrontPage({ params }: Props) {
     // 取得商店資訊（包含頁尾設定）
     const { data: store } = await supabase
         .from('tenants')
-        .select('id, name, slug, settings, logo_url, footer_settings')
+        .select('id, name, slug, settings, logo_url, is_hq, footer_settings')
         .eq('slug', slug)
         .single()
 
@@ -42,6 +42,11 @@ export default async function StorefrontPage({ params }: Props) {
 
     const homepage = homepages && homepages.length > 0 ? homepages[0] : null
 
+    const settings = (store.settings as any) || {}
+    // Use the stored footer_settings directly, or fallback to structure if needed
+    // The admin action saves to footer_settings column with the correct structure.
+    const footerSettings = (store.footer_settings as any) || {}
+
     // 如果有首頁，用 HomePageClient 渲染
     if (homepage) {
         return (
@@ -51,8 +56,8 @@ export default async function StorefrontPage({ params }: Props) {
                     name: store.name,
                     slug: store.slug,
                     logoUrl: store.logo_url,
-                    settings: store.settings as any,
-                    footerSettings: store.footer_settings as any,
+                    settings: settings,
+                    footerSettings: footerSettings,
                 }}
                 page={{
                     title: homepage.title,
@@ -87,8 +92,8 @@ export default async function StorefrontPage({ params }: Props) {
             store={{
                 name: store.name,
                 slug: store.slug,
-                settings: store.settings as any,
-                footerSettings: store.footer_settings as any,
+                settings: settings,
+                footerSettings: footerSettings,
             }}
             products={products || []}
             navItems={clientNavItems}

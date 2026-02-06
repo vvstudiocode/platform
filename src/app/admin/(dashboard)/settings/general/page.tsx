@@ -11,30 +11,53 @@ export default async function GeneralSettingsPage() {
     }
 
     // 1. 嘗試從 users_roles 找到關聯的 tenant
-    const { data: userRole } = await supabase
+    // 1. Check if super_admin first
+    const { data: superAdminRole } = await supabase
         .from('users_roles')
-        .select('tenant_id')
+        .select('role')
         .eq('user_id', user.id)
-        .single()
+        .eq('role', 'super_admin')
+        .maybeSingle()
 
     let tenant = null
 
-    if (userRole?.tenant_id) {
-        // Find by ID from role
-        const { data } = await supabase
+    if (superAdminRole) {
+        // If super admin, try to find 'hq' tenant
+        const { data: hqTenant } = await supabase
             .from('tenants')
             .select('*')
-            .eq('id', userRole.tenant_id)
-            .single()
-        tenant = data
-    } else {
-        // Fallback: Find by managed_by
-        const { data } = await supabase
-            .from('tenants')
-            .select('*')
-            .eq('managed_by', user.id)
-            .single()
-        tenant = data
+            .eq('is_hq', true)
+            .maybeSingle()
+
+        if (hqTenant) {
+            tenant = hqTenant
+        }
+    }
+
+    // Fallback: Use existing logic if not super admin or hq not found
+    if (!tenant) {
+        const { data: userRole } = await supabase
+            .from('users_roles')
+            .select('tenant_id')
+            .eq('user_id', user.id)
+            .neq('role', 'super_admin') // Avoid picking up the super admin role again if possible, though strict equality above handles it
+            .maybeSingle()
+
+        if (userRole?.tenant_id) {
+            const { data } = await supabase
+                .from('tenants')
+                .select('*')
+                .eq('id', userRole.tenant_id)
+                .single()
+            tenant = data
+        } else {
+            const { data } = await supabase
+                .from('tenants')
+                .select('*')
+                .eq('managed_by', user.id)
+                .maybeSingle() // changed to maybeSingle to avoid error if multiple
+            tenant = data
+        }
     }
 
     if (!tenant) {

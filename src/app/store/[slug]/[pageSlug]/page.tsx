@@ -52,7 +52,7 @@ export default async function StoreCustomPage({ params }: Props) {
     // 取得商店資訊
     const { data: store } = await supabase
         .from('tenants')
-        .select('id, name, slug, logo_url, footer_settings')
+        .select('id, name, slug, logo_url, settings, is_hq, footer_settings')
         .eq('slug', slug)
         .single()
 
@@ -98,12 +98,13 @@ export default async function StoreCustomPage({ params }: Props) {
     }))
 
     // Transform store data to match StorePageClient props
+    const settings = (store.settings as any) || {}
     const storeData = {
         id: store.id,
         name: store.name,
         slug: store.slug,
         logoUrl: store.logo_url,
-        footerSettings: store.footer_settings
+        footerSettings: (store.footer_settings as any) || {}
     }
 
     return (
