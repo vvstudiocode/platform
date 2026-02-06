@@ -111,10 +111,10 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
 
                     {/* Right side actions */}
                     <div className="flex items-center gap-2 relative">
-                        {/* Order Lookup Button (Desktop) */}
+                        {/* Order Lookup Button */}
                         <button
                             onClick={() => setShowOrderLookup(true)}
-                            className="hidden md:flex items-center gap-1 p-2 text-gray-600 hover:text-black"
+                            className="p-2 text-gray-600 hover:text-black"
                             title="訂單查詢"
                         >
                             <ClipboardList className="h-6 w-6" />

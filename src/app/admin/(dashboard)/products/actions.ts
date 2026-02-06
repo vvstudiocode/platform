@@ -235,3 +235,15 @@ export async function generateSKU(supabase: any, tenantId: string): Promise<stri
 
     return `P${String(nextNum).padStart(6, '0')}`
 }
+
+// Client 端呼叫的 Server Action wrapper
+export async function generateNewSKU() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('請先登入')
+
+    const hqStoreId = await getHQStoreId(supabase, user.id)
+    if (!hqStoreId) throw new Error('找不到總部商店')
+
+    return await generateSKU(supabase, hqStoreId)
+}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, useEffect } from 'react'
-import { createProduct, generateSKU } from '../actions'
+import { createProduct, generateNewSKU } from '../actions'
 import { ArrowLeft, Loader2, Wand2 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -37,7 +37,7 @@ export default function NewProductPage() {
     // 自動生成 SKU
     const handleGenerateSku = async () => {
         setGeneratingSku(true)
-        const newSku = await generateSKU()
+        const newSku = await generateNewSKU()
         setSku(newSku)
         setGeneratingSku(false)
     }

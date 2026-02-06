@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Search, Loader2, Package, Clock } from 'lucide-react'
+import { X, Search, Loader2, Package, Clock, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface Order {
     id: string
@@ -24,6 +24,7 @@ export function OrderLookupModal({ isOpen, onClose, storeSlug }: Props) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [hasSearched, setHasSearched] = useState(false)
+    const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null)
 
     if (!isOpen) return null
 
@@ -130,10 +131,17 @@ export function OrderLookupModal({ isOpen, onClose, storeSlug }: Props) {
                     ) : (
                         <div className="space-y-3">
                             {orders.map((order) => (
-                                <div key={order.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                                <div
+                                    key={order.id}
+                                    className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
+                                    onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}
+                                >
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
-                                            <p className="font-medium text-gray-900">#{order.order_number}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="font-medium text-gray-900">#{order.order_number}</p>
+                                                {expandedOrderId === order.id ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
+                                            </div>
                                             <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                                                 <Clock className="h-3 w-3" />
                                                 {formatDate(order.created_at)}
@@ -151,6 +159,29 @@ export function OrderLookupModal({ isOpen, onClose, storeSlug }: Props) {
                                         <span className="text-gray-600">{order.items.length} 件商品</span>
                                         <span className="font-bold text-rose-500">NT$ {order.total.toLocaleString()}</span>
                                     </div>
+
+                                    {/* Expanded Details */}
+                                    {expandedOrderId === order.id && (
+                                        <div className="mt-4 pt-3 border-t border-gray-100 animate-in slide-in-from-top-2 duration-200">
+                                            <h4 className="text-xs font-semibold text-gray-500 mb-2">訂單內容</h4>
+                                            <div className="space-y-2">
+                                                {order.items.map((item: any, idx: number) => (
+                                                    <div key={idx} className="flex justify-between text-sm">
+                                                        <span className="text-gray-800">
+                                                            {item.name}
+                                                            {item.variant_name && <span className="text-gray-500 text-xs ml-1">({item.variant_name})</span>}
+                                                            <span className="text-gray-400 text-xs ml-1">x{item.quantity}</span>
+                                                        </span>
+                                                        <span className="text-gray-600">NT$ {item.price.toLocaleString()}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="mt-3 pt-2 border-t border-gray-100 flex justify-between text-sm font-medium">
+                                                <span className="text-gray-900">總計</span>
+                                                <span className="text-rose-500">NT$ {order.total.toLocaleString()}</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
