@@ -76,7 +76,7 @@ function AnimationWrapper({ children, animation, className }: { children: ReactN
 export function PageContentRenderer({ content, storeSlug = '', tenantId = '', preview = false, previewDevice = 'desktop', backgroundColor = '#ffffff', selectedId, children }: Props & { selectedId?: string }) {
     return (
         <div
-            className="min-h-full w-full py-12"
+            className="min-h-full w-full"
             style={{ backgroundColor: backgroundColor || '#ffffff' }}
         >
             <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -247,6 +247,7 @@ function HeroBlock({ block, preview, previewDevice }: { block: PageComponent; pr
                 backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : undefined,
                 backgroundColor: backgroundUrl ? undefined : '#1f2937',
                 backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
                 paddingTop: previewDevice === 'mobile' ? `${block.props?.paddingYMobile ?? 32}px` : `${block.props?.paddingYDesktop ?? 64}px`,
                 paddingBottom: previewDevice === 'mobile' ? `${block.props?.paddingYMobile ?? 32}px` : `${block.props?.paddingYDesktop ?? 64}px`,
                 // Use background-size directly from variables doesn't work well in style attribute for responsive without media queries or CSS variables trick
@@ -269,12 +270,12 @@ function HeroBlock({ block, preview, previewDevice }: { block: PageComponent; pr
             `}</style>
             <div className="absolute inset-0 bg-black/40" />
             <div className="relative z-10">
-                {title && <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{title}</h1>}
-                {subtitle && <div className="text-xl text-gray-200">{subtitle}</div>}
+                {title && <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">{title}</h1>}
+                {subtitle && <div className="text-lg md:text-xl text-gray-200">{subtitle}</div>}
                 {buttonText && (
                     <Link
                         href={buttonUrl || '#'}
-                        className="inline-block mt-6 px-8 py-3 bg-white text-gray-900 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                        className="inline-block mt-6 px-6 py-2 bg-white/90 backdrop-blur-sm text-gray-900 font-medium rounded-full hover:bg-white transition-all shadow-lg"
                     >
                         {buttonText}
                     </Link>

@@ -2,6 +2,9 @@ import { ImageResponse } from 'next/og'
 import { createClient } from '@/lib/supabase/server'
 import { Store as StoreIcon } from 'lucide-react'
 
+export const revalidate = 60
+
+
 // For admin routes, we can't easily cache by URL because the URL doesn't contain the tenant ID usually.
 // However, the browser caches favicons heavily.
 // Valid strategy: Check if we can get user session.

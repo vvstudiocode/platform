@@ -1,6 +1,9 @@
 import { ImageResponse } from 'next/og'
 import { createClient } from '@/lib/supabase/server'
 
+export const revalidate = 60
+
+
 export const size = {
     width: 32,
     height: 32,

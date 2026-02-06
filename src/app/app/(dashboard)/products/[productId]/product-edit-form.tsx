@@ -1,11 +1,12 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState, useEffect } from 'react'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Combobox } from '@/components/ui/combobox'
 
 interface Props {
     product: {
@@ -26,6 +27,19 @@ interface Props {
 
 export function ProductEditForm({ product, updateAction }: Props) {
     const [state, formAction, pending] = useActionState(updateAction, { error: '' })
+    const [brands, setBrands] = useState<{ id: string, name: string }[]>([])
+    const [categories, setCategories] = useState<{ id: string, name: string }[]>([])
+
+    useEffect(() => {
+        // Fetch brands and categories
+        fetch('/api/products/attributes')
+            .then(res => res.json())
+            .then(data => {
+                if (data.brands) setBrands(data.brands)
+                if (data.categories) setCategories(data.categories)
+            })
+            .catch(err => console.error('Failed to fetch attributes', err))
+    }, [])
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
@@ -52,11 +66,25 @@ export function ProductEditForm({ product, updateAction }: Props) {
                         </div>
                         <div>
                             <Label htmlFor="brand">品牌</Label>
-                            <Input id="brand" name="brand" defaultValue={product.brand || ''} />
+                            <Combobox
+                                name="brand"
+                                options={brands.map(b => ({ value: b.name, label: b.name }))}
+                                defaultValue={product.brand || ''}
+                                placeholder="選擇或輸入品牌"
+                                searchPlaceholder="搜尋品牌..."
+                                allowCustom
+                            />
                         </div>
                         <div>
                             <Label htmlFor="category">分類</Label>
-                            <Input id="category" name="category" defaultValue={product.category || ''} />
+                            <Combobox
+                                name="category"
+                                options={categories.map(c => ({ value: c.name, label: c.name }))}
+                                defaultValue={product.category || ''}
+                                placeholder="選擇或輸入分類"
+                                searchPlaceholder="搜尋分類..."
+                                allowCustom
+                            />
                         </div>
                         <div className="sm:col-span-2">
                             <Label htmlFor="description">商品描述</Label>

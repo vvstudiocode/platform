@@ -71,7 +71,20 @@ export async function createProduct(prevState: any, formData: FormData) {
     // 如果沒有輸入 SKU，自動生成
     let sku = validated.data.sku
     if (!sku || sku.trim() === '') {
-        sku = await generateSKU()
+        sku = await generateSKU(supabase, hqStoreId)
+    }
+
+    // 自動儲存品牌與分類 (如果不存在)
+    if (validated.data.brand) {
+        await supabase
+            .from('brands')
+            .upsert({ tenant_id: hqStoreId, name: validated.data.brand }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
+    }
+
+    if (validated.data.category) {
+        await supabase
+            .from('categories')
+            .upsert({ tenant_id: hqStoreId, name: validated.data.category }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
     }
 
     const { error } = await supabase
@@ -116,6 +129,23 @@ export async function updateProduct(productId: string, prevState: any, formData:
 
     if (!validated.success) {
         return { error: validated.error.issues[0].message }
+    }
+
+    // Get HQ Store ID for attribute saving
+    const hqStoreId = await getHQStoreId(supabase, user.id)
+    if (hqStoreId) {
+        // 自動儲存品牌與分類 (如果不存在)
+        if (validated.data.brand) {
+            await supabase
+                .from('brands')
+                .upsert({ tenant_id: hqStoreId, name: validated.data.brand }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
+        }
+
+        if (validated.data.category) {
+            await supabase
+                .from('categories')
+                .upsert({ tenant_id: hqStoreId, name: validated.data.category }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
+        }
     }
 
     const { error } = await supabase
@@ -184,13 +214,12 @@ export async function updateProductOrder(orderData: { id: string; order: number 
 }
 
 // 自動生成商品編號
-export async function generateSKU(): Promise<string> {
-    const supabase = await createClient()
-
+export async function generateSKU(supabase: any, tenantId: string): Promise<string> {
     // 取得目前最大編號
     const { data } = await supabase
         .from('products')
         .select('sku')
+        .eq('tenant_id', tenantId)
         .not('sku', 'is', null)
         .order('sku', { ascending: false })
         .limit(1)

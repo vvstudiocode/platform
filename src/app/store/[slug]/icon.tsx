@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'edge'
-export const revalidate = 86400 // Cache for 24 hours to reduce DB/Server costs
+export const revalidate = 60 // Cache for 60 seconds (dev/testing friendly)
 
 export const size = {
     width: 32,
@@ -26,13 +26,14 @@ export default async function Icon({ params }: { params: { slug: string } }) {
         .eq('slug', slug)
         .single()
 
-    // 2. If Logo exists, fetch and render, otherwise render default
-    if (tenant?.logo_url) {
-        // Use the logo
-        // Note: For best results in ImageResponse, we might want to just render an <img> tag 
-        // referencing the URL if we were doing OG, but for Icon we need to return the image data.
-        // We can fetch the image buffer and return it, or use inclusion.
-        // Simpler: Draw the image using an img tag. ImageResponse handles fetching.
+    // 2. If Logo exists, check format
+    // Satori (ImageResponse) does NOT support WebP.
+    // Shopline IMG does NOT support simple extension replacement (returns 403).
+    const logoUrl = tenant?.logo_url
+    const isWebP = logoUrl?.includes('.webp')
+
+    if (logoUrl && !isWebP) {
+        // Use the logo if it's NOT WebP
         return new ImageResponse(
             (
                 <div
@@ -47,7 +48,7 @@ export default async function Icon({ params }: { params: { slug: string } }) {
                     }}
                 >
                     <img
-                        src={tenant.logo_url}
+                        src={logoUrl}
                         alt={tenant.name || 'Icon'}
                         width="32"
                         height="32"
@@ -58,6 +59,10 @@ export default async function Icon({ params }: { params: { slug: string } }) {
             { ...size }
         )
     }
+
+    // 3. Fallback (or if WebP): First letter of store name
+    // Even if we have a logo, if it's WebP we can't render it in OG generation without specific conversion tools.
+
 
     // 3. Fallback: First letter of store name
     const letter = tenant?.name ? tenant.name[0].toUpperCase() : 'S'

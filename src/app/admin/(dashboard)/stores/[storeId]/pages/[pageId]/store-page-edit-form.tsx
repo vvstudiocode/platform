@@ -413,11 +413,15 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
                             : 'w-full min-h-screen shadow-sm'
                             }`}>
                             {/* Mobile Notch Simulation */}
+                            {/* Mobile Notch Simulation */}
                             {previewMode === 'mobile' && (
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-zinc-900 rounded-b-2xl z-50"></div>
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[30px] bg-zinc-900 rounded-b-[18px] z-50 flex items-center justify-center gap-3 pointer-events-none shadow-md">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-zinc-800/50"></div>
+                                    <div className="w-16 h-1 rounded-full bg-zinc-800/50"></div>
+                                </div>
                             )}
 
-                            <div className={`h-full ${previewMode === 'mobile' ? 'overflow-y-auto scrollbar-hide h-[800px]' : ''}`}>
+                            <div className={`h-full ${previewMode === 'mobile' ? 'overflow-y-auto scrollbar-hide h-[800px] pt-[30px]' : ''}`}>
                                 {components.length === 0 ? (
                                     <div className="text-center py-20 text-zinc-400">
                                         尚無內容

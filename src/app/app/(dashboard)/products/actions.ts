@@ -93,6 +93,19 @@ export async function createProduct(prevState: any, formData: FormData) {
         sku = await generateSKU(supabase, storeId)
     }
 
+    // 自動儲存品牌與分類 (如果不存在)
+    if (validated.data.brand) {
+        await supabase
+            .from('brands')
+            .upsert({ tenant_id: storeId, name: validated.data.brand }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
+    }
+
+    if (validated.data.category) {
+        await supabase
+            .from('categories')
+            .upsert({ tenant_id: storeId, name: validated.data.category }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
+    }
+
     const { error } = await supabase
         .from('products')
         .insert({
@@ -135,6 +148,23 @@ export async function updateProduct(productId: string, prevState: any, formData:
 
     if (!validated.success) {
         return { error: validated.error.issues[0].message }
+    }
+
+    // Get Store ID for attribute saving
+    const storeId = await getUserStoreId(supabase, user.id)
+    if (storeId) {
+        // 自動儲存品牌與分類 (如果不存在)
+        if (validated.data.brand) {
+            await supabase
+                .from('brands')
+                .upsert({ tenant_id: storeId, name: validated.data.brand }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
+        }
+
+        if (validated.data.category) {
+            await supabase
+                .from('categories')
+                .upsert({ tenant_id: storeId, name: validated.data.category }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
+        }
     }
 
     const { error } = await supabase

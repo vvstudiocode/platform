@@ -193,7 +193,7 @@ export function ImageControls({ objectFit, onChange }: {
                             : 'border-zinc-700 text-zinc-400 hover:border-zinc-600'
                             }`}
                     >
-                        裁切填滿 (Cover)
+                        放大或縮小來填滿
                     </button>
                     <button
                         type="button"
@@ -203,13 +203,13 @@ export function ImageControls({ objectFit, onChange }: {
                             : 'border-zinc-700 text-zinc-400 hover:border-zinc-600'
                             }`}
                     >
-                        完整顯示 (Contain)
+                        完整顯示但不要重複
                     </button>
                 </div>
                 <p className="text-[10px] text-zinc-500 mt-1.5">
                     {(isDesktop ? objectFit.desktop : objectFit.mobile) === 'cover'
-                        ? '圖片會被裁切以填滿區域'
-                        : '圖片會完整顯示，但可能會留白'}
+                        ? '圖片會被裁切以填滿區域 (Cover)'
+                        : '圖片會完整顯示，不會重複平鋪 (Contain)'}
                 </p>
             </div>
         </div>

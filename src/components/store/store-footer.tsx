@@ -43,7 +43,7 @@ export function StoreFooter({ storeName, storeSlug, settings = {} }: Props) {
         Object.values(socialLinks).some(link => link)
 
     return (
-        <footer className="border-t bg-gray-50 py-12">
+        <footer className="border-t bg-gray-50 pb-12 pt-0">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {hasContent ? (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">

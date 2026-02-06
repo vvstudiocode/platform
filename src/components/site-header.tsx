@@ -139,37 +139,40 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
             </div>
 
             {/* Mobile Navigation */}
-            {isMenuOpen && (
-                <div className="md:hidden border-t bg-white">
-                    <nav className="flex flex-col px-4 py-2">
-                        {navTree.map((item) => (
-                            <div key={item.slug}>
-                                <Link
-                                    href={`${basePath}${pagePrefix}/${item.slug}`}
-                                    className="block py-3 text-gray-600 hover:text-black border-b border-gray-100"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    {item.title}
-                                </Link>
-                                {item.children && item.children.length > 0 && (
-                                    <div className="pl-4 bg-gray-50/50">
-                                        {item.children.map((child: any) => (
-                                            <Link
-                                                key={child.slug}
-                                                href={`${basePath}${pagePrefix}/${child.slug}`}
-                                                className="block py-3 text-sm text-gray-500 hover:text-black border-b border-gray-100 last:border-0"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                {child.title}
-                                            </Link>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </nav>
-                </div>
-            )}
+            <div
+                className={`md:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-md shadow-xl border-t z-50 h-[calc(100vh-80px)] overflow-y-auto transition-all duration-300 ease-in-out origin-top ${isMenuOpen
+                        ? 'opacity-100 translate-y-0 visible pointer-events-auto'
+                        : 'opacity-0 -translate-y-4 invisible pointer-events-none'
+                    }`}
+            >
+                <nav className="flex flex-col px-6 py-4 space-y-1">
+                    {navTree.map((item) => (
+                        <div key={item.slug} className="group">
+                            <Link
+                                href={`${basePath}${pagePrefix}/${item.slug}`}
+                                className="block py-4 text-lg font-medium text-gray-800 hover:text-black border-b border-gray-100 group-last:border-0 transition-colors"
+                                onClick={() => setIsMenuOpen(false)}
+                            >
+                                {item.title}
+                            </Link>
+                            {item.children && item.children.length > 0 && (
+                                <div className="pl-4 space-y-1 bg-gray-50/50 rounded-lg mb-2">
+                                    {item.children.map((child: any) => (
+                                        <Link
+                                            key={child.slug}
+                                            href={`${basePath}${pagePrefix}/${child.slug}`}
+                                            className="block py-3 text-base text-gray-600 hover:text-black hover:bg-gray-100/50 px-2 rounded-md transition-colors"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            {child.title}
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </nav>
+            </div>
         </header>
     )
 }

@@ -38,6 +38,9 @@ ALTER TABLE brands ENABLE ROW LEVEL SECURITY;
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 
 -- 4. RLS 策略 - brands
+
+-- 允許 authenticated 用戶查看其租戶的品牌
+DROP POLICY IF EXISTS "Users can view brands for their tenant" ON brands;
 CREATE POLICY "Users can view brands for their tenant"
     ON brands FOR SELECT
     USING (
@@ -46,6 +49,8 @@ CREATE POLICY "Users can view brands for their tenant"
         )
     );
 
+-- 允許具備權限的用戶管理品牌 (新增/修改/刪除)
+DROP POLICY IF EXISTS "Users can manage brands for their tenant" ON brands;
 CREATE POLICY "Users can manage brands for their tenant"
     ON brands FOR ALL
     USING (
@@ -57,6 +62,9 @@ CREATE POLICY "Users can manage brands for their tenant"
     );
 
 -- 5. RLS 策略 - categories
+
+-- 允許 authenticated 用戶查看其租戶的分類
+DROP POLICY IF EXISTS "Users can view categories for their tenant" ON categories;
 CREATE POLICY "Users can view categories for their tenant"
     ON categories FOR SELECT
     USING (
@@ -65,6 +73,8 @@ CREATE POLICY "Users can view categories for their tenant"
         )
     );
 
+-- 允許具備權限的用戶管理分類 (新增/修改/刪除)
+DROP POLICY IF EXISTS "Users can manage categories for their tenant" ON categories;
 CREATE POLICY "Users can manage categories for their tenant"
     ON categories FOR ALL
     USING (

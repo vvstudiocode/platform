@@ -1,10 +1,12 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { Loader2, Store, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ImageUpload } from '@/components/ui/image-upload'
+import { uploadImage } from '@/lib/upload-utils'
 
 interface Props {
     store: {
@@ -19,11 +21,15 @@ interface Props {
     updateAction: (prevState: any, formData: FormData) => Promise<{ error?: string; success?: boolean }>
 }
 
+// Duplicate imports removed
+
+// ...
+
 export function SettingsForm({ store, updateAction }: Props) {
     const [state, formAction, pending] = useActionState(updateAction, {})
+    const [logoUrl, setLogoUrl] = useState(store.logo_url || '')
 
     const settings = store.settings || {}
-
     return (
         <form action={formAction} className="space-y-6">
             {state.error && (
@@ -67,11 +73,26 @@ export function SettingsForm({ store, updateAction }: Props) {
                 </div>
 
                 <div>
-                    <Label htmlFor="logo_url">Logo 網址</Label>
-                    <Input id="logo_url" name="logo_url" type="url" defaultValue={store.logo_url || ''} />
-                    {store.logo_url && (
-                        <img src={store.logo_url} alt="" className="w-16 h-16 object-cover rounded-lg mt-2" />
-                    )}
+                    <Label>Logo 圖片</Label>
+                    <div className="mt-2">
+                        <ImageUpload
+                            currentUrl={logoUrl}
+                            onUpload={async (formData) => {
+                                try {
+                                    const file = formData.get('file') as File
+                                    if (!file) throw new Error('No file')
+                                    const url = await uploadImage(file, { bucket: 'store-logos' })
+                                    setLogoUrl(url)
+                                    return { url }
+                                } catch (e: any) {
+                                    return { error: e.message }
+                                }
+                            }}
+                            onRemove={async () => setLogoUrl('')}
+                        />
+                        <input type="hidden" name="logo_url" value={logoUrl} />
+                    </div>
+                    <p className="text-xs text-zinc-500 mt-2">建議尺寸：512x512px，支援 JPG/PNG。</p>
                 </div>
             </div>
 
