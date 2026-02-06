@@ -6,7 +6,12 @@ import {
     LogOut,
     Settings,
 } from 'lucide-react'
+import type { Metadata } from 'next'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
+
+export const metadata: Metadata = {
+    title: '總部後台',
+}
 
 export default async function AdminLayout({
     children,

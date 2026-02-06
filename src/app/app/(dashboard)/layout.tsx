@@ -7,7 +7,12 @@ import {
     ExternalLink,
     Settings,
 } from 'lucide-react'
+import type { Metadata } from 'next'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
+
+export const metadata: Metadata = {
+    title: '商家後台',
+}
 
 
 export default async function AppLayout({

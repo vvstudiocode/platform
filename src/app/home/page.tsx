@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { SiteHeader } from '@/components/site-header'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
+import { CartProvider } from '@/lib/cart-context'
 
 export default async function HomePage() {
     const supabase = await createClient()
@@ -60,28 +61,30 @@ export default async function HomePage() {
     const content = (homepage.content as any[]) || []
 
     return (
-        <div className="min-h-screen bg-white">
-            <SiteHeader
-                storeName={hqStore.name}
-                logoUrl={hqStore.logo_url}
-                navItems={navMenuItems}
-                homeSlug={homepage.slug}
-            />
-
-            <main>
-                <PageContentRenderer
-                    content={content}
-                    storeSlug={hqStore.slug}
-                    tenantId={hqStore.id}
-                    backgroundColor={homepage.background_color}
+        <CartProvider>
+            <div className="min-h-screen bg-white">
+                <SiteHeader
+                    storeName={hqStore.name}
+                    logoUrl={hqStore.logo_url}
+                    navItems={navMenuItems}
+                    homeSlug={homepage.slug}
                 />
-            </main>
 
-            <footer className="border-t bg-gray-50 py-8">
-                <div className="max-w-[1200px] mx-auto px-4 text-center text-gray-500 text-sm">
-                    © {new Date().getFullYear()} {hqStore.name}. All rights reserved.
-                </div>
-            </footer>
-        </div>
+                <main>
+                    <PageContentRenderer
+                        content={content}
+                        storeSlug={hqStore.slug}
+                        tenantId={hqStore.id}
+                        backgroundColor={homepage.background_color}
+                    />
+                </main>
+
+                <footer className="border-t bg-gray-50 py-8">
+                    <div className="max-w-[1200px] mx-auto px-4 text-center text-gray-500 text-sm">
+                        © {new Date().getFullYear()} {hqStore.name}. All rights reserved.
+                    </div>
+                </footer>
+            </div>
+        </CartProvider>
     )
 }

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { ShoppingCart } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
+import { CartProvider } from '@/lib/cart-context'
 
 interface Props {
     params: Promise<{ id: string }>
@@ -85,70 +86,72 @@ export default async function HQProductPage({ params }: Props) {
         .single()
 
     return (
-        <div className="min-h-screen bg-white">
-            <SiteHeader
-                storeName={storeName}
-                logoUrl={hqStore?.logo_url}
-                navItems={navMenuItems}
-                homeSlug={homepage?.slug}
-            />
+        <CartProvider>
+            <div className="min-h-screen bg-white">
+                <SiteHeader
+                    storeName={storeName}
+                    logoUrl={hqStore?.logo_url}
+                    navItems={navMenuItems}
+                    homeSlug={homepage?.slug}
+                />
 
-            {/* Product Content */}
-            <main className="max-w-[1200px] mx-auto px-4 py-12">
-                <div className="grid md:grid-cols-2 gap-12">
-                    {/* Product Image */}
-                    <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
-                        {product.image_url ? (
-                            <img
-                                src={product.image_url}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                無圖片
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Product Info */}
-                    <div className="flex flex-col">
-                        {product.brand && (
-                            <p className="text-sm text-gray-500 mb-2">{product.brand}</p>
-                        )}
-                        <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
-
-                        <p className="text-3xl font-bold text-emerald-600 mb-6">
-                            NT$ {Number(product.price).toLocaleString()}
-                        </p>
-
-                        {product.description && (
-                            <div className="prose prose-gray mb-8">
-                                <p>{product.description}</p>
-                            </div>
-                        )}
-
-                        <div className="flex gap-4 mt-auto">
-                            <button className="flex-1 bg-black text-white py-4 px-6 rounded-xl font-medium hover:bg-gray-800 transition flex items-center justify-center gap-2">
-                                <ShoppingCart className="h-5 w-5" />
-                                加入購物車
-                            </button>
+                {/* Product Content */}
+                <main className="max-w-[1200px] mx-auto px-4 py-12">
+                    <div className="grid md:grid-cols-2 gap-12">
+                        {/* Product Image */}
+                        <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
+                            {product.image_url ? (
+                                <img
+                                    src={product.image_url}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                    無圖片
+                                </div>
+                            )}
                         </div>
 
-                        {/* Stock Info */}
-                        <p className="text-sm text-gray-500 mt-4">
-                            庫存：{product.stock > 0 ? `${product.stock} 件` : '已售完'}
-                        </p>
-                    </div>
-                </div>
-            </main>
+                        {/* Product Info */}
+                        <div className="flex flex-col">
+                            {product.brand && (
+                                <p className="text-sm text-gray-500 mb-2">{product.brand}</p>
+                            )}
+                            <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
 
-            {/* Footer */}
-            <footer className="border-t bg-gray-50 py-8 mt-12">
-                <div className="max-w-[1200px] mx-auto px-4 text-center text-gray-500 text-sm">
-                    © {new Date().getFullYear()} {storeName}. All rights reserved.
-                </div>
-            </footer>
-        </div>
+                            <p className="text-3xl font-bold text-emerald-600 mb-6">
+                                NT$ {Number(product.price).toLocaleString()}
+                            </p>
+
+                            {product.description && (
+                                <div className="prose prose-gray mb-8">
+                                    <p>{product.description}</p>
+                                </div>
+                            )}
+
+                            <div className="flex gap-4 mt-auto">
+                                <button className="flex-1 bg-black text-white py-4 px-6 rounded-xl font-medium hover:bg-gray-800 transition flex items-center justify-center gap-2">
+                                    <ShoppingCart className="h-5 w-5" />
+                                    加入購物車
+                                </button>
+                            </div>
+
+                            {/* Stock Info */}
+                            <p className="text-sm text-gray-500 mt-4">
+                                庫存：{product.stock > 0 ? `${product.stock} 件` : '已售完'}
+                            </p>
+                        </div>
+                    </div>
+                </main>
+
+                {/* Footer */}
+                <footer className="border-t bg-gray-50 py-8 mt-12">
+                    <div className="max-w-[1200px] mx-auto px-4 text-center text-gray-500 text-sm">
+                        © {new Date().getFullYear()} {storeName}. All rights reserved.
+                    </div>
+                </footer>
+            </div>
+        </CartProvider>
     )
 }
