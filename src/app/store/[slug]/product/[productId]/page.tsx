@@ -109,7 +109,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 image_url: product.image_url,
                 images: (product.images as string[]) || [],
                 brand: product.brand,
-                options: (product.options as Record<string, string[]>) || {},
+                options: (product.options as any[]) || [],
                 variants: (product.variants as any[]) || [],
             }}
             navItems={navMenuItems}

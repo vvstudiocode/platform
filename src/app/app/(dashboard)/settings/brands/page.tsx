@@ -12,7 +12,8 @@ async function getTenantId(supabase: any, userId: string) {
         .select('tenant_id')
         .eq('user_id', userId)
         .in('role', ['store_owner', 'store_admin'])
-        .single()
+        .limit(1)
+        .maybeSingle()
     return data?.tenant_id
 }
 

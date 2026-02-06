@@ -21,6 +21,11 @@ export default async function EditProductPage({ params }: Props) {
         notFound()
     }
 
+    const { data: variants } = await supabase
+        .from('product_variants')
+        .select('*')
+        .eq('product_id', productId)
+
     const boundUpdateProduct = updateProduct.bind(null, productId)
 
     return (
@@ -38,6 +43,9 @@ export default async function EditProductPage({ params }: Props) {
                 sku: product.sku,
                 image_url: product.image_url,
                 status: product.status,
+                images: product.images || [],
+                options: product.options || [],
+                variants: variants || []
             }}
             updateAction={boundUpdateProduct}
         />

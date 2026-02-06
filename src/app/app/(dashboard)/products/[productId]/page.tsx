@@ -11,15 +11,22 @@ export default async function EditProductPage({ params }: Props) {
     const { productId } = await params
     const supabase = await createClient()
 
+    // 取得商品與商店資訊
     const { data: product } = await supabase
         .from('products')
-        .select('*')
+        .select('*, tenants(name, slug)')
         .eq('id', productId)
         .single()
 
     if (!product) {
         notFound()
     }
+
+    const { data: variants } = await supabase
+        .from('product_variants')
+        .select('*')
+        .eq('product_id', productId)
+        .order('id')
 
     const boundUpdateProduct = updateProduct.bind(null, productId)
 
@@ -37,8 +44,15 @@ export default async function EditProductPage({ params }: Props) {
                 sku: product.sku,
                 image_url: product.image_url,
                 status: product.status,
+                seo_title: product.seo_title,
+                seo_description: product.seo_description,
+                seo_keywords: product.seo_keywords,
+                images: product.images || [],
+                options: product.options || [],
+                variants: variants || []
             }}
             updateAction={boundUpdateProduct}
+            storeSlug={product.tenants?.slug}
         />
     )
 }

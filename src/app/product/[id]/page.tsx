@@ -114,33 +114,23 @@ export default async function HQProductPage({ params }: Props) {
                         </div>
 
                         {/* Product Info */}
-                        <div className="flex flex-col">
-                            {product.brand && (
-                                <p className="text-sm text-gray-500 mb-2">{product.brand}</p>
-                            )}
-                            <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
+                        <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
 
-                            <p className="text-3xl font-bold text-emerald-600 mb-6">
-                                NT$ {Number(product.price).toLocaleString()}
-                            </p>
+                        <p className="text-3xl font-bold text-emerald-600 mb-6">
+                            NT$ {Number(product.price).toLocaleString()}
+                        </p>
 
-                            {product.description && (
-                                <div className="prose prose-gray mb-8">
-                                    <p>{product.description}</p>
-                                </div>
-                            )}
-
-                            <div className="flex gap-4 mt-auto">
-                                <button className="flex-1 bg-black text-white py-4 px-6 rounded-xl font-medium hover:bg-gray-800 transition flex items-center justify-center gap-2">
-                                    <ShoppingCart className="h-5 w-5" />
-                                    加入購物車
-                                </button>
+                        {product.description && (
+                            <div className="prose prose-gray mb-8">
+                                <p>{product.description}</p>
                             </div>
+                        )}
 
-                            {/* Stock Info */}
-                            <p className="text-sm text-gray-500 mt-4">
-                                庫存：{product.stock > 0 ? `${product.stock} 件` : '已售完'}
-                            </p>
+                        <div className="flex gap-4 mt-auto">
+                            <button className="flex-1 bg-black text-white py-4 px-6 rounded-xl font-medium hover:bg-gray-800 transition flex items-center justify-center gap-2">
+                                <ShoppingCart className="h-5 w-5" />
+                                加入購物車
+                            </button>
                         </div>
                     </div>
                 </main>

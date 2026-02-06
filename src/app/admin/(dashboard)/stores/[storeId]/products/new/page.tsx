@@ -1,49 +1,75 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useState, useEffect } from 'react'
 import { createProduct } from './actions'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft, Loader2, ImagePlus, X } from 'lucide-react'
+import { Loader2, X } from 'lucide-react'
+import React, { use } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { ProductImagesInput } from '@/components/admin/product-images-input'
+import { ProductVariantsEditor, ProductOption, ProductVariant } from '@/components/admin/product-variants-editor'
+import { Combobox } from '@/components/ui/combobox'
 
 const initialState = { error: '' }
 
-export default function NewProductPage() {
-    const params = useParams()
-    const storeId = params.storeId as string
+export default function TenantNewProductPage({ params }: { params: Promise<{ storeId: string }> }) {
+    const { storeId } = use(params)
     const [state, formAction, pending] = useActionState(createProduct, initialState)
-    const [imagePreview, setImagePreview] = useState<string>('')
+
+    // Legacy image preview state (can be removed if not used elsewhere, but keeping just in case)
+    const [imagePreview, setImagePreview] = useState('')
+
+    // New State
+    const [brands, setBrands] = useState<{ id: string, name: string }[]>([])
+    const [categories, setCategories] = useState<{ id: string, name: string }[]>([])
+
+    useEffect(() => {
+        fetch(`/api/products/attributes?tenantId=${storeId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.brands) setBrands(data.brands)
+                if (data.categories) setCategories(data.categories)
+            })
+            .catch(console.error)
+    }, [storeId])
+
+    // New State
+    const [images, setImages] = useState<string[]>([])
+    const [options, setOptions] = useState<ProductOption[]>([])
+    const [variants, setVariants] = useState<ProductVariant[]>([])
+    const [price, setPrice] = useState('0')
+    const [stock, setStock] = useState('0')
+    const [sku, setSku] = useState('')
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const url = e.target.value
         setImagePreview(url)
+        // Also update images state if empty
+        if (images.length === 0 && url) {
+            setImages([url])
+        }
     }
 
     return (
-        <div className="max-w-2xl">
-            <Link
-                href={`/admin/stores/${storeId}/products`}
-                className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white mb-6"
-            >
-                <ArrowLeft className="h-4 w-4" />
-                返回商品列表
-            </Link>
-
-            <Card className="border-zinc-800 bg-zinc-900">
-                <CardHeader>
-                    <CardTitle className="text-white">新增商品</CardTitle>
+        <div className="max-w-4xl mx-auto">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+                <CardHeader className="border-b border-zinc-800">
+                    <CardTitle className="text-white">建立新商品</CardTitle>
                     <CardDescription className="text-zinc-400">
                         為您的商店新增一個商品
                     </CardDescription>
                 </CardHeader>
-                <form action={formAction}>
+                <form action={formAction} className="space-y-6">
                     <input type="hidden" name="storeId" value={storeId} />
-                    <CardContent className="space-y-6">
-                        {/* 基本資訊 */}
+                    <input type="hidden" name="images" value={JSON.stringify(images)} />
+                    <input type="hidden" name="options" value={JSON.stringify(options)} />
+                    <input type="hidden" name="variants" value={JSON.stringify(variants)} />
+                    <input type="hidden" name="imageUrl" value={images[0] || ''} />
+
+                    <CardContent className="space-y-6 pt-6">
                         <div className="space-y-4">
                             <h3 className="text-sm font-medium text-zinc-300 border-b border-zinc-800 pb-2">基本資訊</h3>
 
@@ -61,35 +87,46 @@ export default function NewProductPage() {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="brand" className="text-zinc-300">品牌</Label>
-                                    <Input
-                                        id="brand"
+                                    <Combobox
                                         name="brand"
-                                        placeholder="例如：VT Cosmetics"
-                                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                                        options={brands.map(b => ({ value: b.name, label: b.name }))}
+                                        placeholder="選擇或輸入品牌"
+                                        searchPlaceholder="搜尋品牌..."
+                                        allowCustom
                                     />
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="category" className="text-zinc-300">分類</Label>
-                                    <Input
-                                        id="category"
+                                    <Combobox
                                         name="category"
-                                        placeholder="例如：精華液"
-                                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                                        options={categories.map(c => ({ value: c.name, label: c.name }))}
+                                        placeholder="選擇或輸入分類"
+                                        searchPlaceholder="搜尋分類..."
+                                        allowCustom
+                                    />
+                                </div>
+                                <div className="space-y-2 sm:col-span-2">
+                                    <Label htmlFor="description" className="text-zinc-300">商品描述</Label>
+                                    <textarea
+                                        id="description"
+                                        name="description"
+                                        rows={3}
+                                        placeholder="請描述商品特色..."
+                                        className="w-full rounded-md bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-500 px-3 py-2"
                                     />
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="description" className="text-zinc-300">商品描述</Label>
-                                <textarea
-                                    id="description"
-                                    name="description"
-                                    rows={3}
-                                    placeholder="請描述商品特色..."
-                                    className="w-full rounded-md bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-500 px-3 py-2"
-                                />
-                            </div>
+                        {/* 商品圖片 */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-medium text-zinc-300 border-b border-zinc-800 pb-2">商品圖片</h3>
+                            <ProductImagesInput
+                                images={images}
+                                onChange={setImages}
+                                maxImages={5}
+                            />
                         </div>
 
                         {/* 價格與庫存 */}
@@ -106,6 +143,8 @@ export default function NewProductPage() {
                                         min="0"
                                         placeholder="0"
                                         required
+                                        value={price}
+                                        onChange={(e) => setPrice(e.target.value)}
                                         className="bg-zinc-800 border-zinc-700 text-white"
                                     />
                                 </div>
@@ -123,7 +162,7 @@ export default function NewProductPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="stock" className="text-zinc-300">庫存數量 *</Label>
+                                    <Label htmlFor="stock" className="text-zinc-300">基本庫存 *</Label>
                                     <Input
                                         id="stock"
                                         name="stock"
@@ -131,6 +170,8 @@ export default function NewProductPage() {
                                         min="0"
                                         placeholder="0"
                                         required
+                                        value={stock}
+                                        onChange={(e) => setStock(e.target.value)}
                                         className="bg-zinc-800 border-zinc-700 text-white"
                                     />
                                 </div>
@@ -155,45 +196,25 @@ export default function NewProductPage() {
                                         id="sku"
                                         name="sku"
                                         placeholder="選填"
+                                        value={sku}
+                                        onChange={(e) => setSku(e.target.value)}
                                         className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        {/* 商品圖片 */}
+                        {/* 規格設定 */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-medium text-zinc-300 border-b border-zinc-800 pb-2">商品圖片</h3>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="imageUrl" className="text-zinc-300">圖片網址</Label>
-                                <Input
-                                    id="imageUrl"
-                                    name="imageUrl"
-                                    placeholder="https://..."
-                                    onChange={handleImageChange}
-                                    className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
-                                />
-                                <p className="text-xs text-zinc-500">支援 jpg, png, webp 格式</p>
-                            </div>
-
-                            {imagePreview && (
-                                <div className="relative w-32 h-32 rounded-lg bg-zinc-800 overflow-hidden">
-                                    <img
-                                        src={imagePreview}
-                                        alt="Preview"
-                                        className="w-full h-full object-cover"
-                                        onError={() => setImagePreview('')}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setImagePreview('')}
-                                        className="absolute top-1 right-1 p-1 bg-black/50 rounded-full"
-                                    >
-                                        <X className="h-3 w-3 text-white" />
-                                    </button>
-                                </div>
-                            )}
+                            <ProductVariantsEditor
+                                basePrice={Number(price) || 0}
+                                baseStock={Number(stock) || 0}
+                                baseSku={sku}
+                                onChange={(data) => {
+                                    setOptions(data.options)
+                                    setVariants(data.variants)
+                                }}
+                            />
                         </div>
 
                         {/* 狀態 */}
@@ -256,7 +277,7 @@ export default function NewProductPage() {
                         </div>
                     </CardContent>
                 </form>
-            </Card>
+            </div>
         </div>
     )
 }

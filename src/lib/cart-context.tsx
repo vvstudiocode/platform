@@ -4,22 +4,24 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 export interface CartItem {
     productId: string
+    variantId?: string
     name: string
     price: number
     quantity: number
     image?: string
     options?: Record<string, string>
     maxStock: number
+    sku?: string
 }
 
 interface CartContextType {
     items: CartItem[]
     addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void
-    removeItem: (productId: string, options?: Record<string, string>) => void
-    updateQuantity: (productId: string, quantity: number, options?: Record<string, string>) => void
+    removeItem: (productId: string, variantId?: string, options?: Record<string, string>) => void
+    updateQuantity: (productId: string, quantity: number, variantId?: string, options?: Record<string, string>) => void
     clearCart: () => void
     getItemCount: () => number
-    getSubtotal: () => number
+    getCartTotal: () => number
     storeSlug: string | null
     setStoreSlug: (slug: string) => void
     isCartOpen: boolean
@@ -30,6 +32,17 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 
 // 使用商店專屬的 localStorage key，確保不同商店的購物車資料隔離
 const getCartStorageKey = (slug: string | null) => `cart_${slug || 'default'}`
+
+const getItemKey = (productId: string, variantId?: string, options?: Record<string, string>) => {
+    if (variantId) return `${productId}-${variantId}`
+    if (!options) return productId
+    // Create a stable key from options
+    const optionsKey = Object.entries(options)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => `${k}:${v}`)
+        .join('|')
+    return `${productId}-${optionsKey}`
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([])
@@ -71,51 +84,58 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    const getItemKey = (productId: string, options?: Record<string, string>) => {
-        return options ? `${productId}_${JSON.stringify(options)}` : productId
+    const getItemKey = (productId: string, variantId?: string, options?: Record<string, string>) => {
+        if (variantId) return `${productId}-${variantId}`
+        if (options) {
+            // Create a stable key from options
+            const optionsKey = Object.entries(options)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([k, v]) => `${k}:${v}`)
+                .join('|')
+            return `${productId}-${optionsKey}`
+        }
+        return productId
     }
 
-    const addItem = (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
-        const quantity = item.quantity || 1
-
+    const addItem = (newItem: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
         setItems(prev => {
-            const existingIndex = prev.findIndex(
-                i => getItemKey(i.productId, i.options) === getItemKey(item.productId, item.options)
+            const quantity = newItem.quantity || 1
+            const newItemKey = getItemKey(newItem.productId, newItem.variantId, newItem.options)
+
+            const existingIndex = prev.findIndex(item =>
+                getItemKey(item.productId, item.variantId, item.options) === newItemKey
             )
 
-            if (existingIndex >= 0) {
-                const updated = [...prev]
-                const newQty = Math.min(
-                    updated[existingIndex].quantity + quantity,
-                    updated[existingIndex].maxStock
-                )
-                updated[existingIndex].quantity = newQty
-                return updated
+            if (existingIndex > -1) {
+                const newItems = [...prev]
+                const item = newItems[existingIndex]
+                const newQuantity = Math.min(item.quantity + quantity, item.maxStock)
+
+                newItems[existingIndex] = {
+                    ...item,
+                    quantity: newQuantity
+                }
+                return newItems
             }
 
-            return [...prev, { ...item, quantity }]
+            return [...prev, { ...newItem, quantity }]
         })
-        setIsCartOpen(true) // 自動打開購物車
+        setIsCartOpen(true)
     }
 
-    const removeItem = (productId: string, options?: Record<string, string>) => {
-        setItems(prev => prev.filter(
-            i => getItemKey(i.productId, i.options) !== getItemKey(productId, options)
+    const removeItem = (productId: string, variantId?: string, options?: Record<string, string>) => {
+        setItems(prev => prev.filter(item =>
+            getItemKey(item.productId, item.variantId, item.options) !== getItemKey(productId, variantId, options)
         ))
     }
 
-    const updateQuantity = (productId: string, quantity: number, options?: Record<string, string>) => {
-        if (quantity <= 0) {
-            removeItem(productId, options)
-            return
-        }
-
+    const updateQuantity = (productId: string, quantity: number, variantId?: string, options?: Record<string, string>) => {
         setItems(prev => prev.map(item => {
-            if (getItemKey(item.productId, item.options) === getItemKey(productId, options)) {
-                return { ...item, quantity: Math.min(quantity, item.maxStock) }
+            if (getItemKey(item.productId, item.variantId, item.options) === getItemKey(productId, variantId, options)) {
+                return { ...item, quantity: Math.min(Math.max(0, quantity), item.maxStock) }
             }
             return item
-        }))
+        }).filter(item => item.quantity > 0))
     }
 
     const clearCart = () => {
@@ -126,7 +146,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return items.reduce((sum, item) => sum + item.quantity, 0)
     }
 
-    const getSubtotal = () => {
+    const getCartTotal = () => {
         return items.reduce((sum, item) => sum + item.price * item.quantity, 0)
     }
 
@@ -138,7 +158,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             updateQuantity,
             clearCart,
             getItemCount,
-            getSubtotal,
+            getCartTotal,
             storeSlug,
             setStoreSlug,
             isCartOpen,

@@ -164,6 +164,36 @@ export function SettingsForm({ store, updateAction }: Props) {
                         />
                     </div>
                 </div>
+
+                <div className="grid gap-4 sm:grid-cols-3 mt-4">
+                    <div>
+                        <Label htmlFor="shipping_pickup_name">面交名稱</Label>
+                        <Input
+                            id="shipping_pickup_name"
+                            name="shipping_pickup_name"
+                            defaultValue={settings.shipping_pickup_name || '面交取貨'}
+                            placeholder="預設：面交取貨"
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="shipping_711_name">7-11 名稱</Label>
+                        <Input
+                            id="shipping_711_name"
+                            name="shipping_711_name"
+                            defaultValue={settings.shipping_711_name || '7-11 店到店'}
+                            placeholder="預設：7-11 店到店"
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="shipping_home_name">宅配名稱</Label>
+                        <Input
+                            id="shipping_home_name"
+                            name="shipping_home_name"
+                            defaultValue={settings.shipping_home_name || '宅配到府'}
+                            placeholder="預設：宅配到府"
+                        />
+                    </div>
+                </div>
             </div>
 
             {/* 頁尾設定 */}

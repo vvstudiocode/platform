@@ -32,6 +32,9 @@ export async function updateStoreSettings(storeId: string, prevState: any, formD
         shipping_pickup_fee: Number(formData.get('shipping_pickup_fee')) || 0,
         shipping_711_fee: Number(formData.get('shipping_711_fee')) || 60,
         shipping_home_fee: Number(formData.get('shipping_home_fee')) || 100,
+        shipping_pickup_name: formData.get('shipping_pickup_name') || '面交取貨',
+        shipping_711_name: formData.get('shipping_711_name') || '7-11 店到店',
+        shipping_home_name: formData.get('shipping_home_name') || '宅配到府',
     }
 
     // 解析頁尾設定

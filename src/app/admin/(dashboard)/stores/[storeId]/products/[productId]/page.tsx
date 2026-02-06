@@ -14,7 +14,7 @@ export default async function ProductEditPage({ params }: Props) {
     // 驗證商店所有權
     const { data: store } = await supabase
         .from('tenants')
-        .select('id, name')
+        .select('id, name, slug')
         .eq('id', storeId)
         .eq('managed_by', user?.id)
         .single()
@@ -35,11 +35,22 @@ export default async function ProductEditPage({ params }: Props) {
         notFound()
     }
 
+    const { data: variants } = await supabase
+        .from('product_variants')
+        .select('*')
+        .eq('product_id', productId)
+
     return (
         <ProductEditForm
-            product={product}
+            product={{
+                ...product,
+                images: product.images || [],
+                options: product.options || [],
+                variants: variants || []
+            }}
             storeId={storeId}
             storeName={store.name}
+            storeSlug={store.slug}
         />
     )
 }

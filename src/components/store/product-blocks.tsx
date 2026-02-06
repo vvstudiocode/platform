@@ -63,11 +63,11 @@ function ProductCard({ product, storeSlug, fitDesktop = 'cover', fitMobile = 'co
                     <p className="text-sm text-gray-500 line-clamp-2">{product.description}</p>
                 )}
                 <div className="flex items-baseline justify-between">
-                    <div className="text-2xl font-bold text-rose-600">
+                    <div className="text-lg font-bold text-rose-600">
                         NT$ {product.price.toLocaleString()}
                     </div>
                     {product.stock <= 0 ? (
-                        <div className="text-sm font-medium text-red-500">已售完</div>
+                        <div className="text-xs font-medium text-red-500">已售完</div>
                     ) : null}
                 </div>
             </div>

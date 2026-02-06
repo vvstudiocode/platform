@@ -108,30 +108,32 @@ export default async function AppDashboardPage() {
                     </Link>
                 </div>
                 {recentOrders.length > 0 ? (
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-zinc-800">
-                                <th className="text-left px-6 py-3 text-sm font-medium text-zinc-400">訂單編號</th>
-                                <th className="text-left px-6 py-3 text-sm font-medium text-zinc-400">客戶</th>
-                                <th className="text-left px-6 py-3 text-sm font-medium text-zinc-400">金額</th>
-                                <th className="text-left px-6 py-3 text-sm font-medium text-zinc-400">狀態</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {recentOrders.map((order) => (
-                                <tr key={order.id} className="border-b border-zinc-800">
-                                    <td className="px-6 py-3 font-mono text-white">{order.order_number}</td>
-                                    <td className="px-6 py-3 text-zinc-300">{order.customer_name}</td>
-                                    <td className="px-6 py-3 text-white">NT$ {Number(order.total).toLocaleString()}</td>
-                                    <td className="px-6 py-3">
-                                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
-                                            {statusLabels[order.status]}
-                                        </span>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[600px]">
+                            <thead>
+                                <tr className="border-b border-zinc-800">
+                                    <th className="text-left px-6 py-3 text-sm font-medium text-zinc-400">訂單編號</th>
+                                    <th className="text-left px-6 py-3 text-sm font-medium text-zinc-400">客戶</th>
+                                    <th className="text-left px-6 py-3 text-sm font-medium text-zinc-400">金額</th>
+                                    <th className="text-left px-6 py-3 text-sm font-medium text-zinc-400">狀態</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {recentOrders.map((order) => (
+                                    <tr key={order.id} className="border-b border-zinc-800">
+                                        <td className="px-6 py-3 font-mono text-white">{order.order_number}</td>
+                                        <td className="px-6 py-3 text-zinc-300">{order.customer_name}</td>
+                                        <td className="px-6 py-3 text-white">NT$ {Number(order.total).toLocaleString()}</td>
+                                        <td className="px-6 py-3">
+                                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
+                                                {statusLabels[order.status]}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 ) : (
                     <div className="px-6 py-12 text-center text-zinc-500">
                         尚無訂單

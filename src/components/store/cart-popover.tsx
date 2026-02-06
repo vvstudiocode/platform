@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 
 export function CartPopover() {
-    const { items, updateQuantity, removeItem, getSubtotal, clearCart, isCartOpen, setIsCartOpen, storeSlug } = useCart()
+    const { items, updateQuantity, removeItem, getCartTotal, clearCart, isCartOpen, setIsCartOpen, storeSlug } = useCart()
     const ref = useRef<HTMLDivElement>(null)
 
     // Handle click outside to close
@@ -45,15 +45,7 @@ export function CartPopover() {
             <div className="relative p-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="font-bold text-gray-900">購物車 ({items.length})</h3>
                 <div className="flex items-center gap-3">
-                    {items.length > 0 && (
-                        <button
-                            onClick={clearCart}
-                            className="p-1 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-500 transition-colors"
-                            title="清空購物車"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
-                    )}
+
                     <button
                         onClick={() => setIsCartOpen(false)}
                         className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
@@ -73,7 +65,7 @@ export function CartPopover() {
                 ) : (
                     <div className="space-y-1">
                         {items.map((item, idx) => (
-                            <div key={`${item.productId}_${idx}`} className="flex gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors group">
+                            <div key={`${item.productId}_${idx}`} className="relative flex gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors group">
                                 {/* Image */}
                                 <div className="w-16 h-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 border border-gray-200">
                                     {item.image ? (
@@ -104,14 +96,14 @@ export function CartPopover() {
                                         {/* Controls */}
                                         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-md shadow-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                             <button
-                                                onClick={() => updateQuantity(item.productId, item.quantity - 1, item.options)}
+                                                onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantId, item.options)}
                                                 className="p-1 hover:bg-gray-100 text-gray-500"
                                             >
                                                 <Minus className="h-3 w-3" />
                                             </button>
                                             <span className="w-4 text-center text-xs font-medium">{item.quantity}</span>
                                             <button
-                                                onClick={() => updateQuantity(item.productId, item.quantity + 1, item.options)}
+                                                onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantId, item.options)}
                                                 disabled={item.quantity >= item.maxStock}
                                                 className="p-1 hover:bg-gray-100 text-gray-500 disabled:opacity-30"
                                             >
@@ -121,13 +113,7 @@ export function CartPopover() {
                                     </div>
                                 </div>
 
-                                {/* Remove Button */}
-                                <button
-                                    onClick={() => removeItem(item.productId, item.options)}
-                                    className="absolute top-3 right-3 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                                >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                </button>
+
                             </div>
                         ))}
                     </div>
@@ -139,7 +125,7 @@ export function CartPopover() {
                 <div className="p-4 border-t border-gray-100 bg-gray-50/50 rounded-b-xl">
                     <div className="flex justify-between items-end mb-4">
                         <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">總計</span>
-                        <span className="text-lg font-bold text-gray-900">NT$ {getSubtotal().toLocaleString()}</span>
+                        <span className="text-lg font-bold text-gray-900">NT$ {getCartTotal().toLocaleString()}</span>
                     </div>
                     <Link
                         href={`/store/${storeSlug}/checkout`}

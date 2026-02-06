@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Trash2 } from 'lucide-react'
 import { ResponsiveControls, SpacingControls, ImageControls, AspectRatioControls } from './responsive-controls'
 import { AnimationControls } from './animation-controls'
+import { ImageInput } from './image-input'
 
 // 0. Hero Banner 編輯器
 export function HeroEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
@@ -19,7 +20,11 @@ export function HeroEditor({ props, onChange }: { props: Record<string, any>; on
             </div>
             <div>
                 <label className="block text-sm text-zinc-400 mb-1">背景圖片網址</label>
-                <Input placeholder="https://..." value={props.backgroundUrl || ''} onChange={(e) => onChange({ backgroundUrl: e.target.value })} />
+                <ImageInput
+                    value={props.backgroundUrl || ''}
+                    onChange={(url) => onChange({ backgroundUrl: url })}
+                    placeholder="https://..."
+                />
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -111,7 +116,11 @@ export function CarouselEditor({ props, onChange }: { props: Record<string, any>
                 <label className="block text-sm text-zinc-400">圖片列表</label>
                 {images.map((img: any, index: number) => (
                     <div key={index} className="p-3 bg-zinc-700/50 rounded-lg space-y-2">
-                        <Input placeholder="圖片 URL" value={img.url || ''} onChange={(e) => updateImage(index, 'url', e.target.value)} />
+                        <ImageInput
+                            value={img.url || ''}
+                            onChange={(url) => updateImage(index, 'url', url)}
+                            placeholder="圖片 URL"
+                        />
 
                         <div className="flex gap-2 items-center">
                             <div className="flex-1">
@@ -184,7 +193,11 @@ export function ImageTextEditor({ props, onChange }: { props: Record<string, any
             {/* 圖片 URL */}
             <div>
                 <label className="block text-sm text-zinc-400 mb-1">圖片 URL</label>
-                <Input placeholder="https://..." value={props.imageUrl || ''} onChange={(e) => onChange({ imageUrl: e.target.value })} />
+                <ImageInput
+                    value={props.imageUrl || ''}
+                    onChange={(url) => onChange({ imageUrl: url })}
+                    placeholder="https://..."
+                />
             </div>
 
             <div>
@@ -467,7 +480,11 @@ export function ImageGridEditor({ props, onChange }: { props: Record<string, any
                 <label className="block text-sm text-zinc-400">圖片列表</label>
                 {images.map((img: any, index: number) => (
                     <div key={index} className="p-3 bg-zinc-700/50 rounded-lg space-y-2">
-                        <Input placeholder="圖片 URL" value={img.url || ''} onChange={(e) => updateImage(index, 'url', e.target.value)} />
+                        <ImageInput
+                            value={img.url || ''}
+                            onChange={(url) => updateImage(index, 'url', url)}
+                            placeholder="圖片 URL"
+                        />
 
                         <div className="flex gap-2 items-center">
                             <div className="flex-1">

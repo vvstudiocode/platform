@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function CartSidebar({ isOpen, onClose, storeSlug }: Props) {
-    const { items, updateQuantity, removeItem, getSubtotal, clearCart } = useCart()
+    const { items, updateQuantity, removeItem, getCartTotal, clearCart } = useCart()
 
     if (!isOpen) return null
 
@@ -70,21 +70,21 @@ export function CartSidebar({ isOpen, onClose, storeSlug }: Props) {
                                         {/* Quantity */}
                                         <div className="flex items-center gap-2 mt-2">
                                             <button
-                                                onClick={() => updateQuantity(item.productId, item.quantity - 1, item.options)}
+                                                onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantId, item.options)}
                                                 className="p-1 bg-gray-200 rounded hover:bg-gray-300"
                                             >
                                                 <Minus className="h-3 w-3" />
                                             </button>
                                             <span className="w-8 text-center text-sm">{item.quantity}</span>
                                             <button
-                                                onClick={() => updateQuantity(item.productId, item.quantity + 1, item.options)}
+                                                onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantId, item.options)}
                                                 disabled={item.quantity >= item.maxStock}
                                                 className="p-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
                                             >
                                                 <Plus className="h-3 w-3" />
                                             </button>
                                             <button
-                                                onClick={() => removeItem(item.productId, item.options)}
+                                                onClick={() => removeItem(item.productId, item.variantId, item.options)}
                                                 className="p-1 text-red-500 hover:bg-red-50 rounded ml-auto"
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -102,7 +102,7 @@ export function CartSidebar({ isOpen, onClose, storeSlug }: Props) {
                     <div className="border-t p-4 space-y-4">
                         <div className="flex justify-between text-lg font-bold">
                             <span>小計</span>
-                            <span>NT$ {getSubtotal().toLocaleString()}</span>
+                            <span>NT$ {getCartTotal().toLocaleString()}</span>
                         </div>
                         <div className="flex gap-2">
                             <button

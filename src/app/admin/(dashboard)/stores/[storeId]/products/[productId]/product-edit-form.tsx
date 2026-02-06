@@ -2,12 +2,15 @@
 
 import { useActionState, useState, useEffect } from 'react'
 import { updateProduct } from '../new/actions'
+import { ArrowLeft, Loader2 } from 'lucide-react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft, Loader2, Trash2, X } from 'lucide-react'
-import Link from 'next/link'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ProductImagesInput } from '@/components/admin/product-images-input'
+import { ProductVariantsEditor, ProductOption, ProductVariant } from '@/components/admin/product-variants-editor'
+import { Combobox } from '@/components/ui/combobox'
 
 interface Props {
     product: {
@@ -17,91 +20,159 @@ interface Props {
         brand: string | null
         category: string | null
         price: number
-        cost: number
+        cost: number | null
+        price_krw: number | null
         stock: number
-        price_krw: number
         sku: string | null
         image_url: string | null
         status: string
+        seo_title?: string | null
+        seo_description?: string | null
+        seo_keywords?: string | null
+        images: string[]
+        options: ProductOption[]
+        variants: ProductVariant[]
     }
     storeId: string
     storeName: string
+    storeSlug: string
 }
 
-const initialState = { error: '' }
+export function ProductEditForm({ product, storeId, storeName, storeSlug }: Props) {
+    const [state, formAction, pending] = useActionState(updateProduct, { error: '' })
 
-export function ProductEditForm({ product, storeId, storeName }: Props) {
-    const [state, formAction, pending] = useActionState(updateProduct, initialState)
-    const [imagePreview, setImagePreview] = useState<string>(product.image_url || '')
+    const [brands, setBrands] = useState<{ id: string, name: string }[]>([])
+    const [categories, setCategories] = useState<{ id: string, name: string }[]>([])
+
+    useEffect(() => {
+        fetch(`/api/products/attributes?tenantId=${storeId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.brands) setBrands(data.brands)
+                if (data.categories) setCategories(data.categories)
+            })
+            .catch(console.error)
+    }, [storeId])
+
+    const initialImages = product.images && product.images.length > 0
+        ? product.images
+        : (product.image_url ? [product.image_url] : [])
+
+    const [images, setImages] = useState<string[]>(initialImages)
+    const [options, setOptions] = useState<ProductOption[]>(product.options || [])
+    const [variants, setVariants] = useState<ProductVariant[]>(product.variants || [])
+
+    // Controlled inputs for base values
+    const [price, setPrice] = useState(product.price)
+    const [stock, setStock] = useState(product.stock)
+    const [sku, setSku] = useState(product.sku || '')
 
     return (
-        <div className="max-w-2xl">
-            <Link
-                href={`/admin/stores/${storeId}/products`}
-                className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white mb-6"
-            >
-                <ArrowLeft className="h-4 w-4" />
-                返回商品列表
-            </Link>
+        <div className="max-w-4xl mx-auto space-y-6">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Link
+                        href={`/admin/stores/${storeId}/products`}
+                        className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white"
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </Link>
+                    <div>
+                        <h1 className="text-2xl font-bold text-white">
+                            <a
+                                href={`${window.location.protocol}//${storeSlug}.${window.location.host.replace('admin.', '')}/product/${product.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:underline underline-offset-4 decoration-zinc-500"
+                            >
+                                {product.name}
+                            </a>
+                        </h1>
+                        <p className="text-sm text-zinc-400">{storeName}</p>
+                    </div>
+                </div>
+            </div>
 
-            <Card className="border-zinc-800 bg-zinc-900">
-                <CardHeader>
-                    <CardTitle className="text-white">編輯商品</CardTitle>
-                    <CardDescription className="text-zinc-400">
-                        {storeName} - {product.name}
-                    </CardDescription>
-                </CardHeader>
-                <form action={formAction}>
-                    <input type="hidden" name="storeId" value={storeId} />
-                    <input type="hidden" name="productId" value={product.id} />
-                    <CardContent className="space-y-6">
+            {state?.error && (
+                <div className="bg-red-500/20 border border-red-500 text-red-400 rounded-lg p-4">
+                    {state.error}
+                </div>
+            )}
+
+            <form action={formAction} className="space-y-6">
+                <input type="hidden" name="storeId" value={storeId} />
+                <input type="hidden" name="productId" value={product.id} />
+                <input type="hidden" name="images" value={JSON.stringify(images)} />
+                <input type="hidden" name="options" value={JSON.stringify(options)} />
+                <input type="hidden" name="variants" value={JSON.stringify(variants)} />
+                <input type="hidden" name="imageUrl" value={images[0] || ''} />
+
+                <Card className="bg-zinc-900 border-zinc-800">
+                    <CardHeader className="border-b border-zinc-800">
+                        <CardTitle className="text-white">商品資訊</CardTitle>
+                        <CardDescription className="text-zinc-400">
+                            編輯商品資訊與詳細設定
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6 pt-6">
                         {/* 基本資訊 */}
                         <div className="space-y-4">
                             <h3 className="text-sm font-medium text-zinc-300 border-b border-zinc-800 pb-2">基本資訊</h3>
 
                             <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="space-y-2 sm:col-span-2">
+                                <div className="sm:col-span-2">
                                     <Label htmlFor="name" className="text-zinc-300">商品名稱 *</Label>
                                     <Input
                                         id="name"
                                         name="name"
-                                        defaultValue={product.name}
                                         required
-                                        className="bg-zinc-800 border-zinc-700 text-white"
+                                        defaultValue={product.name}
+                                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                                     />
                                 </div>
-
-                                <div className="space-y-2">
+                                <div>
                                     <Label htmlFor="brand" className="text-zinc-300">品牌</Label>
-                                    <Input
-                                        id="brand"
+                                    <Combobox
                                         name="brand"
+                                        options={brands.map(b => ({ value: b.name, label: b.name }))}
                                         defaultValue={product.brand || ''}
-                                        className="bg-zinc-800 border-zinc-700 text-white"
+                                        placeholder="選擇或輸入品牌"
+                                        searchPlaceholder="搜尋品牌..."
+                                        allowCustom
                                     />
                                 </div>
-
-                                <div className="space-y-2">
+                                <div>
                                     <Label htmlFor="category" className="text-zinc-300">分類</Label>
-                                    <Input
-                                        id="category"
+                                    <Combobox
                                         name="category"
+                                        options={categories.map(c => ({ value: c.name, label: c.name }))}
                                         defaultValue={product.category || ''}
-                                        className="bg-zinc-800 border-zinc-700 text-white"
+                                        placeholder="選擇或輸入分類"
+                                        searchPlaceholder="搜尋分類..."
+                                        allowCustom
+                                    />
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <Label htmlFor="description" className="text-zinc-300">商品描述</Label>
+                                    <textarea
+                                        id="description"
+                                        name="description"
+                                        rows={4}
+                                        defaultValue={product.description || ''}
+                                        className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="description" className="text-zinc-300">商品描述</Label>
-                                <textarea
-                                    id="description"
-                                    name="description"
-                                    rows={3}
-                                    defaultValue={product.description || ''}
-                                    className="w-full rounded-md bg-zinc-800 border border-zinc-700 text-white px-3 py-2"
-                                />
-                            </div>
+                        {/* 圖片管理 */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-medium text-zinc-300 border-b border-zinc-800 pb-2">商品圖片</h3>
+                            <ProductImagesInput
+                                images={images}
+                                onChange={setImages}
+                                maxImages={5}
+                            />
                         </div>
 
                         {/* 價格與庫存 */}
@@ -109,166 +180,153 @@ export function ProductEditForm({ product, storeId, storeName }: Props) {
                             <h3 className="text-sm font-medium text-zinc-300 border-b border-zinc-800 pb-2">價格與庫存</h3>
 
                             <div className="grid gap-4 sm:grid-cols-3">
-                                <div className="space-y-2">
-                                    <Label htmlFor="price" className="text-zinc-300">售價 (NT$) *</Label>
+                                <div>
+                                    <Label htmlFor="price" className="text-zinc-300">售價 (NTD) *</Label>
                                     <Input
                                         id="price"
                                         name="price"
                                         type="number"
                                         min="0"
-                                        defaultValue={product.price}
                                         required
+                                        value={price}
+                                        onChange={(e) => setPrice(Number(e.target.value))}
                                         className="bg-zinc-800 border-zinc-700 text-white"
                                     />
                                 </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="cost" className="text-zinc-300">成本 (NT$)</Label>
+                                <div>
+                                    <Label htmlFor="cost" className="text-zinc-300">成本</Label>
                                     <Input
                                         id="cost"
                                         name="cost"
                                         type="number"
                                         min="0"
-                                        defaultValue={product.cost}
+                                        defaultValue={product.cost || 0}
                                         className="bg-zinc-800 border-zinc-700 text-white"
                                     />
                                 </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="stock" className="text-zinc-300">庫存數量 *</Label>
+                                <div>
+                                    <Label htmlFor="price_krw" className="text-zinc-300">韓幣價格</Label>
+                                    <Input
+                                        id="price_krw"
+                                        name="price_krw"
+                                        type="number"
+                                        min="0"
+                                        defaultValue={product.price_krw || 0}
+                                        className="bg-zinc-800 border-zinc-700 text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="stock" className="text-zinc-300">基本庫存 *</Label>
                                     <Input
                                         id="stock"
                                         name="stock"
                                         type="number"
                                         min="0"
-                                        defaultValue={product.stock}
+                                        value={stock}
+                                        onChange={(e) => setStock(Number(e.target.value))}
                                         required
                                         className="bg-zinc-800 border-zinc-700 text-white"
                                     />
                                 </div>
-                            </div>
-
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="priceKrw" className="text-zinc-300">韓幣價格 (₩)</Label>
-                                    <Input
-                                        id="priceKrw"
-                                        name="priceKrw"
-                                        type="number"
-                                        min="0"
-                                        defaultValue={product.price_krw}
-                                        className="bg-zinc-800 border-zinc-700 text-white"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="sku" className="text-zinc-300">SKU 編號</Label>
+                                <div>
+                                    <Label htmlFor="sku" className="text-zinc-300">SKU</Label>
                                     <Input
                                         id="sku"
                                         name="sku"
-                                        defaultValue={product.sku || ''}
+                                        value={sku}
+                                        onChange={(e) => setSku(e.target.value)}
                                         className="bg-zinc-800 border-zinc-700 text-white"
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        {/* 商品圖片 */}
+                        {/* 規格設定 */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-medium text-zinc-300 border-b border-zinc-800 pb-2">商品圖片</h3>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="imageUrl" className="text-zinc-300">圖片網址</Label>
-                                <Input
-                                    id="imageUrl"
-                                    name="imageUrl"
-                                    defaultValue={product.image_url || ''}
-                                    onChange={(e) => setImagePreview(e.target.value)}
-                                    className="bg-zinc-800 border-zinc-700 text-white"
-                                />
-                            </div>
-
-                            {imagePreview && (
-                                <div className="relative w-32 h-32 rounded-lg bg-zinc-800 overflow-hidden">
-                                    <img
-                                        src={imagePreview}
-                                        alt="Preview"
-                                        className="w-full h-full object-cover"
-                                        onError={() => setImagePreview('')}
-                                    />
-                                </div>
-                            )}
+                            <ProductVariantsEditor
+                                initialOptions={options}
+                                initialVariants={variants}
+                                basePrice={Number(price) || 0}
+                                baseStock={Number(stock) || 0}
+                                baseSku={sku}
+                                onChange={(data) => {
+                                    setOptions(data.options)
+                                    setVariants(data.variants)
+                                }}
+                            />
                         </div>
 
                         {/* 狀態 */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-medium text-zinc-300 border-b border-zinc-800 pb-2">發佈狀態</h3>
+                            <h3 className="text-sm font-medium text-zinc-300 border-b border-zinc-800 pb-2">狀態</h3>
 
-                            <div className="flex gap-4">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <Label htmlFor="status" className="text-zinc-300">狀態</Label>
+                                    <select
+                                        id="status"
                                         name="status"
-                                        value="draft"
-                                        defaultChecked={product.status === 'draft'}
-                                    />
-                                    <span className="text-zinc-300">草稿</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="status"
-                                        value="active"
-                                        defaultChecked={product.status === 'active'}
-                                    />
-                                    <span className="text-zinc-300">上架中</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="status"
-                                        value="archived"
-                                        defaultChecked={product.status === 'archived'}
-                                    />
-                                    <span className="text-zinc-300">已下架</span>
-                                </label>
+                                        defaultValue={product.status}
+                                        className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="draft">草稿</option>
+                                        <option value="active">上架</option>
+                                        <option value="archived">下架</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
-                        {state?.error && (
-                            <div className="text-sm text-red-400 font-medium bg-red-950/50 border border-red-900 p-3 rounded-lg">
-                                {state.error}
+                        {/* SEO 設定 */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-medium text-zinc-300 border-b border-zinc-800 pb-2">SEO 設定</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="seoTitle" className="text-zinc-300">SEO 標題</Label>
+                                    <Input
+                                        id="seoTitle"
+                                        name="seoTitle"
+                                        defaultValue={product.seo_title || ''}
+                                        placeholder="搜尋引擎顯示的標題"
+                                        className="bg-zinc-800 border-zinc-700 text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="seoDescription" className="text-zinc-300">SEO 描述</Label>
+                                    <textarea
+                                        id="seoDescription"
+                                        name="seoDescription"
+                                        rows={3}
+                                        defaultValue={product.seo_description || ''}
+                                        className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="搜尋引擎顯示的描述"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="seoKeywords" className="text-zinc-300">SEO 關鍵字</Label>
+                                    <Input
+                                        id="seoKeywords"
+                                        name="seoKeywords"
+                                        defaultValue={product.seo_keywords || ''}
+                                        placeholder="例如：美妝, 護膚"
+                                        className="bg-zinc-800 border-zinc-700 text-white"
+                                    />
+                                </div>
                             </div>
-                        )}
+                        </div>
 
-                        <div className="flex gap-3 pt-4">
-                            <Link href={`/admin/stores/${storeId}/products`} className="flex-1">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="w-full border-zinc-700 text-zinc-300 hover:text-white"
-                                >
-                                    取消
-                                </Button>
+                        <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800">
+                            <Link href={`/admin/stores/${storeId}/products`}>
+                                <Button type="button" variant="outline" className="border-zinc-700 text-zinc-300 hover:text-white">取消</Button>
                             </Link>
-                            <Button
-                                type="submit"
-                                disabled={pending}
-                                className="flex-1 bg-white text-black hover:bg-zinc-200 disabled:opacity-50"
-                            >
-                                {pending ? (
-                                    <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        儲存中...
-                                    </>
-                                ) : (
-                                    '儲存變更'
-                                )}
+                            <Button type="submit" disabled={pending} className="bg-white text-black hover:bg-zinc-200">
+                                {pending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                                儲存變更
                             </Button>
                         </div>
                     </CardContent>
-                </form>
-            </Card>
+                </Card>
+            </form>
         </div>
     )
 }

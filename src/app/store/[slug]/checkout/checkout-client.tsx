@@ -19,6 +19,9 @@ interface Props {
             shipping_pickup_fee?: number
             shipping_711_fee?: number
             shipping_home_fee?: number
+            shipping_pickup_name?: string
+            shipping_711_name?: string
+            shipping_home_name?: string
             // Legacy fallbacks
             bankName?: string
             bankAccount?: string
@@ -29,15 +32,11 @@ interface Props {
     }
 }
 
-const shippingOptions = [
-    { id: 'pickup', label: '面交取貨', description: '約定時間地點面交' },
-    { id: '711', label: '7-11 店到店', description: '寄送至指定 7-11 門市' },
-    { id: 'home', label: '宅配到府', description: '寄送至指定地址' },
-]
+// Removed static shippingOptions. Logic moved inside component.
 
 export function CheckoutClient({ store }: Props) {
     const router = useRouter()
-    const { items, getSubtotal, clearCart } = useCart()
+    const { items, getCartTotal, clearCart } = useCart()
     const [mounted, setMounted] = useState(false)
     const [loading, setLoading] = useState(false)
     const [success, setSuccess] = useState(false)
@@ -74,7 +73,13 @@ export function CheckoutClient({ store }: Props) {
         home: settings.shipping_home_fee ?? 100,
     }
 
-    const subtotal = getSubtotal()
+    const shippingOptions = [
+        { id: 'pickup', label: settings.shipping_pickup_name || '面交取貨', description: '約定時間地點面交' },
+        { id: '711', label: settings.shipping_711_name || '7-11 店到店', description: '寄送至指定 7-11 門市' },
+        { id: 'home', label: settings.shipping_home_name || '宅配到府', description: '寄送至指定地址' },
+    ]
+
+    const subtotal = getCartTotal()
     const shippingFee = shippingFees[shippingMethod] || 0
     const total = subtotal + shippingFee
 

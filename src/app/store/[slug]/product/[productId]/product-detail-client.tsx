@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useCart } from '@/lib/cart-context'
 import { Minus, Plus, ShoppingCart, Check } from 'lucide-react'
 import Link from 'next/link'
@@ -20,12 +20,13 @@ interface Props {
         image_url: string | null
         images: string[]
         brand: string | null
-        options: Record<string, string[]>
+        options: { id: string; name: string; values: string[] }[]
         variants: Array<{
-            sku?: string
-            price?: number
-            stock?: number
-            [key: string]: any
+            id: string
+            options: Record<string, string>
+            price: number
+            stock: number
+            sku: string | null
         }>
     }
     navItems?: Array<{
@@ -51,42 +52,54 @@ export function ProductDetailClient({ store, product, navItems, homeSlug }: Prop
         setStoreSlug(store.slug)
 
         // 初始化選項
-        if (product.options) {
+        if (product.options && Array.isArray(product.options)) {
             const initial: Record<string, string> = {}
-            Object.entries(product.options).forEach(([key, values]) => {
-                if (values && values.length > 0) {
-                    initial[key] = values[0]
+            product.options.forEach((option) => {
+                if (option.values && option.values.length > 0) {
+                    initial[option.name] = option.values[0]
                 }
             })
             setSelectedOptions(initial)
         }
     }, [store.slug, setStoreSlug, product.options])
 
-    const allImages = product.image_url
-        ? [product.image_url, ...(product.images || [])]
-        : (product.images || [])
+    const allImages = useMemo(() => {
+        const imgs = []
+        if (product.image_url) imgs.push(product.image_url)
+        if (product.images && product.images.length > 0) {
+            // Avoid duplicates if image_url is also in images
+            product.images.forEach(img => {
+                if (img !== product.image_url) imgs.push(img)
+            })
+        }
+        return imgs.length > 0 ? imgs : []
+    }, [product.image_url, product.images])
 
     const [selectedImage, setSelectedImage] = useState(0)
 
-    // 計算當前選項的庫存
-    const getCurrentStock = () => {
-        if (product.variants && product.variants.length > 0) {
-            const variant = product.variants.find(v => {
-                return Object.entries(selectedOptions).every(([key, value]) => v[key] === value)
-            })
-            return variant?.stock ?? product.stock
-        }
-        return product.stock
-    }
+    // 取得當前選中的 Variant
+    const currentVariant = useMemo(() => {
+        if (!product.variants || product.variants.length === 0) return null
+        return product.variants.find(v => {
+            // Check if all selected options match the variant's options
+            // Note: v.options might be a JSON object from DB
+            const vOptions = v.options || {}
+            if (Object.keys(selectedOptions).length !== Object.keys(vOptions).length) return false
+            return Object.entries(selectedOptions).every(([key, value]) => vOptions[key] === value)
+        })
+    }, [product.variants, selectedOptions])
 
-    const currentStock = getCurrentStock()
+    // 計算當前顯示的價格與庫存
+    const currentPrice = currentVariant ? currentVariant.price : product.price
+    const currentStock = currentVariant ? currentVariant.stock : product.stock
 
     const handleAddToCart = () => {
         addItem({
             productId: product.id,
+            variantId: currentVariant?.id,
             name: product.name,
-            price: product.price,
-            image: product.image_url || undefined,
+            price: currentPrice,
+            image: allImages[0], // Use first image as thumbnail
             options: Object.keys(selectedOptions).length > 0 ? selectedOptions : undefined,
             maxStock: currentStock,
             quantity,
@@ -100,7 +113,7 @@ export function ProductDetailClient({ store, product, navItems, homeSlug }: Prop
             {/* Navbar */}
             <SiteHeader
                 storeName={store.name}
-                logoUrl={undefined} // Modify if logo is available in props
+                logoUrl={undefined}
                 navItems={navItems || []}
                 homeSlug={homeSlug}
                 basePath={`/store/${store.slug}`}
@@ -110,8 +123,8 @@ export function ProductDetailClient({ store, product, navItems, homeSlug }: Prop
             <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid md:grid-cols-2 gap-8">
                     {/* Image Gallery */}
-                    <div>
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                    <div className="space-y-4">
+                        <div className="aspect-square bg-zinc-50 rounded-xl overflow-hidden border border-zinc-100 relative">
                             {allImages[selectedImage] ? (
                                 <img
                                     src={allImages[selectedImage]}
@@ -119,18 +132,18 @@ export function ProductDetailClient({ store, product, navItems, homeSlug }: Prop
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <div className="w-full h-full flex items-center justify-center text-gray-300">
                                     無圖片
                                 </div>
                             )}
                         </div>
                         {allImages.length > 1 && (
-                            <div className="flex gap-2 mt-4 overflow-x-auto">
+                            <div className="grid grid-cols-5 gap-2">
                                 {allImages.map((img, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => setSelectedImage(idx)}
-                                        className={`w-20 h-20 flex-shrink-0 rounded-lg bg-gray-100 overflow-hidden border-2 ${selectedImage === idx ? 'border-rose-500' : 'border-transparent'
+                                        className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedImage === idx ? 'border-zinc-900 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'
                                             }`}
                                     >
                                         <img src={img} alt="" className="w-full h-full object-cover" />
@@ -141,85 +154,87 @@ export function ProductDetailClient({ store, product, navItems, homeSlug }: Prop
                     </div>
 
                     {/* Product Info */}
-                    <div className="space-y-6">
-                        {product.brand && (
-                            <p className="text-sm text-gray-500">{product.brand}</p>
-                        )}
-                        <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
-                        <p className="text-3xl font-bold text-rose-500">
-                            NT$ {Number(product.price).toLocaleString()}
-                        </p>
+                    <div className="space-y-8">
+                        <div>
+                            <h1 className="text-3xl font-bold text-zinc-900 mb-4">{product.name}</h1>
+                            <p className="text-2xl font-bold text-zinc-900">
+                                NT$ {Number(currentPrice).toLocaleString()}
+                            </p>
+                        </div>
 
                         {product.description && (
-                            <div className="prose prose-gray">
+                            <div className="prose prose-zinc prose-sm text-zinc-600">
                                 <p className="whitespace-pre-wrap">{product.description}</p>
                             </div>
                         )}
 
-                        {/* Options */}
-                        {product.options && Object.keys(product.options).length > 0 && (
-                            <div className="space-y-4">
-                                {Object.entries(product.options).map(([optionName, values]) => (
-                                    <div key={optionName}>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            {optionName}
-                                        </label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {values.map((value) => (
-                                                <button
-                                                    key={value}
-                                                    onClick={() => setSelectedOptions(prev => ({
-                                                        ...prev,
-                                                        [optionName]: value
-                                                    }))}
-                                                    className={`px-4 py-2 border rounded-lg text-sm ${selectedOptions[optionName] === value
-                                                        ? 'border-rose-500 bg-rose-50 text-rose-600'
-                                                        : 'border-gray-300 hover:border-gray-400'
-                                                        }`}
-                                                >
-                                                    {value}
-                                                </button>
-                                            ))}
+                        <div className="space-y-6 pt-6 border-t border-zinc-100">
+                            {/* Options */}
+                            {product.options && product.options.length > 0 && (
+                                <div className="space-y-4">
+                                    {product.options.map((option) => (
+                                        <div key={option.name}>
+                                            <label className="block text-sm font-medium text-zinc-700 mb-3">
+                                                {option.name}
+                                            </label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {option.values.map((value) => {
+                                                    const isSelected = selectedOptions[option.name] === value
+                                                    return (
+                                                        <button
+                                                            key={value}
+                                                            onClick={() => setSelectedOptions(prev => ({
+                                                                ...prev,
+                                                                [option.name]: value
+                                                            }))}
+                                                            className={`px-4 py-2 border rounded-full text-sm font-medium transition-all ${isSelected
+                                                                ? 'border-zinc-900 bg-zinc-900 text-white'
+                                                                : 'border-zinc-200 text-zinc-700 hover:border-zinc-400'
+                                                                }`}
+                                                        >
+                                                            {value}
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            )}
 
-                        {/* Quantity Selector */}
-                        <div className="flex items-center gap-4">
-                            <span className="text-sm font-medium text-gray-700">數量：</span>
-                            <div className="flex items-center rounded-md border border-gray-300">
-                                <button
-                                    onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-                                    className="px-3 py-1 text-gray-600 hover:text-black disabled:opacity-50"
-                                    disabled={currentStock <= 0}
-                                >
-                                    <Minus className="h-4 w-4" />
-                                </button>
-                                <span className="px-2 text-sm font-medium text-gray-900 min-w-[2rem] text-center">
-                                    {quantity}
-                                </span>
-                                <button
-                                    onClick={() => quantity < currentStock && setQuantity(quantity + 1)}
-                                    className="px-3 py-1 text-gray-600 hover:text-black disabled:opacity-50"
-                                    disabled={currentStock <= 0 || quantity >= currentStock}
-                                >
-                                    <Plus className="h-4 w-4" />
-                                </button>
+                            {/* Quantity Selector */}
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm font-medium text-zinc-700">數量</span>
+                                <div className="flex items-center rounded-lg border border-zinc-200 p-1">
+                                    <button
+                                        onClick={() => quantity > 1 && setQuantity(quantity - 1)}
+                                        className="p-2 text-zinc-500 hover:text-black disabled:opacity-30"
+                                        disabled={currentStock <= 0}
+                                    >
+                                        <Minus className="h-4 w-4" />
+                                    </button>
+                                    <span className="w-12 text-center text-sm font-bold text-zinc-900">
+                                        {quantity}
+                                    </span>
+                                    <button
+                                        onClick={() => quantity < currentStock && setQuantity(quantity + 1)}
+                                        className="p-2 text-zinc-500 hover:text-black disabled:opacity-30"
+                                        disabled={currentStock <= 0 || quantity >= currentStock}
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex flex-col gap-3">
+                            {/* Action Buttons */}
                             <button
                                 onClick={handleAddToCart}
                                 disabled={currentStock <= 0}
-                                className={`w-full py-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${isAdded
-                                    ? 'bg-green-500 text-white'
+                                className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${isAdded
+                                    ? 'bg-green-600 text-white'
                                     : currentStock > 0
-                                        ? 'bg-rose-500 hover:bg-rose-600 text-white'
-                                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        ? 'bg-zinc-900 hover:bg-black text-white shadow-lg hover:shadow-xl translate-y-0 hover:-translate-y-0.5'
+                                        : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
                                     }`}
                             >
                                 {isAdded ? (
@@ -237,8 +252,6 @@ export function ProductDetailClient({ store, product, navItems, homeSlug }: Prop
                     </div>
                 </div>
             </main>
-
-
         </div>
     )
 }

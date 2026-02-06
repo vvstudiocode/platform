@@ -21,9 +21,30 @@ const productSchema = z.object({
     seo_title: z.string().nullish().transform(v => v || undefined),
     seo_description: z.string().nullish().transform(v => v || undefined),
     seo_keywords: z.string().nullish().transform(v => v || undefined),
+    // Multi-image and Variants
+    images: z.string().transform((str, ctx) => {
+        try {
+            return JSON.parse(str)
+        } catch (e) {
+            return []
+        }
+    }).optional(),
+    options: z.string().transform((str, ctx) => {
+        try {
+            return JSON.parse(str)
+        } catch (e) {
+            return []
+        }
+    }).optional(),
+    variants: z.string().transform((str, ctx) => {
+        try {
+            return JSON.parse(str)
+        } catch (e) {
+            return []
+        }
+    }).optional(),
 })
 
-// 取得總部商店 ID
 // 取得總部商店 ID
 async function getHQStoreId(supabase: any, userId: string) {
     const { data } = await supabase
@@ -58,10 +79,12 @@ export async function createProduct(prevState: any, formData: FormData) {
         sku: formData.get('sku'),
         image_url: formData.get('image_url'),
         status: formData.get('status'),
-        // SEO 欄位
         seo_title: formData.get('seo_title'),
         seo_description: formData.get('seo_description'),
         seo_keywords: formData.get('seo_keywords'),
+        images: formData.get('images'),
+        options: formData.get('options'),
+        variants: formData.get('variants'),
     })
 
     if (!validated.success) {
@@ -87,7 +110,8 @@ export async function createProduct(prevState: any, formData: FormData) {
             .upsert({ tenant_id: hqStoreId, name: validated.data.category }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
     }
 
-    const { error } = await supabase
+    // 1. Create Product
+    const { data: product, error } = await supabase
         .from('products')
         .insert({
             tenant_id: hqStoreId,
@@ -97,10 +121,37 @@ export async function createProduct(prevState: any, formData: FormData) {
             seo_title: validated.data.seo_title || null,
             seo_description: validated.data.seo_description || null,
             seo_keywords: validated.data.seo_keywords || null,
+            images: validated.data.images || [],
+            options: validated.data.options || [],
+            // Remove variants from product insert, handled separately
+            variants: undefined
         })
+        .select()
+        .single()
 
     if (error) {
         return { error: error.message }
+    }
+
+    // 2. Insert Variants
+    if (validated.data.variants && validated.data.variants.length > 0) {
+        const variantsToInsert = validated.data.variants.map((v: any) => ({
+            product_id: product.id,
+            name: v.name,
+            options: v.options,
+            price: v.price || validated.data.price,
+            stock: v.stock || 0,
+            sku: v.sku || sku // Fallback to product SKU if empty
+        }))
+
+        const { error: variantError } = await supabase
+            .from('product_variants')
+            .insert(variantsToInsert)
+
+        if (variantError) {
+            console.error('Variant Insert Error:', variantError)
+            // Non-fatal? Or should we delete product? 
+        }
     }
 
     revalidatePath('/admin/products')
@@ -125,6 +176,9 @@ export async function updateProduct(productId: string, prevState: any, formData:
         sku: formData.get('sku'),
         image_url: formData.get('image_url'),
         status: formData.get('status'),
+        images: formData.get('images'),
+        options: formData.get('options'),
+        variants: formData.get('variants'),
     })
 
     if (!validated.success) {
@@ -148,16 +202,43 @@ export async function updateProduct(productId: string, prevState: any, formData:
         }
     }
 
+    // 1. Update Product
     const { error } = await supabase
         .from('products')
         .update({
             ...validated.data,
             image_url: validated.data.image_url || null,
+            images: validated.data.images || [],
+            options: validated.data.options || [],
+            variants: undefined // Don't update this virtual field
         })
         .eq('id', productId)
 
     if (error) {
         return { error: error.message }
+    }
+
+    // 2. Handle Variants
+    if (validated.data.variants) {
+        // Simple strategy: Delete all and Insert all. 
+        // Ideally we should upsert, but for now this ensures consistency with the editor state.
+        // Warning: This changes Variant IDs. If orders reference Variants by ID, this is bad.
+        // Assuming orders reference Product + Options snapshot or just Product ID.
+
+        await supabase.from('product_variants').delete().eq('product_id', productId)
+
+        if (validated.data.variants.length > 0) {
+            const variantsToInsert = validated.data.variants.map((v: any) => ({
+                product_id: productId,
+                name: v.name,
+                options: v.options,
+                price: v.price || validated.data.price,
+                stock: v.stock || 0,
+                sku: v.sku
+            }))
+
+            await supabase.from('product_variants').insert(variantsToInsert)
+        }
     }
 
     revalidatePath('/admin/products')

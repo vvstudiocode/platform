@@ -10,17 +10,37 @@ export default async function GeneralSettingsPage() {
         redirect('/login')
     }
 
-    // 取得商店資訊 (HQ 或 Store Owner)
-    const { data: tenant } = await supabase
-        .from('tenants')
-        .select('*')
-        .eq('managed_by', user.id)
+    // 1. 嘗試從 users_roles 找到關聯的 tenant
+    const { data: userRole } = await supabase
+        .from('users_roles')
+        .select('tenant_id')
+        .eq('user_id', user.id)
         .single()
+
+    let tenant = null
+
+    if (userRole?.tenant_id) {
+        // Find by ID from role
+        const { data } = await supabase
+            .from('tenants')
+            .select('*')
+            .eq('id', userRole.tenant_id)
+            .single()
+        tenant = data
+    } else {
+        // Fallback: Find by managed_by
+        const { data } = await supabase
+            .from('tenants')
+            .select('*')
+            .eq('managed_by', user.id)
+            .single()
+        tenant = data
+    }
 
     if (!tenant) {
         return (
             <div className="p-8 text-center text-zinc-500">
-                找不到相關的商店設定
+                找不到相關的商店設定 (User ID: {user.id})
             </div>
         )
     }
