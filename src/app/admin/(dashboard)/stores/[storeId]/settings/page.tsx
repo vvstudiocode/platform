@@ -27,7 +27,8 @@ export default async function StoreSettingsPage({ params }: Props) {
     }
 
     // 商店網址
-    const storeUrl = `https://omoselect.zeabur.app/store/${store.slug}`
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'omoselect.shop'
+    const storeUrl = `https://${store.slug}.${rootDomain}`
 
     return (
         <div className="space-y-6">
