@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import { StoreNavigationManager } from './store-navigation-manager'
+import { NavigationManager } from '@/features/navigation/components/navigation-manager'
+import { addStoreNavItem, removeStoreNavItem, updateStoreNavOrder } from './actions'
 
 interface Props {
     params: Promise<{ storeId: string }>
@@ -44,11 +45,12 @@ export default async function StoreNavigationPage({ params }: Props) {
 
     return (
         <div className="p-6">
-            <StoreNavigationManager
-                storeId={storeId}
-                storeName={store.name}
+            <NavigationManager
                 navItems={(navItems || []) as any}
                 availablePages={pages || []}
+                addAction={addStoreNavItem.bind(null, storeId)}
+                removeAction={removeStoreNavItem.bind(null, storeId)}
+                updateOrderAction={updateStoreNavOrder.bind(null, storeId)}
             />
         </div>
     )

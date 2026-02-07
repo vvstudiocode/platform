@@ -47,6 +47,9 @@ interface Page {
 interface Props {
     navItems: NavItem[]
     availablePages: Page[]
+    addAction: (pageId: string, title: string) => Promise<{ error?: string; success?: boolean }>
+    removeAction: (navItemId: string) => Promise<{ error?: string; success?: boolean }>
+    updateOrderAction: (items: any[]) => Promise<{ error?: string; success?: boolean }>
 }
 
 // Recursive helper to flatten tree
@@ -150,7 +153,7 @@ function SortableItem({ id, item, onRemove, depth }: SortableItemProps) {
     )
 }
 
-export function NavigationManager({ navItems, availablePages }: Props) {
+export function NavigationManager({ navItems, availablePages, addAction, removeAction, updateOrderAction }: Props) {
     const [items, setLocalNavItems] = useState<NavItem[]>(() => {
         const sorted = [...navItems].sort((a, b) => a.position - b.position)
         return flattenTree(buildTree(sorted))
@@ -230,7 +233,7 @@ export function NavigationManager({ navItems, availablePages }: Props) {
             }
         })
 
-        await updateNavOrder(payload)
+        await updateOrderAction(payload)
         setSaving(false)
     }
 
@@ -241,7 +244,7 @@ export function NavigationManager({ navItems, availablePages }: Props) {
         if (page) {
             try {
                 // Optimistic UI update could be added here, but waiting for server actions is safer for IDs
-                await addNavItem(page.id, page.title)
+                await addAction(page.id, page.title)
                 // Reload to fetch fresh data is simplest for now, or we can return the new item from action
                 window.location.reload()
             } catch (error) {
@@ -253,7 +256,7 @@ export function NavigationManager({ navItems, availablePages }: Props) {
 
     const handleRemove = async (navItemId: string) => {
         try {
-            await removeNavItem(navItemId)
+            await removeAction(navItemId)
             setLocalNavItems(items => items.filter(item => item.id !== navItemId))
         } catch (error) {
             console.error("Failed to remove item", error)
@@ -334,8 +337,8 @@ export function NavigationManager({ navItems, availablePages }: Props) {
                                                 <button
                                                     onClick={() => updateDepth(item.id, -1)}
                                                     className={`p-1.5 rounded-sm transition-colors ${!item.depth || item.depth === 0
-                                                            ? 'text-muted-foreground/30 cursor-not-allowed'
-                                                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                                        ? 'text-muted-foreground/30 cursor-not-allowed'
+                                                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                                                         }`}
                                                     disabled={!item.depth || item.depth === 0}
                                                     title="減少縮排"
@@ -346,8 +349,8 @@ export function NavigationManager({ navItems, availablePages }: Props) {
                                                 <button
                                                     onClick={() => updateDepth(item.id, 1)}
                                                     className={`p-1.5 rounded-sm transition-colors ${item.depth === 1
-                                                            ? 'text-muted-foreground/30 cursor-not-allowed'
-                                                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                                        ? 'text-muted-foreground/30 cursor-not-allowed'
+                                                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                                                         }`}
                                                     disabled={item.depth === 1}
                                                     title="增加縮排"

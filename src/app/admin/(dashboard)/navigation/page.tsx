@@ -4,6 +4,7 @@ import { NavigationManager } from '@/features/navigation/components/navigation-m
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { addNavItem, removeNavItem, updateNavOrder } from '@/app/app/(dashboard)/navigation/actions'
 
 // 取得總部商店的 Tenant ID
 async function getHQStoreId(supabase: any, user: any) {
@@ -66,6 +67,9 @@ export default async function AdminNavigationPage() {
             <NavigationManager
                 navItems={(navItems || []) as any}
                 availablePages={pages || []}
+                addAction={addNavItem}
+                removeAction={removeNavItem}
+                updateOrderAction={updateNavOrder}
             />
         </div>
     )

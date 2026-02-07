@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { NavigationManager } from '@/features/navigation/components/navigation-manager'
+import { addNavItem, removeNavItem, updateNavOrder } from './actions'
 
 export default async function AppNavigationPage() {
     const supabase = await createClient()
@@ -48,6 +49,9 @@ export default async function AppNavigationPage() {
             <NavigationManager
                 navItems={(navItems || []) as any}
                 availablePages={pages || []}
+                addAction={addNavItem}
+                removeAction={removeNavItem}
+                updateOrderAction={updateNavOrder}
             />
         </div>
     )
