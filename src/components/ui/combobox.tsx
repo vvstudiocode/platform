@@ -89,9 +89,9 @@ export function Combobox({
                         role="combobox"
                         aria-expanded={open}
                         className={cn(
-                            "w-full justify-between bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700 hover:text-white",
+                            "w-full justify-between bg-background border-input text-foreground hover:bg-accent hover:text-accent-foreground",
                             className,
-                            !value && "text-zinc-400"
+                            !value && "text-muted-foreground"
                         )}
                         disabled={disabled}
                     >
@@ -99,19 +99,19 @@ export function Combobox({
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0 z-[100] bg-zinc-900 border-zinc-800 text-white">
-                    <Command className="bg-zinc-900 text-white">
+                <PopoverContent className="w-[200px] p-0 z-[100] bg-popover border-border text-popover-foreground">
+                    <Command className="bg-popover text-popover-foreground">
                         <CommandInput
                             placeholder={searchPlaceholder}
                             value={search}
                             onValueChange={setSearch}
-                            className="text-white placeholder:text-zinc-500"
+                            className="text-foreground placeholder:text-muted-foreground"
                         />
                         <CommandList>
-                            <CommandEmpty className="py-2 text-sm text-center text-zinc-500">
+                            <CommandEmpty className="py-2 text-sm text-center text-muted-foreground">
                                 {allowCustom && search ? (
                                     <div
-                                        className="px-2 py-1 cursor-pointer hover:bg-zinc-800 text-blue-400 flex items-center justify-center gap-1"
+                                        className="px-2 py-1 cursor-pointer hover:bg-accent text-accent-foreground flex items-center justify-center gap-1"
                                         onClick={handleCustom}
                                     >
                                         <Check className="h-3 w-3 opacity-0" />
@@ -121,13 +121,13 @@ export function Combobox({
                                     emptyText
                                 )}
                             </CommandEmpty>
-                            <CommandGroup heading="選項" className="text-zinc-400">
+                            <CommandGroup heading="選項" className="text-muted-foreground">
                                 {options.map((option) => (
                                     <CommandItem
                                         key={option.value}
                                         value={option.label}
                                         onSelect={() => handleSelect(option.value)} // Use value not label
-                                        className="text-white aria-selected:bg-zinc-800 aria-selected:text-white cursor-pointer"
+                                        className="text-foreground aria-selected:bg-accent aria-selected:text-accent-foreground cursor-pointer"
                                     >
                                         <Check
                                             className={cn(

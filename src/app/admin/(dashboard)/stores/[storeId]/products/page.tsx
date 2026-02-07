@@ -18,7 +18,7 @@ export default async function StoreProductsPage({ params }: Props) {
         .from('tenants')
         .select('id, name, slug')
         .eq('id', storeId)
-        .eq('managed_by', user?.id)
+        .eq('managed_by', user?.id || '')
         .single()
 
     if (!store) {
@@ -104,25 +104,23 @@ export default async function StoreProductsPage({ params }: Props) {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <p className="text-white">NT$ {Number(product.price).toLocaleString()}</p>
-                                        {product.cost > 0 && (
-                                            <p className="text-xs text-zinc-500">
-                                                成本: ${Number(product.cost).toLocaleString()}
-                                            </p>
-                                        )}
+                                    <td className="px-4 py-3 text-zinc-300">
+                                        NT$ {product.price?.toLocaleString() || '-'}
+                                    </td>
+                                    <td className="px-4 py-3 text-zinc-300">
+                                        NT$ {product.cost?.toLocaleString() || '-'}
+                                    </td>
+                                    <td className="px-4 py-3 text-zinc-300">
+                                        ₩ {product.price_krw?.toLocaleString() || '-'}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <span className={`${product.stock <= 5 ? 'text-amber-400' : 'text-zinc-300'}`}>
-                                            {product.stock}
+                                        <span className={`${(product.stock !== null && product.stock <= 5) ? 'text-amber-400' : 'text-zinc-300'}`}>
+                                            {product.stock || 0}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3">
-                                        <span className="text-zinc-400">{product.category || '-'}</span>
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <span className={`inline-flex px-2 py-1 rounded-full text-xs ${statusColors[product.status] || statusColors.draft}`}>
-                                            {statusLabels[product.status] || product.status}
+                                        <span className={`inline-flex px-2 py-1 rounded-full text-xs ${statusColors[product.status || 'draft'] || statusColors.draft}`}>
+                                            {statusLabels[product.status || 'draft'] || '草稿'}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-right">

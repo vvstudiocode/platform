@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 
 const productSchema = z.object({
     name: z.string().min(1, '請輸入商品名稱'),
@@ -78,6 +79,143 @@ async function generateSKU(supabase: any, tenantId: string): Promise<string> {
     return `P${String(nextNum).padStart(6, '0')}`
 }
 
+// 處理圖片上傳與更新 Tenant 使用量
+async function handleImageProcessing(supabase: any, tenantId: string, formData: FormData) {
+    // 1. Get current tenant usage and plan limit
+    const { data: tenant } = await supabase
+        .from('tenants')
+        .select('storage_usage_mb, plan_id')
+        .eq('id', tenantId)
+        .single()
+
+    let currentUsage = parseFloat(tenant?.storage_usage_mb || '0')
+    let storageLimitMb = 50 // Default Free
+
+    if (tenant?.plan_id) {
+        const { data: plan } = await supabase
+            .from('plans')
+            .select('storage_limit_mb')
+            .eq('id', tenant.plan_id)
+            .single()
+        if (plan) storageLimitMb = plan.storage_limit_mb
+    }
+
+    // 2. Process Deletions
+    const deletedImagesJson = formData.get('deleted_images') as string
+    if (deletedImagesJson) {
+        try {
+            // Use Admin Client to bypass RLS for storage operations (ensure we can list/delete)
+            const supabaseAdmin = createAdminClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.SUPABASE_SERVICE_ROLE_KEY!
+            )
+
+            const deletedUrls: string[] = JSON.parse(deletedImagesJson)
+            console.log('Processing deletions:', deletedUrls)
+
+            for (const url of deletedUrls) {
+                // Determine bucket and path from URL
+                // URL format: .../storage/v1/object/public/{bucket}/{path}
+                const urlParts = url.split('/storage/v1/object/public/')
+                if (urlParts.length > 1) {
+                    const fullPath = urlParts[1]
+                    const [bucket, ...pathParts] = fullPath.split('/')
+                    const rawPath = pathParts.join('/')
+                    const path = decodeURIComponent(rawPath)
+
+                    console.log('Deleting from bucket:', bucket, 'path:', path)
+
+                    if (bucket && path) {
+                        // Get file metadata to find size
+                        const folderPath = path.substring(0, path.lastIndexOf('/'))
+                        const fileName = path.split('/').pop()
+
+                        const { data: files, error: listError } = await supabaseAdmin.storage.from(bucket).list(folderPath, {
+                            search: fileName
+                        })
+
+                        if (listError) console.error('List error:', listError)
+
+                        const fileMeta = files?.find((f: any) => f.name === fileName)
+                        if (fileMeta && fileMeta.metadata?.size) {
+                            const sizeMb = fileMeta.metadata.size / (1024 * 1024)
+                            currentUsage = Math.max(0, currentUsage - sizeMb)
+                            console.log('Decremented usage by:', sizeMb, 'New usage:', currentUsage)
+                        } else {
+                            console.warn('File metadata not found for size decrement:', path)
+                        }
+
+                        // Remove file
+                        const { error: removeError } = await supabaseAdmin.storage.from(bucket).remove([path])
+                        if (removeError) console.error('Remove error:', removeError)
+                        else console.log('File removed successfully:', path)
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error processing deletions:', e)
+        }
+    }
+
+    // 3. Process New Uploads & Rebuild List
+    const imageOrderJson = formData.get('image_order') as string || '[]'
+    let imageOrder: string[] = []
+    try {
+        imageOrder = JSON.parse(imageOrderJson)
+    } catch (e) {
+        imageOrder = []
+    }
+
+    const finalImages: string[] = []
+
+    for (const item of imageOrder) {
+        if (item.startsWith('new_file_')) {
+            // It's a key for FormData file
+            const file = formData.get(item) as File
+            if (file && file.size > 0) {
+                // Check Quota
+                const fileSizeMb = file.size / (1024 * 1024)
+                if (currentUsage + fileSizeMb > storageLimitMb) {
+                    throw new Error(`Storage quota exceeded! (${currentUsage.toFixed(2)}/${storageLimitMb} MB)`)
+                }
+
+                // Upload
+                const timestamp = Date.now()
+                const randomStr = Math.random().toString(36).substring(2, 9)
+                const extension = file.name.split('.').pop()
+                const fileName = `${timestamp}_${randomStr}.${extension}`
+                const filePath = `content/${fileName}`
+
+                const { data, error } = await supabase.storage
+                    .from('product-images')
+                    .upload(filePath, file, { upsert: false })
+
+                if (error) {
+                    throw new Error('Image upload failed: ' + error.message)
+                }
+
+                const { data: publicUrlData } = supabase.storage
+                    .from('product-images')
+                    .getPublicUrl(data.path)
+
+                finalImages.push(publicUrlData.publicUrl)
+                currentUsage += fileSizeMb
+            }
+        } else {
+            // It's an existing URL
+            finalImages.push(item)
+        }
+    }
+
+    // Update tenant usage
+    await supabase
+        .from('tenants')
+        .update({ storage_usage_mb: currentUsage })
+        .eq('id', tenantId)
+
+    return finalImages
+}
+
 export async function createProduct(prevState: any, formData: FormData) {
     const supabase = await createClient()
 
@@ -97,80 +235,81 @@ export async function createProduct(prevState: any, formData: FormData) {
         price_krw: formData.get('price_krw'),
         stock: formData.get('stock'),
         sku: formData.get('sku'),
-        image_url: formData.get('image_url'),
         status: formData.get('status'),
-        // SEO 欄位
         seo_title: formData.get('seo_title'),
         seo_description: formData.get('seo_description'),
         seo_keywords: formData.get('seo_keywords'),
-        images: formData.get('images'),
         options: formData.get('options'),
         variants: formData.get('variants'),
+        // Images handled by handleImageProcessing
     })
 
     if (!validated.success) {
         return { error: validated.error.issues[0].message }
     }
 
-    // 如果沒有輸入 SKU，自動生成
-    let sku = validated.data.sku
-    if (!sku || sku.trim() === '') {
-        sku = await generateSKU(supabase, storeId)
-    }
+    try {
+        // Process Images
+        const finalImages = await handleImageProcessing(supabase, storeId, formData)
 
-    // 自動儲存品牌與分類 (如果不存在)
-    if (validated.data.brand) {
-        await supabase
-            .from('brands')
-            .upsert({ tenant_id: storeId, name: validated.data.brand }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
-    }
-
-    if (validated.data.category) {
-        await supabase
-            .from('categories')
-            .upsert({ tenant_id: storeId, name: validated.data.category }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
-    }
-
-    // 1. Create Product
-    const { data: product, error } = await supabase
-        .from('products')
-        .insert({
-            tenant_id: storeId,
-            ...validated.data,
-            sku,
-            image_url: validated.data.image_url || null,
-            seo_title: validated.data.seo_title || null,
-            seo_description: validated.data.seo_description || null,
-            seo_keywords: validated.data.seo_keywords || null,
-            images: validated.data.images || [],
-            options: validated.data.options || [],
-            variants: undefined
-        })
-        .select()
-        .single()
-
-    if (error) {
-        return { error: error.message }
-    }
-
-    // 2. Insert Variants
-    if (validated.data.variants && validated.data.variants.length > 0) {
-        const variantsToInsert = validated.data.variants.map((v: any) => ({
-            product_id: product.id,
-            name: v.name,
-            options: v.options,
-            price: v.price || validated.data.price,
-            stock: v.stock || 0,
-            sku: v.sku || sku // Fallback to product SKU if empty
-        }))
-
-        const { error: variantError } = await supabase
-            .from('product_variants')
-            .insert(variantsToInsert)
-
-        if (variantError) {
-            console.error('Variant Insert Error:', variantError)
+        // Generate SKU if needed
+        let sku = validated.data.sku
+        if (!sku || sku.trim() === '') {
+            sku = await generateSKU(supabase, storeId)
         }
+
+        // Save Attributes
+        if (validated.data.brand) {
+            await supabase
+                .from('brands')
+                .upsert({ tenant_id: storeId, name: validated.data.brand }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
+        }
+
+        if (validated.data.category) {
+            await supabase
+                .from('categories')
+                .upsert({ tenant_id: storeId, name: validated.data.category }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
+        }
+
+        // 1. Create Product
+        const { data: product, error } = await supabase
+            .from('products')
+            .insert({
+                tenant_id: storeId,
+                ...validated.data,
+                sku,
+                image_url: finalImages[0] || null,
+                images: finalImages,
+                options: validated.data.options || [],
+                variants: undefined,
+                seo_title: validated.data.seo_title || null,
+                seo_description: validated.data.seo_description || null,
+                seo_keywords: validated.data.seo_keywords || null,
+            })
+            .select()
+            .single()
+
+        if (error) {
+            throw new Error(error.message)
+        }
+
+        // 2. Insert Variants
+        if (validated.data.variants && validated.data.variants.length > 0) {
+            const variantsToInsert = validated.data.variants.map((v: any) => ({
+                product_id: product.id,
+                name: v.name,
+                options: v.options,
+                price: v.price || validated.data.price,
+                stock: v.stock || 0,
+                sku: v.sku || sku
+            }))
+
+            await supabase.from('product_variants').insert(variantsToInsert)
+        }
+
+    } catch (e: any) {
+        console.error('Create Product Error:', e)
+        return { error: e.message || '建立商品失敗' }
     }
 
     revalidatePath('/app/products')
@@ -193,9 +332,10 @@ export async function updateProduct(productId: string, prevState: any, formData:
         price_krw: formData.get('price_krw'),
         stock: formData.get('stock'),
         sku: formData.get('sku'),
-        image_url: formData.get('image_url'),
         status: formData.get('status'),
-        images: formData.get('images'),
+        seo_title: formData.get('seo_title'),
+        seo_description: formData.get('seo_description'),
+        seo_keywords: formData.get('seo_keywords'),
         options: formData.get('options'),
         variants: formData.get('variants'),
     })
@@ -204,10 +344,14 @@ export async function updateProduct(productId: string, prevState: any, formData:
         return { error: validated.error.issues[0].message }
     }
 
-    // Get Store ID for attribute saving
-    const storeId = await getUserStoreId(supabase, user.id)
-    if (storeId) {
-        // 自動儲存品牌與分類 (如果不存在)
+    try {
+        const storeId = await getUserStoreId(supabase, user.id)
+        if (!storeId) return { error: '找不到商店' }
+
+        // Process Images
+        const finalImages = await handleImageProcessing(supabase, storeId, formData)
+
+        // Save Attributes
         if (validated.data.brand) {
             await supabase
                 .from('brands')
@@ -219,40 +363,47 @@ export async function updateProduct(productId: string, prevState: any, formData:
                 .from('categories')
                 .upsert({ tenant_id: storeId, name: validated.data.category }, { onConflict: 'tenant_id, name', ignoreDuplicates: true })
         }
-    }
 
-    // 1. Update Product
-    const { error } = await supabase
-        .from('products')
-        .update({
-            ...validated.data,
-            image_url: validated.data.image_url || null,
-            images: validated.data.images || [],
-            options: validated.data.options || [],
-            variants: undefined // Don't update this virtual field
-        })
-        .eq('id', productId)
+        // 1. Update Product
+        const { error } = await supabase
+            .from('products')
+            .update({
+                ...validated.data,
+                image_url: finalImages[0] || null,
+                images: finalImages,
+                options: validated.data.options || [],
+                variants: undefined,
+                seo_title: validated.data.seo_title || null,
+                seo_description: validated.data.seo_description || null,
+                seo_keywords: validated.data.seo_keywords || null,
+            })
+            .eq('id', productId)
 
-    if (error) {
-        return { error: error.message }
-    }
-
-    // 2. Handle Variants
-    if (validated.data.variants) {
-        await supabase.from('product_variants').delete().eq('product_id', productId)
-
-        if (validated.data.variants.length > 0) {
-            const variantsToInsert = validated.data.variants.map((v: any) => ({
-                product_id: productId,
-                name: v.name,
-                options: v.options,
-                price: v.price || validated.data.price,
-                stock: v.stock || 0,
-                sku: v.sku
-            }))
-
-            await supabase.from('product_variants').insert(variantsToInsert)
+        if (error) {
+            throw new Error(error.message)
         }
+
+        // 2. Handle Variants
+        if (validated.data.variants) {
+            await supabase.from('product_variants').delete().eq('product_id', productId)
+
+            if (validated.data.variants.length > 0) {
+                const variantsToInsert = validated.data.variants.map((v: any) => ({
+                    product_id: productId,
+                    name: v.name,
+                    options: v.options,
+                    price: v.price || validated.data.price,
+                    stock: v.stock || 0,
+                    sku: v.sku
+                }))
+
+                await supabase.from('product_variants').insert(variantsToInsert)
+            }
+        }
+
+    } catch (e: any) {
+        console.error('Update Product Error:', e)
+        return { error: e.message || '更新商品失敗' }
     }
 
     revalidatePath('/app/products')

@@ -62,7 +62,7 @@ export default async function GeneralSettingsPage() {
 
     if (!tenant) {
         return (
-            <div className="p-8 text-center text-zinc-500">
+            <div className="p-8 text-center text-muted-foreground">
                 找不到相關的商店設定 (User ID: {user.id})
             </div>
         )
@@ -71,8 +71,8 @@ export default async function GeneralSettingsPage() {
     return (
         <div className="max-w-4xl mx-auto py-8">
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-white">一般設定</h1>
-                <p className="text-zinc-400 mt-1">管理商店的基本資訊與外觀</p>
+                <h1 className="text-2xl font-bold text-foreground">一般設定</h1>
+                <p className="text-muted-foreground mt-1">管理商店的基本資訊與外觀</p>
             </div>
 
             <GeneralSettingsForm tenant={tenant} />

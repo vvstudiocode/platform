@@ -81,7 +81,7 @@ export function BrandCategoryManager({ type, items, tenantId, createAction, upda
     return (
         <div className="space-y-4">
             {error && (
-                <div className="bg-red-500/20 border border-red-500 text-red-400 rounded-lg p-3 text-sm">
+                <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-lg p-3 text-sm">
                     {error}
                 </div>
             )}
@@ -92,19 +92,19 @@ export function BrandCategoryManager({ type, items, tenantId, createAction, upda
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     placeholder={`輸入新${label}名稱...`}
-                    className="bg-zinc-800 border-zinc-700 text-white"
+                    className="bg-background"
                     onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
                 />
-                <Button onClick={handleCreate} disabled={loading || !newName.trim()}>
+                <Button onClick={handleCreate} disabled={loading || !newName.trim()} className="shadow-soft">
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
                     新增
                 </Button>
             </div>
 
             {/* List */}
-            <div className="bg-zinc-900 rounded-xl border border-zinc-800 divide-y divide-zinc-800">
+            <div className="bg-card rounded-xl border border-border divide-y divide-border shadow-soft">
                 {items.length === 0 ? (
-                    <div className="p-8 text-center text-zinc-500">
+                    <div className="p-8 text-center text-muted-foreground">
                         尚無{label}，點擊上方按鈕新增
                     </div>
                 ) : (
@@ -115,26 +115,26 @@ export function BrandCategoryManager({ type, items, tenantId, createAction, upda
                                     <Input
                                         value={editingName}
                                         onChange={(e) => setEditingName(e.target.value)}
-                                        className="bg-zinc-800 border-zinc-700 text-white"
+                                        className="bg-background"
                                         onKeyDown={(e) => e.key === 'Enter' && handleUpdate(item.id)}
                                         autoFocus
                                     />
                                     <Button size="icon" variant="ghost" onClick={() => handleUpdate(item.id)} disabled={loading}>
-                                        <Check className="h-4 w-4 text-emerald-400" />
+                                        <Check className="h-4 w-4 text-emerald-500" />
                                     </Button>
                                     <Button size="icon" variant="ghost" onClick={() => setEditingId(null)}>
-                                        <X className="h-4 w-4 text-zinc-400" />
+                                        <X className="h-4 w-4 text-muted-foreground" />
                                     </Button>
                                 </div>
                             ) : (
                                 <>
-                                    <span className="text-white">{item.name}</span>
+                                    <span className="text-foreground font-medium">{item.name}</span>
                                     <div className="flex gap-1">
                                         <Button size="icon" variant="ghost" onClick={() => startEdit(item)}>
-                                            <Edit className="h-4 w-4 text-zinc-400 hover:text-white" />
+                                            <Edit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                                         </Button>
                                         <Button size="icon" variant="ghost" onClick={() => handleDelete(item.id)} disabled={loading}>
-                                            <Trash2 className="h-4 w-4 text-red-400 hover:text-red-300" />
+                                            <Trash2 className="h-4 w-4 text-destructive hover:text-destructive/80" />
                                         </Button>
                                     </div>
                                 </>

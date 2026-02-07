@@ -84,110 +84,113 @@ export function ProductListClient({ initialProducts }: Props) {
     }
 
     return (
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-soft">
             <div className="overflow-x-auto">
                 <table className="w-full min-w-[1000px]">
-                    <thead>
-                        <tr className="border-b border-zinc-800">
-                            <th className="w-10 px-2"></th>
-                            <th className="text-left px-4 py-4 text-sm font-medium text-zinc-400">編號</th>
-                            <th className="text-left px-4 py-4 text-sm font-medium text-zinc-400">圖片</th>
-                            <th className="text-left px-4 py-4 text-sm font-medium text-zinc-400">名稱</th>
-                            <th className="text-left px-4 py-4 text-sm font-medium text-zinc-400">售價</th>
-                            <th className="text-left px-4 py-4 text-sm font-medium text-zinc-400">利潤</th>
-                            <th className="text-left px-4 py-4 text-sm font-medium text-zinc-400">成本</th>
-                            <th className="text-left px-4 py-4 text-sm font-medium text-zinc-400">庫存</th>
-                            <th className="text-left px-4 py-4 text-sm font-medium text-zinc-400">狀態</th>
-                            <th className="text-right px-4 py-4 text-sm font-medium text-zinc-400">操作</th>
+                    <thead className="bg-muted/30">
+                        <tr className="border-b border-border text-left">
+                            <th className="w-10 px-4 py-4"></th>
+                            <th className="px-4 py-4 text-xs font-serif font-semibold text-muted-foreground">編號</th>
+                            <th className="px-4 py-4 text-xs font-serif font-semibold text-muted-foreground">圖片</th>
+                            <th className="px-4 py-4 text-xs font-serif font-semibold text-muted-foreground">名稱</th>
+                            <th className="px-4 py-4 text-xs font-serif font-semibold text-muted-foreground">售價</th>
+                            <th className="px-4 py-4 text-xs font-serif font-semibold text-muted-foreground">利潤</th>
+                            <th className="px-4 py-4 text-xs font-serif font-semibold text-muted-foreground">成本</th>
+                            <th className="px-4 py-4 text-xs font-serif font-semibold text-muted-foreground">庫存</th>
+                            <th className="px-4 py-4 text-xs font-serif font-semibold text-muted-foreground">狀態</th>
+                            <th className="px-4 py-4 text-xs font-serif font-semibold text-muted-foreground text-right w-[100px]">操作</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-border">
                         {products.length > 0 ? (
                             products.map((product, index) => {
                                 const profit = getProfit(product.price, product.cost)
+                                const isDragging = dragIndex === index
+
                                 return (
                                     <tr
                                         key={product.id}
-                                        className={`border-b border-zinc-800 hover:bg-zinc-800/50 ${dragIndex === index ? 'bg-zinc-800' : ''
-                                            }`}
+                                        className={`group transition-all ${isDragging ? 'bg-accent/5 opacity-50' : 'hover:bg-accent/5'}`}
                                         draggable
                                         onDragStart={() => handleDragStart(index)}
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDragEnd={handleDragEnd}
                                     >
-                                        <td className="px-2">
-                                            <div className="cursor-grab active:cursor-grabbing text-zinc-500 hover:text-zinc-300">
+                                        <td className="px-4 py-4">
+                                            <div className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground transition-colors">
                                                 <GripVertical className="h-4 w-4" />
                                             </div>
                                         </td>
-                                        <td className="px-2 md:px-4 py-3">
-                                            <span className="text-zinc-400 font-mono text-xs md:text-sm">
+                                        <td className="px-4 py-4 align-top">
+                                            <span className="text-muted-foreground font-mono text-xs">
                                                 {product.sku || '-'}
                                             </span>
                                         </td>
-                                        <td className="px-2 md:px-4 py-3">
-                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-zinc-800 rounded-lg overflow-hidden">
+                                        <td className="px-4 py-4 align-top">
+                                            <div className="w-12 h-12 bg-muted rounded-md border border-border overflow-hidden shrink-0">
                                                 {product.image_url ? (
                                                     <img src={product.image_url} alt="" className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center">
-                                                        <Package className="h-3 w-3 md:h-4 md:w-4 text-zinc-600" />
+                                                    <div className="w-full h-full flex items-center justify-center bg-accent/5">
+                                                        <Package className="h-5 w-5 text-muted-foreground/30" />
                                                     </div>
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-2 md:px-4 py-3">
-                                            <p className="font-medium text-white text-xs md:text-sm">{product.name}</p>
-                                            {product.brand && (
-                                                <p className="text-[10px] md:text-xs text-zinc-500">{product.brand}</p>
-                                            )}
+                                        <td className="px-4 py-4 align-top">
+                                            <div className="flex flex-col gap-1">
+                                                <p className="font-medium text-sm text-foreground group-hover:text-accent transition-colors">{product.name}</p>
+                                                {product.brand && (
+                                                    <p className="text-xs text-muted-foreground">{product.brand}</p>
+                                                )}
+                                            </div>
                                         </td>
-                                        <td className="px-2 md:px-4 py-3">
-                                            <span className="text-white text-xs md:text-sm">
-                                                {Number(product.price).toLocaleString()}
+                                        <td className="px-4 py-4 align-top">
+                                            <span className="text-sm font-medium text-foreground">
+                                                NT$ {Number(product.price).toLocaleString()}
                                             </span>
                                         </td>
-                                        <td className="px-2 md:px-4 py-3">
+                                        <td className="px-4 py-4 align-top">
                                             {profit !== null ? (
-                                                <span className={`${profit > 0 ? 'text-emerald-400' : 'text-red-400'} text-xs md:text-sm`}>
+                                                <span className={`text-sm font-medium ${profit > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                                                     {profit > 0 ? '+' : ''}{profit.toLocaleString()}
                                                 </span>
                                             ) : (
-                                                <span className="text-zinc-500">-</span>
+                                                <span className="text-muted-foreground">-</span>
                                             )}
                                         </td>
-                                        <td className="px-2 md:px-4 py-3">
-                                            <span className="text-zinc-400 text-xs md:text-sm">
-                                                {product.cost ? Number(product.cost).toLocaleString() : '-'}
+                                        <td className="px-4 py-4 align-top">
+                                            <span className="text-sm text-muted-foreground">
+                                                {product.cost ? `NT$ ${Number(product.cost).toLocaleString()}` : '-'}
                                             </span>
                                         </td>
-                                        <td className="px-2 md:px-4 py-3">
-                                            <span className={`${product.stock <= 5 ? 'text-amber-400' : 'text-white'} text-xs md:text-sm`}>
+                                        <td className="px-4 py-4 align-top">
+                                            <span className={`text-sm font-medium ${product.stock <= 5 ? 'text-amber-600' : 'text-foreground'}`}>
                                                 {product.stock}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-4 py-4 align-top">
                                             <button
                                                 onClick={() => toggleStatus(product.id, product.status)}
                                                 disabled={updating === product.id}
-                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${product.status === 'active' ? 'bg-emerald-500' : 'bg-zinc-600'
+                                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${product.status === 'active' ? 'bg-emerald-500' : 'bg-muted-foreground/30'
                                                     }`}
                                             >
                                                 {updating === product.id ? (
                                                     <Loader2 className="absolute left-1/2 -translate-x-1/2 h-3 w-3 text-white animate-spin" />
                                                 ) : (
-                                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${product.status === 'active' ? 'translate-x-6' : 'translate-x-1'
+                                                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${product.status === 'active' ? 'translate-x-4.5' : 'translate-x-0.5'
                                                         }`} />
                                                 )}
                                             </button>
-                                            <span className="ml-2 text-xs text-zinc-400">
+                                            <span className="ml-2 text-xs text-muted-foreground">
                                                 {statusLabels[product.status]}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 text-right">
+                                        <td className="px-4 py-4 text-right align-top">
                                             <div className="flex items-center justify-end gap-1">
                                                 <Link href={`/app/products/${product.id}`}>
-                                                    <button className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-lg">
+                                                    <button className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors">
                                                         <Edit className="h-4 w-4" />
                                                     </button>
                                                 </Link>
@@ -199,8 +202,9 @@ export function ProductListClient({ initialProducts }: Props) {
                             })
                         ) : (
                             <tr>
-                                <td colSpan={10} className="px-6 py-12 text-center text-zinc-500">
-                                    尚無商品，點擊右上角「新增商品」開始建立
+                                <td colSpan={10} className="px-6 py-12 text-center text-muted-foreground">
+                                    <Package className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                    <p>尚無商品，點擊右上角「新增商品」開始建立</p>
                                 </td>
                             </tr>
                         )}

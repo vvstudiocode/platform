@@ -70,18 +70,20 @@ export default async function AppLayout({
     ]
 
     return (
-        <div className="flex min-h-screen flex-col bg-zinc-950">
-            <header className="border-b border-zinc-800 bg-zinc-900 px-6 py-4 flex justify-between items-center">
+        <div className="flex min-h-screen flex-col bg-background">
+            <header className="border-b border-border bg-background/80 backdrop-blur-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
                 <div className="flex items-center gap-3">
                     {store.logo_url ? (
-                        <img src={store.logo_url} alt="" className="h-8 w-8 rounded-lg object-cover" />
+                        <img src={store.logo_url} alt="" className="h-8 w-8 rounded-lg object-cover shadow-sm" />
                     ) : (
-                        <Store className="h-5 w-5 text-white" />
+                        <div className="p-1.5 bg-accent/10 rounded-lg">
+                            <Store className="h-5 w-5 text-accent" />
+                        </div>
                     )}
-                    <span className="font-bold text-white">{store.name}</span>
+                    <span className="font-bold text-foreground font-serif">{store.name}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                    <Link href="/app/settings" className="md:hidden text-zinc-400 hover:text-white flex items-center gap-1 text-sm border border-zinc-700 rounded-lg px-3 py-1.5 hover:bg-zinc-800 transition-colors">
+                    <Link href="/app/settings" className="md:hidden text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm border border-border rounded-lg px-3 py-1.5 hover:bg-muted transition-colors">
                         <Settings className="h-4 w-4" />
                         <span className="hidden sm:inline">設定</span>
                     </Link>
@@ -89,13 +91,13 @@ export default async function AppLayout({
                         href={homeUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm border border-zinc-700 rounded-lg px-3 py-1.5 hover:bg-zinc-800 transition-colors"
+                        className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm border border-border rounded-lg px-3 py-1.5 hover:bg-muted transition-colors"
                     >
                         前往首頁
                     </a>
-                    <span className="text-sm text-zinc-400 hidden sm:block">{user.email}</span>
+                    <span className="text-sm text-muted-foreground hidden sm:block">{user.email}</span>
                     <form action="/api/auth/signout" method="POST">
-                        <button type="submit" className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm">
+                        <button type="submit" className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm">
                             <LogOut className="h-4 w-4" />
                             <span className="hidden sm:inline">登出</span>
                         </button>

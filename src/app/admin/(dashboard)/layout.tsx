@@ -59,7 +59,7 @@ export default async function AdminLayout({
     const { data: homepage } = await supabase
         .from('pages')
         .select('slug')
-        .eq('tenant_id', hqStore?.id)
+        .eq('tenant_id', hqStore?.id || '')
         .eq('is_homepage', true)
         .eq('published', true)
         .maybeSingle()
@@ -95,10 +95,12 @@ export default async function AdminLayout({
     ]
 
     return (
-        <div className="flex min-h-screen flex-col bg-zinc-950">
-            <header className="border-b border-zinc-800 bg-zinc-900 px-6 py-4 flex justify-between items-center">
-                <Link href="/admin" className="font-bold text-white flex items-center gap-2">
-                    <Store className="h-5 w-5" />
+        <div className="flex min-h-screen flex-col bg-background">
+            <header className="border-b border-border bg-background/80 backdrop-blur-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+                <Link href="/admin" className="font-bold text-foreground flex items-center gap-2 font-serif">
+                    <div className="p-1.5 bg-accent/10 rounded-lg">
+                        <Store className="h-5 w-5 text-accent" />
+                    </div>
                     總部管理後台
                 </Link>
                 <div className="flex items-center gap-4">
@@ -106,13 +108,13 @@ export default async function AdminLayout({
                         href={homeUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm border border-zinc-700 rounded-lg px-3 py-1.5 hover:bg-zinc-800 transition-colors"
+                        className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm border border-border rounded-lg px-3 py-1.5 hover:bg-muted transition-colors"
                     >
                         前往首頁
                     </a>
-                    <span className="text-sm text-zinc-400 hidden sm:block">{user.email}</span>
+                    <span className="text-sm text-muted-foreground hidden sm:block">{user.email}</span>
                     <form action="/api/auth/signout" method="POST">
-                        <button type="submit" className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm">
+                        <button type="submit" className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm">
                             <LogOut className="h-4 w-4" />
                             <span className="hidden sm:inline">登出</span>
                         </button>

@@ -62,7 +62,7 @@ export default async function ProductDetailPage({ params }: Props) {
     // 取得商品
     const { data: product } = await supabase
         .from('products')
-        .select('*')
+        .select('*, variants:product_variants(*)')
         .eq('id', productId)
         .eq('tenant_id', store.id)
         .eq('status', 'active')
@@ -105,7 +105,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 name: product.name,
                 description: product.description,
                 price: Number(product.price),
-                stock: product.stock,
+                stock: product.stock || 0,
                 image_url: product.image_url,
                 images: (product.images as string[]) || [],
                 brand: product.brand,

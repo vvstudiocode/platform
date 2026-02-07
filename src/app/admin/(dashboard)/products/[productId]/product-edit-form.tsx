@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ProductImagesInput } from '@/components/admin/product-images-input'
+import { ProductImagesInput, ImageItem } from '@/components/admin/product-images-input'
 import { ProductVariantsEditor, ProductOption, ProductVariant } from '@/components/admin/product-variants-editor'
 
 interface Props {
@@ -35,17 +35,64 @@ export function ProductEditForm({ product, updateAction }: Props) {
 
     // State for Images & Variants
     // Handle initial images: if generic 'images' array is empty but legacy 'image_url' exists, use it.
-    const initialImages = product.images && product.images.length > 0
+    const initialImagesStrings = product.images && product.images.length > 0
         ? product.images
         : (product.image_url ? [product.image_url] : [])
 
-    const [images, setImages] = useState<string[]>(initialImages)
+    const initialImageItems: ImageItem[] = initialImagesStrings.map(url => ({
+        type: 'url',
+        id: url, // Use URL as ID for existing images
+        url: url
+    }))
+
+    const [images, setImages] = useState<ImageItem[]>(initialImageItems)
+    const [deletedImageUrls, setDeletedImageUrls] = useState<string[]>([])
+
     const [options, setOptions] = useState<ProductOption[]>(product.options || [])
     const [variants, setVariants] = useState<ProductVariant[]>(product.variants || [])
 
     const [price, setPrice] = useState(product.price)
     const [stock, setStock] = useState(product.stock)
     const [sku, setSku] = useState(product.sku || '')
+
+    const handleImagesChange = (newImages: ImageItem[]) => {
+        // Find if any URL items were removed
+        const currentUrls = new Set(newImages.filter(i => i.type === 'url').map(i => i.url))
+        const removedUrls = images
+            .filter(i => i.type === 'url' && !currentUrls.has(i.url))
+            .map(i => (i as any).url)
+
+        if (removedUrls.length > 0) {
+            setDeletedImageUrls(prev => [...prev, ...removedUrls])
+        }
+
+        setImages(newImages)
+    }
+
+    const handleSubmit = async (formData: FormData) => {
+        // Prepare image data
+        const imageOrder: string[] = []
+
+        images.forEach((item, index) => {
+            if (item.type === 'url') {
+                imageOrder.push(item.url)
+            } else {
+                // New file
+                imageOrder.push(`new_file_${index}`)
+                formData.append(`new_file_${index}`, item.file)
+            }
+        })
+
+        formData.append('image_order', JSON.stringify(imageOrder))
+        formData.append('deleted_images', JSON.stringify(deletedImageUrls))
+
+        // Also stringify other complex data
+        formData.set('options', JSON.stringify(options))
+        formData.set('variants', JSON.stringify(variants))
+
+        // Call server action
+        return formAction(formData)
+    }
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -62,13 +109,7 @@ export function ProductEditForm({ product, updateAction }: Props) {
                 </div>
             )}
 
-            <form action={formAction} className="space-y-6">
-                {/* Hidden Inputs for JSON data */}
-                <input type="hidden" name="images" value={JSON.stringify(images)} />
-                <input type="hidden" name="options" value={JSON.stringify(options)} />
-                <input type="hidden" name="variants" value={JSON.stringify(variants)} />
-                {/* Fallback image_url (first image) for compatibility */}
-                <input type="hidden" name="image_url" value={images[0] || ''} />
+            <form action={handleSubmit} className="space-y-6">
 
                 <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 space-y-6">
                     {/* 基本資訊 */}
@@ -105,8 +146,8 @@ export function ProductEditForm({ product, updateAction }: Props) {
                     <div className="space-y-4 border-t border-zinc-800 pt-6">
                         <h2 className="text-lg font-semibold text-white">商品圖片</h2>
                         <ProductImagesInput
-                            images={images}
-                            onChange={setImages}
+                            items={images}
+                            onChange={handleImagesChange}
                             maxImages={5}
                         />
                     </div>

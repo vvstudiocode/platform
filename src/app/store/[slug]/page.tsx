@@ -95,7 +95,10 @@ export default async function StorefrontPage({ params }: Props) {
                 settings: settings,
                 footerSettings: footerSettings,
             }}
-            products={products || []}
+            products={products?.map(p => ({
+                ...p,
+                stock: p.stock || 0
+            })) || []}
             navItems={clientNavItems}
         />
     )

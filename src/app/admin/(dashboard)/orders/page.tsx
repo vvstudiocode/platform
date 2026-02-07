@@ -4,40 +4,40 @@ import Link from 'next/link'
 import { ShoppingCart, Eye, Search, Filter } from 'lucide-react'
 import { OrderTable } from '@/components/admin/order-table'
 import { OrderFormModal } from '@/components/admin/order-form-modal'
+import { SearchInput } from '@/components/ui/search-input'
 
-// 取得總部商店 ID
-async function getHQStoreId(supabase: any, userId: string) {
+// 取得總部商店
+async function getHQStore(supabase: any, userId: string) {
     const { data } = await supabase
         .from('tenants')
-        .select('id')
+        .select('id, settings')
         .or(`slug.eq.hq,managed_by.eq.${userId}`)
         .order('created_at', { ascending: true })
         .limit(1)
         .single()
 
-    return data?.id
+    return data
 }
 
 export default async function AdminOrdersPage({
     searchParams,
 }: {
-    searchParams: Promise<{ status?: string }>
+    searchParams: Promise<{ status?: string; q?: string }>
 }) {
-    const { status: statusFilter } = await searchParams
+    const { status: statusFilter, q: searchQuery } = await searchParams
     const supabase = await createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect('/admin/login')
 
-    const hqStoreId = await getHQStoreId(supabase, user.id)
+    const hqStore = await getHQStore(supabase, user.id)
 
-    if (!hqStoreId) {
+    if (!hqStore) {
         return (
             <div className="space-y-6">
-                <h1 className="text-2xl font-bold text-white">訂單管理</h1>
-                <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-8 text-center">
-                    <ShoppingCart className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                    <p className="text-zinc-400">尚未建立總部商店</p>
+                <h1 className="text-2xl font-bold text-foreground">訂單管理</h1>
+                <div className="bg-card rounded-xl border border-border p-8 text-center text-muted-foreground">
+                    <p>尚未建立總部商店</p>
                 </div>
             </div>
         )
@@ -46,32 +46,18 @@ export default async function AdminOrdersPage({
     let query = supabase
         .from('orders')
         .select('*')
-        .eq('tenant_id', hqStoreId)
+        .eq('tenant_id', hqStore.id)
         .order('created_at', { ascending: false })
 
     if (statusFilter && statusFilter !== 'all') {
         query = query.eq('status', statusFilter)
     }
 
+    if (searchQuery) {
+        query = query.or(`order_number.ilike.%${searchQuery}%,customer_name.ilike.%${searchQuery}%,customer_phone.ilike.%${searchQuery}%`)
+    }
+
     const { data: orders } = await query
-
-    const statusLabels: Record<string, string> = {
-        pending: '待付款',
-        paid: '已付款',
-        processing: '處理中',
-        shipped: '已出貨',
-        completed: '已完成',
-        cancelled: '已取消',
-    }
-
-    const statusColors: Record<string, string> = {
-        pending: 'bg-amber-500/20 text-amber-400',
-        paid: 'bg-emerald-500/20 text-emerald-400',
-        processing: 'bg-blue-500/20 text-blue-400',
-        shipped: 'bg-purple-500/20 text-purple-400',
-        completed: 'bg-green-500/20 text-green-400',
-        cancelled: 'bg-red-500/20 text-red-400',
-    }
 
     const filters = [
         { value: 'all', label: '全部' },
@@ -84,30 +70,42 @@ export default async function AdminOrdersPage({
 
     const { data: products } = await supabase
         .from('products')
-        .select('id, name, price, stock')
-        .eq('tenant_id', hqStoreId)
+        .select('id, name, price, stock, images')
+        .eq('tenant_id', hqStore.id)
         .order('name')
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-white">訂單管理</h1>
-                <OrderFormModal
-                    storeId={hqStoreId}
-                    storeSlug="hq"
-                    products={products || []}
-                />
+                <SearchInput placeholder="搜尋訂單編號、客戶名稱..." className="w-full max-w-sm" />
+                <div className="flex items-center gap-3">
+                    {/* Status Tabs/Filters could be here or below. Existing UI has them below. Let's keep them and maybe add the "Add Order" button here better. */}
+                    <OrderFormModal
+                        storeId={hqStore.id}
+                        storeSlug="hq"
+                        products={products?.map(p => ({
+                            ...p,
+                            stock: p.stock || 0,
+                            images: (p.images as unknown as string[]) || []
+                        })) || []}
+                        settings={hqStore.settings}
+                    />
+                </div>
             </div>
 
-            {/* Filters */}
+            {/* Filters Row */}
             <div className="flex gap-2 overflow-x-auto pb-2">
                 {filters.map((filter) => (
                     <Link
                         key={filter.value}
-                        href={`/admin/orders${filter.value === 'all' ? '' : `?status=${filter.value}`}`}
+                        href={`/admin/orders?${new URLSearchParams({
+                            ...(statusFilter ? { status: statusFilter } : {}),
+                            ...(searchQuery ? { q: searchQuery } : {}),
+                            status: filter.value
+                        }).toString()}`}
                         className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${(statusFilter || 'all') === filter.value
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                            ? 'bg-accent text-accent-foreground shadow-sm'
+                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
                             }`}
                     >
                         {filter.label}
@@ -116,9 +114,14 @@ export default async function AdminOrdersPage({
             </div>
 
             <OrderTable
-                orders={orders || []}
-                products={products || []}
+                orders={orders as any || []}
+                products={products?.map(p => ({
+                    ...p,
+                    stock: p.stock || 0,
+                    images: (p.images as unknown as string[]) || []
+                })) || []}
                 isHQ={true}
+                settings={hqStore.settings}
             />
         </div>
     )

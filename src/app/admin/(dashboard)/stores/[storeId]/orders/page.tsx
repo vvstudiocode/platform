@@ -22,7 +22,7 @@ export default async function StoreOrdersPage({ params, searchParams }: Props) {
         .from('tenants')
         .select('id, name, slug')
         .eq('id', storeId)
-        .eq('managed_by', user?.id)
+        .eq('managed_by', user?.id || '')
         .single()
 
     if (!store) {
@@ -84,7 +84,7 @@ export default async function StoreOrdersPage({ params, searchParams }: Props) {
                 <OrderFormModal
                     storeId={storeId}
                     storeSlug={store.slug}
-                    products={products || []}
+                    products={products?.map(p => ({ ...p, stock: p.stock || 0 })) || []}
                 />
             </div>
 
@@ -112,8 +112,8 @@ export default async function StoreOrdersPage({ params, searchParams }: Props) {
             {orders && orders.length > 0 ? (
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
                     <OrderTable
-                        orders={orders}
-                        products={products || []}
+                        orders={(orders as any[]) || []}
+                        products={products?.map(p => ({ ...p, stock: p.stock || 0 })) || []}
                         storeId={storeId}
                         isHQ={false}
                     />

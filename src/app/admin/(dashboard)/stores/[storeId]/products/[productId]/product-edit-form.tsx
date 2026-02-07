@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ProductImagesInput } from '@/components/admin/product-images-input'
+import { ProductImagesInput, ImageItem } from '@/components/admin/product-images-input'
 import { ProductVariantsEditor, ProductOption, ProductVariant } from '@/components/admin/product-variants-editor'
 import { Combobox } from '@/components/ui/combobox'
 
@@ -54,11 +54,16 @@ export function ProductEditForm({ product, storeId, storeName, storeSlug }: Prop
             .catch(console.error)
     }, [storeId])
 
-    const initialImages = product.images && product.images.length > 0
+    const initialImages: ImageItem[] = (product.images && product.images.length > 0
         ? product.images
         : (product.image_url ? [product.image_url] : [])
+    ).map(url => ({
+        type: 'url',
+        id: url,
+        url: url
+    }))
 
-    const [images, setImages] = useState<string[]>(initialImages)
+    const [images, setImages] = useState<ImageItem[]>(initialImages)
     const [options, setOptions] = useState<ProductOption[]>(product.options || [])
     const [variants, setVariants] = useState<ProductVariant[]>(product.variants || [])
 
@@ -102,10 +107,10 @@ export function ProductEditForm({ product, storeId, storeName, storeSlug }: Prop
             <form action={formAction} className="space-y-6">
                 <input type="hidden" name="storeId" value={storeId} />
                 <input type="hidden" name="productId" value={product.id} />
-                <input type="hidden" name="images" value={JSON.stringify(images)} />
+                <input type="hidden" name="images" value={JSON.stringify(images.map(i => i.type === 'url' ? i.url : (i as any).preview || ''))} />
                 <input type="hidden" name="options" value={JSON.stringify(options)} />
                 <input type="hidden" name="variants" value={JSON.stringify(variants)} />
-                <input type="hidden" name="imageUrl" value={images[0] || ''} />
+                <input type="hidden" name="imageUrl" value={(images[0] as any)?.url || (images[0] as any)?.preview || ''} />
 
                 <Card className="bg-zinc-900 border-zinc-800">
                     <CardHeader className="border-b border-zinc-800">
@@ -169,7 +174,7 @@ export function ProductEditForm({ product, storeId, storeName, storeSlug }: Prop
                         <div className="space-y-4">
                             <h3 className="text-sm font-medium text-zinc-300 border-b border-zinc-800 pb-2">商品圖片</h3>
                             <ProductImagesInput
-                                images={images}
+                                items={images}
                                 onChange={setImages}
                                 maxImages={5}
                             />

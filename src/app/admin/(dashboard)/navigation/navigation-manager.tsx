@@ -122,22 +122,22 @@ function SortableItem({ id, item, onRemove, depth }: SortableItemProps) {
         <div
             ref={setNodeRef}
             style={style}
-            className={`p-4 flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-lg mb-2 relative ${isDragging ? 'opacity-50 z-50' : ''}`}
+            className={`p-4 flex items-center justify-between bg-card border border-border rounded-lg mb-2 relative shadow-sm ${isDragging ? 'opacity-50 z-50 ring-2 ring-accent' : ''}`}
         >
             {/* Visual connector for nested items */}
             {depth > 0 && (
-                <div className="absolute -left-6 top-1/2 -mt-4 text-zinc-700">
+                <div className="absolute -left-6 top-1/2 -mt-4 text-muted-foreground/50">
                     <CornerDownRight className="h-5 w-5" />
                 </div>
             )}
 
             <div className="flex items-center gap-3">
-                <div {...attributes} {...listeners} className="cursor-grab hover:text-white text-zinc-500">
+                <div {...attributes} {...listeners} className="cursor-grab hover:text-foreground text-muted-foreground">
                     <GripVertical className="h-5 w-5" />
                 </div>
                 <div>
-                    <p className="font-medium text-white">{item.title}</p>
-                    <p className="text-sm text-zinc-500">/{item.pages?.slug}</p>
+                    <p className="font-medium text-foreground">{item.title}</p>
+                    <p className="text-sm text-muted-foreground">/{item.pages?.slug}</p>
                 </div>
             </div>
             <Button
@@ -257,19 +257,19 @@ export function NavigationManager({ navItems, availablePages }: Props) {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-white">導覽目錄管理</h1>
+                <h1 className="text-2xl font-serif font-bold text-foreground">導覽目錄管理</h1>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setShowPagePicker(true)}>
+                    <Button variant="outline" onClick={() => setShowPagePicker(true)} className="border-border hover:bg-muted">
                         <Plus className="h-4 w-4 mr-2" />
                         新增頁面
                     </Button>
-                    <Button onClick={saveOrder} disabled={saving}>
+                    <Button onClick={saveOrder} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">
                         {saving ? '儲存中...' : '儲存排序'}
                     </Button>
                 </div>
             </div>
 
-            <p className="text-zinc-400">
+            <p className="text-muted-foreground">
                 提示：拖曳調整順序，使用 &gt; 按鈕將項目向右縮排成為子選單（目前支援兩層結構）。
             </p>
 
@@ -287,7 +287,7 @@ export function NavigationManager({ navItems, availablePages }: Props) {
                     >
                         <div className="space-y-2">
                             {items.length === 0 ? (
-                                <div className="p-12 text-center text-zinc-500 bg-zinc-900 border border-zinc-800 rounded-xl">
+                                <div className="p-12 text-center text-muted-foreground bg-card border border-border rounded-xl">
                                     <p>目前沒有導覽項目</p>
                                     <p className="text-sm mt-1">點擊「新增頁面」來加入導覽</p>
                                 </div>
@@ -308,8 +308,8 @@ export function NavigationManager({ navItems, availablePages }: Props) {
                                             <button
                                                 onClick={() => updateDepth(item.id, -1)}
                                                 className={`p-1 rounded border transition-colors ${!item.depth || item.depth === 0
-                                                    ? 'bg-zinc-900 border-zinc-800 text-zinc-700 cursor-not-allowed'
-                                                    : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white'
+                                                    ? 'bg-muted border-border text-muted-foreground/50 cursor-not-allowed hidden'
+                                                    : 'bg-card border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground shadow-sm'
                                                     }`}
                                                 disabled={!item.depth || item.depth === 0}
                                                 title="減少縮排 (移出子選單)"
@@ -319,8 +319,8 @@ export function NavigationManager({ navItems, availablePages }: Props) {
                                             <button
                                                 onClick={() => updateDepth(item.id, 1)}
                                                 className={`p-1 rounded border transition-colors ${item.depth === 1
-                                                    ? 'bg-zinc-900 border-zinc-800 text-zinc-700 cursor-not-allowed'
-                                                    : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white'
+                                                    ? 'bg-muted border-border text-muted-foreground/50 cursor-not-allowed hidden'
+                                                    : 'bg-card border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground shadow-sm'
                                                     }`}
                                                 disabled={item.depth === 1}
                                                 title="增加縮排 (成為子選單)"
@@ -360,20 +360,20 @@ export function NavigationManager({ navItems, availablePages }: Props) {
 
             {/* Page Picker Modal */}
             {showPagePicker && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-zinc-900 rounded-xl border border-zinc-800 w-full max-w-md max-h-[80vh] overflow-hidden">
-                        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-                            <h2 className="text-lg font-semibold text-white">選擇頁面</h2>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-card rounded-xl border border-border w-full max-w-md max-h-[80vh] overflow-hidden shadow-lg">
+                        <div className="flex items-center justify-between p-4 border-b border-border">
+                            <h2 className="text-lg font-semibold text-foreground">選擇頁面</h2>
                             <button
                                 onClick={() => setShowPagePicker(false)}
-                                className="p-2 text-zinc-400 hover:text-white"
+                                className="p-2 text-muted-foreground hover:text-foreground"
                             >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
-                        <div className="overflow-y-auto max-h-[60vh] divide-y divide-zinc-800">
+                        <div className="overflow-y-auto max-h-[60vh] divide-y divide-border">
                             {addablePages.length === 0 ? (
-                                <div className="p-8 text-center text-zinc-500">
+                                <div className="p-8 text-center text-muted-foreground">
                                     所有頁面都已在導覽中
                                 </div>
                             ) : (
@@ -381,10 +381,10 @@ export function NavigationManager({ navItems, availablePages }: Props) {
                                     <button
                                         key={page.id}
                                         onClick={() => handleAddPage(page)}
-                                        className="w-full p-4 text-left hover:bg-zinc-800 transition"
+                                        className="w-full p-4 text-left hover:bg-muted transition"
                                     >
-                                        <p className="font-medium text-white">{page.title}</p>
-                                        <p className="text-sm text-zinc-500">/p/{page.slug}</p>
+                                        <p className="font-medium text-foreground">{page.title}</p>
+                                        <p className="text-sm text-muted-foreground">/p/{page.slug}</p>
                                     </button>
                                 ))
                             )}

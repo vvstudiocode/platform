@@ -107,7 +107,7 @@ export async function updatePage(pageId: string, prevState: any, formData: FormD
     const { data: tenant } = await supabase
         .from('tenants')
         .select('id, slug, managed_by')
-        .eq('id', tenantId)
+        .eq('id', tenantId || '')
         .single()
 
     if (!tenant) return { error: '找不到相關商店' }
@@ -144,7 +144,7 @@ export async function updatePage(pageId: string, prevState: any, formData: FormD
         await supabase
             .from('pages')
             .update({ is_homepage: false })
-            .eq('tenant_id', tenantId)
+            .eq('tenant_id', tenantId || '')
             .neq('id', pageId)
     }
 

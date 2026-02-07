@@ -17,7 +17,7 @@ export default async function EditStorePagePage({ params }: Props) {
         .from('tenants')
         .select('id, name, slug')
         .eq('id', storeId)
-        .eq('managed_by', user?.id)
+        .eq('managed_by', user?.id || '')
         .single()
 
     if (!store) {
@@ -46,8 +46,8 @@ export default async function EditStorePagePage({ params }: Props) {
                 id: page.id,
                 title: page.title,
                 slug: page.slug,
-                is_homepage: page.is_homepage,
-                published: page.published,
+                is_homepage: page.is_homepage || false,
+                published: page.published || false,
                 content: (page.content as any[]) || [],
             }}
             updateAction={boundUpdatePage}

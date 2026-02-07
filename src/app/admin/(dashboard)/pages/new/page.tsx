@@ -16,41 +16,41 @@ export default function NewPagePage() {
     return (
         <div className="max-w-2xl mx-auto space-y-6">
             <div className="flex items-center gap-4">
-                <Link href="/admin/pages" className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white">
+                <Link href="/admin/pages" className="p-2 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft className="h-5 w-5" />
                 </Link>
-                <h1 className="text-2xl font-bold text-white">新增頁面</h1>
+                <h1 className="text-2xl font-bold text-foreground">新增頁面</h1>
             </div>
 
             {state.error && (
-                <div className="bg-red-500/20 border border-red-500 text-red-400 rounded-lg p-4">
+                <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-lg p-4">
                     {state.error}
                 </div>
             )}
 
-            <form action={formAction} className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 space-y-6">
+            <form action={formAction} className="bg-card rounded-xl border border-border p-6 space-y-6 shadow-soft">
                 <div className="space-y-4">
                     <div>
                         <Label htmlFor="title">頁面標題 *</Label>
-                        <Input id="title" name="title" required placeholder="例：關於我們" />
+                        <Input id="title" name="title" required placeholder="例：關於我們" className="mt-1.5" />
                     </div>
 
                     <div>
                         <Label htmlFor="slug">頁面網址 *</Label>
-                        <div className="flex items-center gap-2">
-                            <span className="text-zinc-500">/</span>
+                        <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-muted-foreground">/</span>
                             <Input id="slug" name="slug" required placeholder="about-us" />
                         </div>
-                        <p className="text-sm text-zinc-500 mt-1">只能使用小寫英文字母、數字和連字符</p>
+                        <p className="text-sm text-muted-foreground mt-1">只能使用小寫英文字母、數字和連字符</p>
                     </div>
                 </div>
 
-                <div className="space-y-4 border-t border-zinc-800 pt-6">
-                    <h2 className="text-lg font-semibold text-white">SEO 設定</h2>
+                <div className="space-y-4 border-t border-border pt-6">
+                    <h2 className="text-lg font-semibold text-foreground">SEO 設定</h2>
 
                     <div>
                         <Label htmlFor="meta_title">Meta 標題</Label>
-                        <Input id="meta_title" name="meta_title" placeholder="搜尋引擎顯示的標題" />
+                        <Input id="meta_title" name="meta_title" placeholder="搜尋引擎顯示的標題" className="mt-1.5" />
                     </div>
 
                     <div>
@@ -59,32 +59,32 @@ export default function NewPagePage() {
                             id="meta_description"
                             name="meta_description"
                             rows={3}
-                            className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 mt-1.5 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                             placeholder="搜尋引擎顯示的描述"
                         />
                     </div>
                 </div>
 
-                <div className="space-y-4 border-t border-zinc-800 pt-6">
-                    <h2 className="text-lg font-semibold text-white">頁面設定</h2>
+                <div className="space-y-4 border-t border-border pt-6">
+                    <h2 className="text-lg font-semibold text-foreground">頁面設定</h2>
 
                     <div className="flex items-center gap-6">
-                        <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                            <input type="checkbox" name="is_homepage" className="rounded border-zinc-700 bg-zinc-800" />
+                        <label className="flex items-center gap-2 text-foreground cursor-pointer select-none">
+                            <input type="checkbox" name="is_homepage" className="rounded border-input bg-background text-primary focus:ring-ring" />
                             設為首頁
                         </label>
-                        <label className="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                            <input type="checkbox" name="published" className="rounded border-zinc-700 bg-zinc-800" />
+                        <label className="flex items-center gap-2 text-foreground cursor-pointer select-none">
+                            <input type="checkbox" name="published" className="rounded border-input bg-background text-primary focus:ring-ring" />
                             立即發布
                         </label>
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800">
+                <div className="flex justify-end gap-3 pt-4 border-t border-border">
                     <Link href="/admin/pages">
                         <Button type="button" variant="outline">取消</Button>
                     </Link>
-                    <Button type="submit" disabled={pending}>
+                    <Button type="submit" disabled={pending} className="bg-foreground text-background hover:bg-foreground/90 shadow-soft">
                         {pending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                         建立頁面
                     </Button>

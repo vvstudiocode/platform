@@ -49,7 +49,7 @@ export async function deleteStore(storeId: string) {
 
     if (orders && orders.length > 0) {
         const orderIds = orders.map(o => o.id)
-        await supabase.from('order_items').delete().in('order_id', orderIds)
+        await supabase.from('order_items' as any).delete().in('order_id', orderIds)
         await supabase.from('orders').delete().eq('tenant_id', storeId)
     }
 

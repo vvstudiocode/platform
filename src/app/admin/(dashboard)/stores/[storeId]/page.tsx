@@ -18,7 +18,7 @@ export default async function StoreDetailPage({ params }: Props) {
         .from('tenants')
         .select('*')
         .eq('id', storeId)
-        .eq('managed_by', user?.id)
+        .eq('managed_by', user?.id || '')
         .single()
 
     if (!store) {
@@ -215,11 +215,11 @@ export default async function StoreDetailPage({ params }: Props) {
                     <div>
                         <p className="text-sm text-zinc-500">建立時間</p>
                         <p className="text-zinc-300">
-                            {new Date(store.created_at).toLocaleDateString('zh-TW', {
+                            {store.created_at ? new Date(store.created_at).toLocaleDateString('zh-TW', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric',
-                            })}
+                            }) : '-'}
                         </p>
                     </div>
                     <div>

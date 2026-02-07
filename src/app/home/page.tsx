@@ -65,7 +65,7 @@ export default async function HomePage() {
             <div className="min-h-screen bg-white">
                 <SiteHeader
                     storeName={hqStore.name}
-                    logoUrl={hqStore.logo_url}
+                    logoUrl={hqStore.logo_url || undefined}
                     navItems={navMenuItems}
                     homeSlug={homepage.slug}
                 />
@@ -75,7 +75,7 @@ export default async function HomePage() {
                         content={content}
                         storeSlug={hqStore.slug}
                         tenantId={hqStore.id}
-                        backgroundColor={homepage.background_color}
+                        backgroundColor={homepage.background_color || undefined}
                     />
                 </main>
 

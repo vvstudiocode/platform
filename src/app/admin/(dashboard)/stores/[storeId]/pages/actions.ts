@@ -91,7 +91,7 @@ export async function updateStorePage(storeId: string, pageId: string, prevState
     const { data: store } = await supabase
         .from('tenants')
         .select('id, slug, managed_by')
-        .eq('id', tenantId)
+        .eq('id', tenantId || '')
         .eq('managed_by', user.id) // 確保是管理者
         .single()
 
@@ -115,7 +115,7 @@ export async function updateStorePage(storeId: string, pageId: string, prevState
         await supabase
             .from('pages')
             .update({ is_homepage: false })
-            .eq('tenant_id', tenantId) // 使用確定的 tenantId
+            .eq('tenant_id', tenantId || '') // 使用確定的 tenantId
             .neq('id', pageId)
     }
 

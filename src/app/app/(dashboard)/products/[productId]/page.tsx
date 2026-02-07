@@ -40,16 +40,16 @@ export default async function EditProductPage({ params }: Props) {
                 category: product.category,
                 price: Number(product.price),
                 cost: product.cost ? Number(product.cost) : null,
-                stock: product.stock,
+                stock: product.stock || 0,
                 sku: product.sku,
                 image_url: product.image_url,
-                status: product.status,
+                status: product.status as any,
                 seo_title: product.seo_title,
                 seo_description: product.seo_description,
                 seo_keywords: product.seo_keywords,
-                images: product.images || [],
-                options: product.options || [],
-                variants: variants || []
+                images: (product.images as string[]) || [],
+                options: (product.options as any[]) || [],
+                variants: (variants as any[]) || []
             }}
             updateAction={boundUpdateProduct}
             storeSlug={product.tenants?.slug}

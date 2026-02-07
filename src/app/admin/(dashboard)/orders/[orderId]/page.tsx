@@ -30,10 +30,18 @@ export default async function OrderDetailPage({ params }: Props) {
         options?: Record<string, string>
     }>
 
+    const { data: tenant } = await supabase
+        .from('tenants')
+        .select('settings')
+        .eq('id', order.tenant_id!)
+        .single()
+
+    const settings = (tenant?.settings as any) || {}
+
     const shippingLabels: Record<string, string> = {
-        pickup: '面交取貨',
-        '711': '7-11 店到店',
-        home: '宅配到府',
+        pickup: settings.shipping_pickup_name || '面交取貨',
+        '711': settings.shipping_711_name || '7-11 店到店',
+        home: settings.shipping_home_name || '宅配到府',
     }
 
     return (
@@ -48,7 +56,7 @@ export default async function OrderDetailPage({ params }: Props) {
                         <p className="text-zinc-400 font-mono">{order.order_number}</p>
                     </div>
                 </div>
-                <OrderStatusSelect orderId={order.id} currentStatus={order.status} />
+                <OrderStatusSelect orderId={order.id} currentStatus={order.status || ''} />
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -85,7 +93,7 @@ export default async function OrderDetailPage({ params }: Props) {
                     <div className="space-y-3">
                         <div className="flex items-center gap-3 text-zinc-300">
                             <Package className="h-4 w-4 text-zinc-500" />
-                            {shippingLabels[order.shipping_method] || order.shipping_method}
+                            {shippingLabels[order.shipping_method || ''] || order.shipping_method}
                         </div>
                         {order.shipping_method === '711' && order.store_name && (
                             <div className="flex items-center gap-3 text-zinc-300">
@@ -171,18 +179,18 @@ export default async function OrderDetailPage({ params }: Props) {
                 <div className="grid sm:grid-cols-3 gap-4 text-sm">
                     <div>
                         <p className="text-zinc-500">建立時間</p>
-                        <p className="text-zinc-300">{new Date(order.created_at).toLocaleString('zh-TW')}</p>
+                        <p className="text-zinc-300">{order.created_at ? new Date(order.created_at).toLocaleString('zh-TW') : '-'}</p>
                     </div>
-                    {order.paid_at && (
+                    {(order as any).paid_at && (
                         <div>
                             <p className="text-zinc-500">付款時間</p>
-                            <p className="text-zinc-300">{new Date(order.paid_at).toLocaleString('zh-TW')}</p>
+                            <p className="text-zinc-300">{new Date((order as any).paid_at).toLocaleString('zh-TW')}</p>
                         </div>
                     )}
-                    {order.shipped_at && (
+                    {(order as any).shipped_at && (
                         <div>
                             <p className="text-zinc-500">出貨時間</p>
-                            <p className="text-zinc-300">{new Date(order.shipped_at).toLocaleString('zh-TW')}</p>
+                            <p className="text-zinc-300">{new Date((order as any).shipped_at).toLocaleString('zh-TW')}</p>
                         </div>
                     )}
                 </div>

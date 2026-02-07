@@ -110,7 +110,11 @@ export default async function StoreCustomPage({ params }: Props) {
     return (
         <StorePageClient
             store={storeData}
-            page={page}
+            page={{
+                ...page,
+                content: (page.content as any[]) || [],
+                background_color: page.background_color || undefined
+            }}
             navItems={navMenuItems}
             homeSlug={homepage?.slug}
         />

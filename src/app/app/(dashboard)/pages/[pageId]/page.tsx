@@ -47,19 +47,19 @@ export default async function EditPagePage({ params }: Props) {
                 id: page.id,
                 title: page.title,
                 slug: page.slug,
-                is_homepage: page.is_homepage,
-                published: page.published,
+                is_homepage: page.is_homepage || false,
+                published: page.published || false,
                 show_in_nav: page.show_in_nav ?? false,
                 nav_order: page.nav_order ?? 0,
-                background_color: page.background_color,
-                seo_title: page.seo_title,
-                seo_description: page.seo_description,
-                seo_keywords: page.seo_keywords,
+                background_color: page.background_color || undefined,
+                seo_title: page.seo_title || undefined,
+                seo_description: page.seo_description || undefined,
+                seo_keywords: page.seo_keywords || undefined,
                 content: (page.content as any[]) || [],
             }}
             updateAction={boundUpdatePage}
             storeSlug={storeSlug}
-            tenantId={tenantId}
+            tenantId={tenantId || ''}
         />
     )
 }

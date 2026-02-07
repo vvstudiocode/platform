@@ -15,7 +15,7 @@ export default async function NewStorePagePage({ params }: Props) {
         .from('tenants')
         .select('id, name')
         .eq('id', storeId)
-        .eq('managed_by', user?.id)
+        .eq('managed_by', user?.id || '')
         .single()
 
     if (!store) {

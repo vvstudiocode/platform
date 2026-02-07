@@ -42,8 +42,8 @@ export default async function AppNavigationPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-white">導覽目錄管理</h1>
-                <p className="text-zinc-400 text-sm mt-1">拖拉調整選單順序，管理網站導覽列</p>
+                <h1 className="text-2xl font-serif font-bold text-foreground">導覽目錄管理</h1>
+                <p className="text-muted-foreground text-sm mt-1">拖拉調整選單順序，管理網站導覽列</p>
             </div>
             <NavigationManager
                 navItems={(navItems || []) as any}

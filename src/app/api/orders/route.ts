@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
                 )
             }
 
-            if (product.stock < item.quantity) {
+            if ((product.stock || 0) < item.quantity) {
                 return NextResponse.json(
                     { error: `商品 ${product.name} 庫存不足` },
                     { status: 400 }
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
         // 扣除庫存
         for (const item of items) {
             await supabase.rpc('decrement_stock', {
-                product_id: item.productId,
+                product_uuid: item.productId,
                 amount: item.quantity,
             })
         }

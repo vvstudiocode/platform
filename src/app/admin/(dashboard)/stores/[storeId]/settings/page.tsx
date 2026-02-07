@@ -19,7 +19,7 @@ export default async function StoreSettingsPage({ params }: Props) {
         .from('tenants')
         .select('*')
         .eq('id', storeId)
-        .eq('managed_by', user?.id)
+        .eq('managed_by', user?.id || '')
         .single()
 
     if (!store) {

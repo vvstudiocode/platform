@@ -3,7 +3,7 @@
 import { useActionState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Store, Loader2 } from 'lucide-react'
+import { Store, Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -35,38 +35,53 @@ export default function AppLoginPage() {
     )
 
     return (
-        <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 mb-4">
-                        <Store className="h-8 w-8 text-white" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 mb-4 shadow-sm">
+                        <Store className="h-8 w-8 text-accent" />
                     </div>
-                    <h1 className="text-2xl font-bold text-white">商店後台</h1>
-                    <p className="text-zinc-400 mt-2">登入管理您的商店</p>
+                    <h1 className="text-2xl font-serif font-bold text-foreground">商店後台</h1>
+                    <p className="text-muted-foreground mt-2">登入以管理您的商店</p>
                 </div>
 
                 {state.error && (
-                    <div className="bg-red-500/20 border border-red-500 text-red-400 rounded-lg p-4 mb-6">
+                    <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg p-4 mb-6 text-sm flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
                         {state.error}
                     </div>
                 )}
 
-                <form action={formAction} className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 space-y-4">
-                    <div>
-                        <Label htmlFor="email">電子郵件</Label>
-                        <Input id="email" name="email" type="email" required placeholder="your@email.com" />
+                <form action={formAction} className="bg-card rounded-xl border border-border p-6 space-y-4 shadow-soft">
+                    <div className="space-y-2">
+                        <Label htmlFor="email" className="text-foreground">電子郵件</Label>
+                        <Input
+                            id="email"
+                            name="email"
+                            type="email"
+                            required
+                            placeholder="your@email.com"
+                            className="bg-muted/30 border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-accent"
+                        />
                     </div>
-                    <div>
-                        <Label htmlFor="password">密碼</Label>
-                        <Input id="password" name="password" type="password" required placeholder="••••••••" />
+                    <div className="space-y-2">
+                        <Label htmlFor="password" className="text-foreground">密碼</Label>
+                        <Input
+                            id="password"
+                            name="password"
+                            type="password"
+                            required
+                            placeholder="••••••••"
+                            className="bg-muted/30 border-border text-foreground focus-visible:ring-accent"
+                        />
                     </div>
-                    <Button type="submit" disabled={pending} className="w-full">
+                    <Button type="submit" disabled={pending} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                         {pending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                         登入
                     </Button>
                 </form>
 
-                <p className="text-center text-zinc-500 text-sm mt-6">
+                <p className="text-center text-muted-foreground text-sm mt-6">
                     如需開通商店，請聯繫管理員
                 </p>
             </div>

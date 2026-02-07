@@ -163,28 +163,28 @@ export function ProductVariantsEditor({ initialOptions = [], initialVariants = [
         <div className="space-y-6">
             {/* Options Management */}
             <div className="space-y-4">
-                <Label className="text-base text-white">規格設定</Label>
+                <Label className="text-base text-foreground font-medium">規格設定</Label>
                 {options.map((option, idx) => (
-                    <div key={option.id} className="bg-zinc-800 p-4 rounded-lg space-y-3 border border-zinc-700">
+                    <div key={option.id} className="bg-card p-4 rounded-xl space-y-3 border border-border shadow-sm">
                         <div className="flex gap-2 items-center">
-                            <Label className="w-16">規格名稱</Label>
+                            <Label className="w-16 text-muted-foreground">規格名稱</Label>
                             <Input
                                 value={option.name}
                                 onChange={(e) => updateOptionName(idx, e.target.value)}
                                 placeholder="例如：顏色、尺寸"
-                                className="bg-zinc-900 border-zinc-700"
+                                className="bg-background border-input"
                             />
-                            <Button type="button" variant="ghost" size="icon" onClick={() => removeOption(idx)} className="text-zinc-500 hover:text-red-400">
+                            <Button type="button" variant="ghost" size="icon" onClick={() => removeOption(idx)} className="text-muted-foreground hover:text-destructive">
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </div>
                         <div className="flex gap-2 items-start">
-                            <Label className="w-16 pt-2">選項值</Label>
+                            <Label className="w-16 pt-2 text-muted-foreground">選項值</Label>
                             <div className="flex-1 flex flex-wrap gap-2">
                                 {option.values.map((val, vIdx) => (
-                                    <div key={vIdx} className="bg-zinc-700 text-white px-2 py-1 rounded flex items-center gap-1 text-sm">
+                                    <div key={vIdx} className="bg-muted text-foreground px-2 py-1 rounded-md flex items-center gap-1 text-sm border border-border">
                                         {val}
-                                        <button type="button" onClick={() => removeValue(idx, vIdx)} className="hover:text-red-300">
+                                        <button type="button" onClick={() => removeValue(idx, vIdx)} className="hover:text-destructive text-muted-foreground">
                                             <X className="h-3 w-3" />
                                         </button>
                                     </div>
@@ -192,7 +192,7 @@ export function ProductVariantsEditor({ initialOptions = [], initialVariants = [
                                 <div className="flex gap-2">
                                     <Input
                                         placeholder="輸入後按 Enter"
-                                        className="w-32 h-8 text-sm bg-zinc-900 border-zinc-700"
+                                        className="w-32 h-8 text-sm bg-background border-input"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 e.preventDefault()
@@ -206,7 +206,7 @@ export function ProductVariantsEditor({ initialOptions = [], initialVariants = [
                         </div>
                     </div>
                 ))}
-                <Button type="button" onClick={addOption} variant="outline" className="w-full border-dashed border-zinc-600 text-zinc-400 hover:text-white hover:border-zinc-500">
+                <Button type="button" onClick={addOption} variant="outline" className="w-full border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground/50 hover:bg-accent/30">
                     <Plus className="h-4 w-4 mr-2" /> 新增規格
                 </Button>
             </div>
@@ -214,28 +214,28 @@ export function ProductVariantsEditor({ initialOptions = [], initialVariants = [
             {/* Variants Table */}
             {variants.length > 0 && (
                 <div className="space-y-2">
-                    <Label className="text-base text-white">規格列表 ({variants.length})</Label>
-                    <div className="border border-zinc-700 rounded-lg overflow-hidden">
+                    <Label className="text-base text-foreground font-medium">規格列表 ({variants.length})</Label>
+                    <div className="border border-border rounded-xl overflow-hidden shadow-sm">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left text-zinc-300">
-                                <thead className="text-xs text-zinc-400 uppercase bg-zinc-800">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-xs text-muted-foreground uppercase bg-muted/40 border-b border-border">
                                     <tr>
-                                        <th className="px-4 py-3">規格</th>
-                                        <th className="px-4 py-3 w-32">價格</th>
-                                        <th className="px-4 py-3 w-24">庫存</th>
-                                        <th className="px-4 py-3 w-32">SKU</th>
+                                        <th className="px-4 py-3 font-medium">規格</th>
+                                        <th className="px-4 py-3 w-32 font-medium">價格</th>
+                                        <th className="px-4 py-3 w-24 font-medium">庫存</th>
+                                        <th className="px-4 py-3 w-32 font-medium">SKU</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className="bg-card divide-y divide-border">
                                     {variants.map((variant, idx) => (
-                                        <tr key={idx} className="border-b border-zinc-700 last:border-0 hover:bg-zinc-800/50">
-                                            <td className="px-4 py-3 font-medium text-white">{variant.name}</td>
+                                        <tr key={idx} className="hover:bg-accent/5 transition-colors">
+                                            <td className="px-4 py-3 font-medium text-foreground">{variant.name}</td>
                                             <td className="px-4 py-3">
                                                 <Input
                                                     type="number"
                                                     value={variant.price}
                                                     onChange={(e) => updateVariantField(idx, 'price', Number(e.target.value))}
-                                                    className="h-8 bg-zinc-900 border-zinc-700"
+                                                    className="h-8 bg-background border-input"
                                                 />
                                             </td>
                                             <td className="px-4 py-3">
@@ -243,14 +243,14 @@ export function ProductVariantsEditor({ initialOptions = [], initialVariants = [
                                                     type="number"
                                                     value={variant.stock}
                                                     onChange={(e) => updateVariantField(idx, 'stock', Number(e.target.value))}
-                                                    className="h-8 bg-zinc-900 border-zinc-700"
+                                                    className="h-8 bg-background border-input"
                                                 />
                                             </td>
                                             <td className="px-4 py-3">
                                                 <Input
                                                     value={variant.sku || ''}
                                                     onChange={(e) => updateVariantField(idx, 'sku', e.target.value)}
-                                                    className="h-8 bg-zinc-900 border-zinc-700"
+                                                    className="h-8 bg-background border-input"
                                                 />
                                             </td>
                                         </tr>

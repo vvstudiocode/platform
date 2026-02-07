@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
                 .eq('user_id', user.id)
                 .in('role', ['store_owner', 'store_admin', 'super_admin'])
                 .single()
-            tenantId = role?.tenant_id
+            tenantId = role?.tenant_id || undefined
         }
     }
 

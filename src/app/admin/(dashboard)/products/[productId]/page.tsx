@@ -10,11 +10,13 @@ interface Props {
 export default async function EditProductPage({ params }: Props) {
     const { productId } = await params
     const supabase = await createClient()
+    const { data: user } = await supabase.auth.getUser()
 
     const { data: product } = await supabase
         .from('products')
         .select('*')
         .eq('id', productId)
+        .eq('managed_by', user?.user?.id || '')
         .single()
 
     if (!product) {
@@ -39,13 +41,17 @@ export default async function EditProductPage({ params }: Props) {
                 price: Number(product.price),
                 cost: product.cost ? Number(product.cost) : null,
                 price_krw: product.price_krw,
-                stock: product.stock,
+                stock: product.stock || 0,
                 sku: product.sku,
                 image_url: product.image_url,
-                status: product.status,
-                images: product.images || [],
-                options: product.options || [],
-                variants: variants || []
+                status: product.status || 'active',
+                images: (product.images as any) || [],
+                options: (product.options as any) || [],
+                variants: (variants as any[])?.map(v => ({
+                    ...v,
+                    stock: v.stock || 0,
+                    options: v.options || {}
+                })) || []
             }}
             updateAction={boundUpdateProduct}
         />

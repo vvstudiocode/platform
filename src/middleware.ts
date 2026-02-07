@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { updateSession } from '@/lib/supabase/middleware'
 
 export const config = {
     matcher: [
@@ -31,6 +32,16 @@ export default async function middleware(req: NextRequest) {
         hostname.endsWith('.vercel.app') ||
         !hostname.includes('.')
 
+    let response = NextResponse.next()
+
+    // Preliminary routing logic to determine redirect/rewrite destination
+    // but distinct from the final response object construction.
+    // However, to update cookies on the 'final' response, we need to know what it is?
+    // Actually, updateSession takes (req, res). We can create a 'base' response
+    // but if we later do `NextResponse.rewrite`, that returns a NEW response object.
+
+    // Strategy: We will determine the logic first, create the response, THEN update session on it.
+
     if (isMainDomain) {
         // 路徑式路由：直接允許已知路徑
         if (pathname.startsWith('/admin') ||
@@ -39,44 +50,59 @@ export default async function middleware(req: NextRequest) {
             pathname.startsWith('/home') ||
             pathname.startsWith('/p') ||       // 總部自訂頁面
             pathname.startsWith('/product')) { // 總部商品頁
-            return NextResponse.next()
+            response = NextResponse.next()
         }
-
         // 根路徑重定向到 /home
-        if (pathname === '/') {
+        else if (pathname === '/') {
             url.pathname = '/home'
-            return NextResponse.rewrite(url)
+            response = NextResponse.rewrite(url)
         }
-
         // 其他路徑也重定向到 /home 下
-        url.pathname = `/home${pathname}`
-        return NextResponse.rewrite(url)
-    }
-
-    // === 子域名模式（用於自訂域名設定）===
-
-    // 1. App Dashboard (app.platform.com) -> Rewrite to /app
-    if (currentHost === "app") {
-        url.pathname = `/app${pathname}`
-        return NextResponse.rewrite(url)
-    }
-
-    // 2. Super Admin (admin.platform.com) -> Rewrite to /admin
-    if (currentHost === "admin") {
-        url.pathname = `/admin${pathname}`
-        return NextResponse.rewrite(url)
-    }
-
-    // 3. Marketing Site (www.platform.com)
-    if (currentHost === "www") {
-        if (pathname.startsWith('/admin') || pathname.startsWith('/app')) {
-            return NextResponse.next()
+        else {
+            url.pathname = `/home${pathname}`
+            response = NextResponse.rewrite(url)
         }
-        url.pathname = `/home${pathname}`
-        return NextResponse.rewrite(url)
+    }
+    // === 子域名模式（用於自訂域名設定）===
+    else if (currentHost === "app") {
+        url.pathname = `/app${pathname}`
+        response = NextResponse.rewrite(url)
+    }
+    else if (currentHost === "admin") {
+        url.pathname = `/admin${pathname}`
+        response = NextResponse.rewrite(url)
+    }
+    else if (currentHost === "www") {
+        if (pathname.startsWith('/admin') || pathname.startsWith('/app')) {
+            response = NextResponse.next()
+        } else {
+            url.pathname = `/home${pathname}`
+            response = NextResponse.rewrite(url)
+        }
+    }
+    else {
+        // 4. Storefront (nike.platform.com) -> Rewrite to /store/[slug]
+        url.pathname = `/store/${currentHost}${pathname}`
+        response = NextResponse.rewrite(url)
     }
 
-    // 4. Storefront (nike.platform.com) -> Rewrite to /store/[slug]
-    url.pathname = `/store/${currentHost}${pathname}`
-    return NextResponse.rewrite(url)
+    // CSP Fix for ECPay
+    // ECPay requires unsafe-eval and specific domains
+    const csp = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://payment-stage.ecpay.com.tw https://gpayment-stage.ecpay.com.tw https://applepay.cdn-apple.com https://googletagmanager.com https://tagmanager.google.com https://connect.facebook.net https://www.clarity.ms https://scripts.clarity.ms",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "img-src 'self' blob: data: https://* http://*",
+        "font-src 'self' data: https://fonts.gstatic.com",
+        "connect-src 'self' https://* http://*", // Allow connecting to ECPay APIs
+        "frame-src 'self' https://payment-stage.ecpay.com.tw https://gpayment-stage.ecpay.com.tw",
+    ].join('; ')
+
+    response.headers.set('Content-Security-Policy', csp)
+
+    // AWAIT the session update
+    // This will refresh the token and set Set-Cookie headers on 'response'
+    await updateSession(req, response)
+
+    return response
 }

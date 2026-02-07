@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Menu, X, ShoppingCart, ClipboardList } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
 import { CartPopover } from '@/components/store/cart-popover'
-import { OrderLookupModal } from '@/components/store/order-lookup-modal'
+import { OrderLookupPopover } from '@/components/store/order-lookup-popover'
 
 interface NavItem {
     title: string
@@ -68,7 +68,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
 
     return (
         <>
-            <header className="border-b bg-white sticky top-0 z-50">
+            <header className="border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50">
                 <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
                     {/* Logo / Store Name */}
                     <Link href={homePath} className="flex items-center gap-2">
@@ -84,20 +84,20 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                             <div key={item.slug} className="relative group">
                                 <Link
                                     href={`${basePath}${pagePrefix}/${item.slug}`}
-                                    className="text-gray-600 hover:text-black transition-colors py-2 inline-flex items-center gap-1"
+                                    className="text-muted-foreground hover:text-foreground transition-colors py-2 inline-flex items-center gap-1 font-medium"
                                 >
                                     {item.title}
                                 </Link>
 
                                 {/* Dropdown */}
                                 {item.children && item.children.length > 0 && (
-                                    <div className="absolute top-full left-0 mt-0 w-48 bg-white border border-gray-100 shadow-lg rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50">
+                                    <div className="absolute top-full left-0 mt-0 w-48 bg-popover border border-border shadow-soft rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50">
                                         <div className="py-1">
                                             {item.children.map((child: any) => (
                                                 <Link
                                                     key={child.slug}
                                                     href={`${basePath}${pagePrefix}/${child.slug}`}
-                                                    className="block px-4 py-2 text-sm text-gray-600 hover:text-black hover:bg-gray-50 bg-white"
+                                                    className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 bg-popover"
                                                 >
                                                     {child.title}
                                                 </Link>
@@ -114,7 +114,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                         {/* Order Lookup Button */}
                         <button
                             onClick={() => setShowOrderLookup(true)}
-                            className="p-2 text-gray-600 hover:text-black"
+                            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
                             title="訂單查詢"
                         >
                             <ClipboardList className="h-6 w-6" />
@@ -125,12 +125,12 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                             <>
                                 <button
                                     onClick={onCartClick}
-                                    className="relative p-2 text-gray-600 hover:text-black"
+                                    className="relative p-2 text-muted-foreground hover:text-foreground transition-colors"
                                     aria-label="購物車"
                                 >
                                     <ShoppingCart className="h-6 w-6" />
                                     {getItemCount() > 0 && (
-                                        <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                        <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                                             {getItemCount()}
                                         </span>
                                     )}
@@ -141,7 +141,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
 
                         {/* Mobile Menu Button */}
                         <button
-                            className="md:hidden p-2 text-gray-600 hover:text-black"
+                            className="md:hidden p-2 text-muted-foreground hover:text-foreground"
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             aria-label="Toggle menu"
                         >
@@ -152,7 +152,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
 
                 {/* Mobile Navigation */}
                 <div
-                    className={`md:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-md shadow-xl border-t z-50 h-[calc(100vh-80px)] overflow-y-auto transition-all duration-300 ease-in-out origin-top ${isMenuOpen
+                    className={`md:hidden absolute top-full left-0 w-full bg-background/95 backdrop-blur-md shadow-xl border-t border-border z-50 h-[calc(100vh-80px)] overflow-y-auto transition-all duration-300 ease-in-out origin-top ${isMenuOpen
                         ? 'opacity-100 translate-y-0 visible pointer-events-auto'
                         : 'opacity-0 -translate-y-4 invisible pointer-events-none'
                         }`}
@@ -162,18 +162,18 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                             <div key={item.slug} className="group">
                                 <Link
                                     href={`${basePath}${pagePrefix}/${item.slug}`}
-                                    className="block py-4 text-lg font-medium text-gray-800 hover:text-black border-b border-gray-100 group-last:border-0 transition-colors"
+                                    className="block py-4 text-lg font-medium text-foreground hover:text-accent border-b border-border group-last:border-0 transition-colors"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     {item.title}
                                 </Link>
                                 {item.children && item.children.length > 0 && (
-                                    <div className="pl-4 space-y-1 bg-gray-50/50 rounded-lg mb-2">
+                                    <div className="pl-4 space-y-1 bg-muted/30 rounded-lg mb-2">
                                         {item.children.map((child: any) => (
                                             <Link
                                                 key={child.slug}
                                                 href={`${basePath}${pagePrefix}/${child.slug}`}
-                                                className="block py-3 text-base text-gray-600 hover:text-black hover:bg-gray-100/50 px-2 rounded-md transition-colors"
+                                                className="block py-3 text-base text-muted-foreground hover:text-foreground hover:bg-muted/50 px-2 rounded-md transition-colors"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
                                                 {child.title}
@@ -190,7 +190,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                                 setIsMenuOpen(false)
                                 setShowOrderLookup(true)
                             }}
-                            className="w-full flex items-center gap-2 py-4 text-lg font-medium text-gray-800 hover:text-black border-b border-gray-100 transition-colors text-left"
+                            className="w-full flex items-center gap-2 py-4 text-lg font-medium text-foreground hover:text-accent border-b border-border transition-colors text-left"
                         >
                             <ClipboardList className="h-6 w-6" />
                             訂單查詢
@@ -199,7 +199,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                 </div>
             </header>
 
-            <OrderLookupModal
+            <OrderLookupPopover
                 isOpen={showOrderLookup}
                 onClose={() => setShowOrderLookup(false)}
                 storeSlug={storeSlug || ''}

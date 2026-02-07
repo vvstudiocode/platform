@@ -121,22 +121,22 @@ function SortableItem({ id, item, onRemove, depth }: SortableItemProps) {
         <div
             ref={setNodeRef}
             style={style}
-            className={`p-4 flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-lg mb-2 relative ${isDragging ? 'opacity-50 z-50' : ''}`}
+            className={`p-4 flex items-center justify-between bg-card border border-border rounded-lg mb-2 relative shadow-sm ${isDragging ? 'opacity-50 z-50 ring-2 ring-accent' : ''}`}
         >
             {/* Visual connector for nested items */}
             {depth > 0 && (
-                <div className="absolute -left-6 top-1/2 -mt-4 text-zinc-700">
+                <div className="absolute -left-6 top-1/2 -mt-4 text-muted-foreground/50">
                     <CornerDownRight className="h-5 w-5" />
                 </div>
             )}
 
             <div className="flex items-center gap-3">
-                <div {...attributes} {...listeners} className="cursor-grab hover:text-white text-zinc-500">
+                <div {...attributes} {...listeners} className="cursor-grab hover:text-foreground text-muted-foreground">
                     <GripVertical className="h-5 w-5" />
                 </div>
                 <div>
-                    <p className="font-medium text-white">{item.title}</p>
-                    <p className="text-sm text-zinc-500">/{item.pages?.slug}</p>
+                    <p className="font-medium text-foreground">{item.title}</p>
+                    <p className="text-sm text-muted-foreground">/{item.pages?.slug}</p>
                 </div>
             </div>
             <Button
@@ -253,24 +253,24 @@ export function NavigationManager({ navItems, availablePages }: Props) {
 
     return (
         <div className="space-y-6">
-            <p className="text-zinc-400">
+            <p className="text-muted-foreground">
                 提示：拖曳調整順序，使用 &gt; 按鈕將項目向右縮排成為子選單（目前支援兩層結構）。
             </p>
 
             {/* 新增項目 */}
-            <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+            <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
                 <div className="flex items-center gap-4">
                     <select
                         value={selectedPageId}
                         onChange={(e) => setSelectedPageId(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                        className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:ring-accent focuc:border-accent"
                     >
-                        <option value="">選擇要新增的頁面...</option>
+                        <option value="" className="text-muted-foreground">選擇要新增的頁面...</option>
                         {availablePagesFiltered.map(page => (
                             <option key={page.id} value={page.id}>{page.title}</option>
                         ))}
                     </select>
-                    <Button onClick={addItem} disabled={!selectedPageId || adding}>
+                    <Button onClick={addItem} disabled={!selectedPageId || adding} className="bg-primary text-primary-foreground hover:bg-primary/90">
                         <Plus className="h-4 w-4 mr-2" />
                         新增頁面
                     </Button>
@@ -291,7 +291,7 @@ export function NavigationManager({ navItems, availablePages }: Props) {
                     >
                         <div className="space-y-2">
                             {items.length === 0 ? (
-                                <div className="p-8 text-center text-zinc-500">
+                                <div className="p-8 text-center text-muted-foreground">
                                     <Menu className="h-8 w-8 mx-auto mb-2 opacity-50" />
                                     <p>尚無導覽項目，請新增頁面</p>
                                 </div>
@@ -312,8 +312,8 @@ export function NavigationManager({ navItems, availablePages }: Props) {
                                             <button
                                                 onClick={() => updateDepth(item.id, -1)}
                                                 className={`p-1 rounded border transition-colors ${!item.depth || item.depth === 0
-                                                    ? 'bg-zinc-900 border-zinc-800 text-zinc-700 cursor-not-allowed'
-                                                    : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white'
+                                                    ? 'bg-muted border-border text-muted-foreground/50 cursor-not-allowed hidden'
+                                                    : 'bg-card border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground shadow-sm'
                                                     }`}
                                                 disabled={!item.depth || item.depth === 0}
                                                 title="減少縮排 (移出子選單)"
@@ -323,8 +323,8 @@ export function NavigationManager({ navItems, availablePages }: Props) {
                                             <button
                                                 onClick={() => updateDepth(item.id, 1)}
                                                 className={`p-1 rounded border transition-colors ${item.depth === 1
-                                                    ? 'bg-zinc-900 border-zinc-800 text-zinc-700 cursor-not-allowed'
-                                                    : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white'
+                                                    ? 'bg-muted border-border text-muted-foreground/50 cursor-not-allowed hidden'
+                                                    : 'bg-card border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground shadow-sm'
                                                     }`}
                                                 disabled={item.depth === 1}
                                                 title="增加縮排 (成為子選單)"

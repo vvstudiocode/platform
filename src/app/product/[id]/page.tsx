@@ -64,7 +64,7 @@ export default async function HQProductPage({ params }: Props) {
     const { data: navItems } = await supabase
         .from('nav_items')
         .select('title, page_id, position, parent_id, pages(slug)')
-        .eq('tenant_id', hqStore?.id)
+        .eq('tenant_id', hqStore?.id || '')
         .order('position', { ascending: true })
 
     // 轉換成 SiteHeader 需要的格式
@@ -80,7 +80,7 @@ export default async function HQProductPage({ params }: Props) {
     const { data: homepage } = await supabase
         .from('pages')
         .select('slug')
-        .eq('tenant_id', hqStore?.id)
+        .eq('tenant_id', hqStore?.id || '')
         .eq('is_homepage', true)
         .eq('published', true)
         .single()
@@ -90,9 +90,9 @@ export default async function HQProductPage({ params }: Props) {
             <div className="min-h-screen bg-white">
                 <SiteHeader
                     storeName={storeName}
-                    logoUrl={hqStore?.logo_url}
+                    logoUrl={hqStore?.logo_url || undefined}
                     navItems={navMenuItems}
-                    homeSlug={homepage?.slug}
+                    homeSlug={homepage?.slug || undefined}
                 />
 
                 {/* Product Content */}

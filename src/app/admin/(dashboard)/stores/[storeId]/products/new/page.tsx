@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Loader2, X } from 'lucide-react'
 import React, { use } from 'react'
 import Link from 'next/link'
-import { ProductImagesInput } from '@/components/admin/product-images-input'
+import { ProductImagesInput, ImageItem } from '@/components/admin/product-images-input'
 import { ProductVariantsEditor, ProductOption, ProductVariant } from '@/components/admin/product-variants-editor'
 import { Combobox } from '@/components/ui/combobox'
 
@@ -37,7 +37,7 @@ export default function TenantNewProductPage({ params }: { params: Promise<{ sto
     }, [storeId])
 
     // New State
-    const [images, setImages] = useState<string[]>([])
+    const [images, setImages] = useState<ImageItem[]>([])
     const [options, setOptions] = useState<ProductOption[]>([])
     const [variants, setVariants] = useState<ProductVariant[]>([])
     const [price, setPrice] = useState('0')
@@ -49,7 +49,7 @@ export default function TenantNewProductPage({ params }: { params: Promise<{ sto
         setImagePreview(url)
         // Also update images state if empty
         if (images.length === 0 && url) {
-            setImages([url])
+            setImages([{ type: 'url', id: url, url }])
         }
     }
 
@@ -64,10 +64,10 @@ export default function TenantNewProductPage({ params }: { params: Promise<{ sto
                 </CardHeader>
                 <form action={formAction} className="space-y-6">
                     <input type="hidden" name="storeId" value={storeId} />
-                    <input type="hidden" name="images" value={JSON.stringify(images)} />
+                    <input type="hidden" name="images" value={JSON.stringify(images.map(i => i.type === 'url' ? i.url : (i as any).preview || ''))} />
                     <input type="hidden" name="options" value={JSON.stringify(options)} />
                     <input type="hidden" name="variants" value={JSON.stringify(variants)} />
-                    <input type="hidden" name="imageUrl" value={images[0] || ''} />
+                    <input type="hidden" name="imageUrl" value={(images[0] as any)?.url || (images[0] as any)?.preview || ''} />
 
                     <CardContent className="space-y-6 pt-6">
                         <div className="space-y-4">
@@ -123,7 +123,7 @@ export default function TenantNewProductPage({ params }: { params: Promise<{ sto
                         <div className="space-y-4">
                             <h3 className="text-sm font-medium text-zinc-300 border-b border-zinc-800 pb-2">商品圖片</h3>
                             <ProductImagesInput
-                                images={images}
+                                items={images}
                                 onChange={setImages}
                                 maxImages={5}
                             />

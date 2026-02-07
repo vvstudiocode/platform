@@ -48,7 +48,7 @@ export default async function OrderDetailPage({ params }: Props) {
                         <p className="text-zinc-400 font-mono">{order.order_number}</p>
                     </div>
                 </div>
-                <OrderStatusSelect orderId={order.id} currentStatus={order.status} />
+                <OrderStatusSelect orderId={order.id} currentStatus={order.status || ''} />
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -85,7 +85,7 @@ export default async function OrderDetailPage({ params }: Props) {
                     <div className="space-y-3">
                         <div className="flex items-center gap-3 text-zinc-300">
                             <Package className="h-4 w-4 text-zinc-500" />
-                            {shippingLabels[order.shipping_method] || order.shipping_method}
+                            {shippingLabels[order.shipping_method || ''] || order.shipping_method}
                         </div>
                         {order.shipping_method === '711' && order.store_name && (
                             <div className="flex items-center gap-3 text-zinc-300">

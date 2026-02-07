@@ -16,7 +16,7 @@ export default async function ProductEditPage({ params }: Props) {
         .from('tenants')
         .select('id, name, slug')
         .eq('id', storeId)
-        .eq('managed_by', user?.id)
+        .eq('managed_by', user?.id || '')
         .single()
 
     if (!store) {
@@ -44,9 +44,15 @@ export default async function ProductEditPage({ params }: Props) {
         <ProductEditForm
             product={{
                 ...product,
-                images: product.images || [],
-                options: product.options || [],
-                variants: variants || []
+                stock: product.stock || 0,
+                status: (product.status as 'active' | 'draft' | 'archived') || 'draft',
+                images: (product.images as any) || [],
+                options: (product.options as any) || [],
+                variants: (variants as any[])?.map(v => ({
+                    ...v,
+                    stock: v.stock || 0,
+                    options: v.options || {}
+                })) || []
             }}
             storeId={storeId}
             storeName={store.name}

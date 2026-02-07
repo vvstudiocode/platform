@@ -19,7 +19,7 @@ export default async function OrderDetailPage({ params }: Props) {
         .from('tenants')
         .select('id, name')
         .eq('id', storeId)
-        .eq('managed_by', user?.id)
+        .eq('managed_by', user?.id || '')
         .single()
 
     if (!store) {
@@ -66,13 +66,13 @@ export default async function OrderDetailPage({ params }: Props) {
                     <div>
                         <h1 className="text-2xl font-bold text-white">訂單 {order.order_number}</h1>
                         <p className="text-zinc-400 text-sm mt-1">
-                            建立於 {new Date(order.created_at).toLocaleString('zh-TW')}
+                            建立於 {order.created_at ? new Date(order.created_at).toLocaleString('zh-TW') : '-'}
                         </p>
                     </div>
                     <OrderStatusSelect
                         orderId={orderId}
                         storeId={storeId}
-                        currentStatus={order.status}
+                        currentStatus={order.status || ''}
                     />
                 </div>
             </div>
@@ -117,7 +117,7 @@ export default async function OrderDetailPage({ params }: Props) {
                     <div className="space-y-3 text-sm">
                         <div className="flex justify-between">
                             <span className="text-zinc-500">配送方式</span>
-                            <span className="text-zinc-300">{shippingLabels[order.shipping_method] || order.shipping_method}</span>
+                            <span className="text-zinc-300">{shippingLabels[order.shipping_method || ''] || order.shipping_method}</span>
                         </div>
                         {order.store_name && (
                             <div className="flex justify-between">
@@ -137,10 +137,10 @@ export default async function OrderDetailPage({ params }: Props) {
                                 <span className="text-zinc-300">{order.store_address}</span>
                             </div>
                         )}
-                        {order.tracking_number && (
+                        {(order as any).tracking_number && (
                             <div className="flex justify-between pt-2 border-t border-zinc-800">
                                 <span className="text-zinc-500">物流單號</span>
-                                <span className="text-white font-mono">{order.tracking_number}</span>
+                                <span className="text-white font-mono">{(order as any).tracking_number}</span>
                             </div>
                         )}
                     </div>

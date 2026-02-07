@@ -24,7 +24,7 @@ export default async function EditPagePage({ params }: Props) {
     const { data: tenant } = await supabase
         .from('tenants')
         .select('slug')
-        .eq('id', page.tenant_id)
+        .eq('id', page.tenant_id || '')
         .single()
 
     const boundUpdatePage = updatePage.bind(null, pageId)
@@ -36,18 +36,18 @@ export default async function EditPagePage({ params }: Props) {
                 id: page.id,
                 title: page.title,
                 slug: page.slug,
-                is_homepage: page.is_homepage,
-                published: page.published,
+                is_homepage: page.is_homepage || false,
+                published: page.published || false,
                 show_in_nav: page.show_in_nav ?? false,
                 nav_order: page.nav_order ?? 0,
-                background_color: page.background_color,
-                seo_title: page.seo_title,
-                seo_description: page.seo_description,
-                seo_keywords: page.seo_keywords,
+                background_color: page.background_color || '',
+                seo_title: page.seo_title || '',
+                seo_description: page.seo_description || '',
+                seo_keywords: page.seo_keywords || '',
                 content: (page.content as any[]) || [],
             }}
             updateAction={boundUpdatePage}
-            tenantId={page.tenant_id}
+            tenantId={page.tenant_id || ''}
             storeSlug={tenant?.slug}
         />
     )

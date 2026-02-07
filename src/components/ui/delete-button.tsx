@@ -24,7 +24,7 @@ export function DeleteButton({ itemId, itemName, onDelete }: Props) {
     if (showConfirm) {
         return (
             <div className="flex items-center gap-1">
-                <span className="text-xs text-zinc-400 mr-1">確定刪除？</span>
+                <span className="text-xs text-muted-foreground mr-1">確定刪除？</span>
                 <Button
                     size="sm"
                     variant="destructive"
@@ -49,7 +49,7 @@ export function DeleteButton({ itemId, itemName, onDelete }: Props) {
     return (
         <button
             onClick={() => setShowConfirm(true)}
-            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-zinc-700 rounded-lg"
+            className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
             title={`刪除 ${itemName}`}
         >
             <Trash2 className="h-4 w-4" />

@@ -29,10 +29,10 @@ export default async function AppGeneralSettingsPage() {
     return (
         <div className="max-w-2xl mx-auto space-y-6">
             <div className="flex items-center gap-4">
-                <Link href="/app/settings" className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white">
+                <Link href="/app/settings" className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft className="h-5 w-5" />
                 </Link>
-                <h1 className="text-2xl font-bold text-white">一般設定</h1>
+                <h1 className="text-2xl font-bold text-foreground">一般設定</h1>
             </div>
 
             <SettingsForm store={store} updateAction={boundUpdateSettings} />

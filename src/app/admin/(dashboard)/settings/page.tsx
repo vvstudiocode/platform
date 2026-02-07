@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Settings, Bell, Shield, Database } from 'lucide-react'
+import { Settings, Bell, Shield, Database, CreditCard } from 'lucide-react'
 
 export default function SettingsPage() {
     const settingSections = [
@@ -23,6 +23,13 @@ export default function SettingsPage() {
             description: '管理商品分類結構',
             status: '已啟用',
             href: '/admin/settings/categories'
+        },
+        {
+            icon: CreditCard,
+            title: '方案與訂閱',
+            description: '管理平台方案、用量與帳單',
+            status: '已啟用',
+            href: '/admin/settings/billing'
         },
     ]
 

@@ -52,13 +52,27 @@ export async function deleteOrder(storeId: string | null, orderId: string, isHQ:
 export async function updateOrderStatus(orderId: string, status: string) {
     const supabase = await createClient()
 
+    const { data: currentOrderData } = await supabase
+        .from('orders')
+        .select('payment_status, paid_at, shipped_at')
+        .eq('id', orderId)
+        .single()
+
+    const currentOrder = currentOrderData as any
+
     const updateData: Record<string, any> = { status }
+    const now = new Date().toISOString()
 
     if (status === 'paid') {
         updateData.payment_status = 'paid'
-        updateData.paid_at = new Date().toISOString()
+        if (!currentOrder?.paid_at) updateData.paid_at = now
     } else if (status === 'shipped') {
-        updateData.shipped_at = new Date().toISOString()
+        if (!currentOrder?.shipped_at) updateData.shipped_at = now
+    } else if (status === 'completed') {
+        // Completed implies Paid and Shipped
+        updateData.payment_status = 'paid'
+        if (!currentOrder?.paid_at) updateData.paid_at = now
+        if (!currentOrder?.shipped_at) updateData.shipped_at = now
     }
 
     const { error } = await supabase
@@ -71,6 +85,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
     }
 
     revalidatePath('/admin/orders')
+    revalidatePath('/app/orders')
     revalidatePath(`/admin/orders/${orderId}`)
     return { success: true }
 }

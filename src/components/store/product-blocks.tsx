@@ -46,12 +46,7 @@ function ProductCard({ product, storeSlug, fitDesktop = 'cover', fitMobile = 'co
                         <span>無圖片</span>
                     </div>
                 )}
-                {/* 庫存標籤 */}
-                {product.stock <= 0 && (
-                    <div className="absolute top-3 right-3 bg-red-500 text-white text-xs px-3 py-1 rounded-full">
-                        售完
-                    </div>
-                )}
+                {/* 庫存標籤 (Removed per user request) */}
             </div>
 
             {/* 商品資訊 */}
