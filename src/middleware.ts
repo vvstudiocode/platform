@@ -52,14 +52,19 @@ export default async function middleware(req: NextRequest) {
             pathname.startsWith('/product')) { // 總部商品頁
             response = NextResponse.next()
         }
-        // 根路徑重定向到 /home
+        // 根路徑重定向到總部商店首頁
         else if (pathname === '/') {
-            url.pathname = '/home'
+            url.pathname = '/store/omo'
             response = NextResponse.rewrite(url)
         }
-        // 其他路徑也重定向到 /home 下
+        // 結帳頁面重定向
+        else if (pathname === '/checkout') {
+            url.pathname = '/store/omo/checkout'
+            response = NextResponse.rewrite(url)
+        }
+        // 其他頁面重定向到總部商店對應頁面 (e.g. /about -> /store/omo/about)
         else {
-            url.pathname = `/home${pathname}`
+            url.pathname = `/store/omo${pathname}`
             response = NextResponse.rewrite(url)
         }
     }

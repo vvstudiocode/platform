@@ -41,7 +41,7 @@ export default function AppLoginPage() {
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 mb-4 shadow-sm">
                         <Store className="h-8 w-8 text-accent" />
                     </div>
-                    <h1 className="text-2xl font-serif font-bold text-foreground">商店後台</h1>
+                    <h1 className="text-2xl font-serif font-bold text-foreground">OMO網站平台</h1>
                     <p className="text-muted-foreground mt-2">登入以管理您的商店</p>
                 </div>
 

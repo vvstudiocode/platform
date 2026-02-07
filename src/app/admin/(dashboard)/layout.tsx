@@ -10,7 +10,7 @@ import type { Metadata } from 'next'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
 
 export const metadata: Metadata = {
-    title: '總部後台',
+    title: 'OMO網站平台',
 }
 
 export default async function AdminLayout({
@@ -64,9 +64,11 @@ export default async function AdminLayout({
         .eq('published', true)
         .maybeSingle()
 
-    const homeUrl = hqStore?.slug
-        ? `/store/${hqStore.slug}${homepage?.slug ? `/${homepage.slug}` : ''}`
-        : '/'
+    const homeUrl = hqStore?.slug === 'omo'
+        ? '/'
+        : hqStore?.slug
+            ? `/store/${hqStore.slug}${homepage?.slug ? `/${homepage.slug}` : ''}`
+            : '/'
 
     // 導覽分區（使用字串圖標名稱以便序列化）
     const navSections = [
@@ -101,7 +103,7 @@ export default async function AdminLayout({
                     <div className="p-1.5 bg-accent/10 rounded-lg">
                         <Store className="h-5 w-5 text-accent" />
                     </div>
-                    總部管理後台
+                    OMO網站平台
                 </Link>
                 <div className="flex items-center gap-4">
                     <a

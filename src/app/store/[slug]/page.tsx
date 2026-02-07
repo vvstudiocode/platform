@@ -3,8 +3,57 @@ import { notFound } from 'next/navigation'
 import { StorefrontClient } from './storefront-client'
 import { HomePageClient } from './homepage-client'
 
+import { Metadata } from 'next'
+
 interface Props {
     params: Promise<{ slug: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const { slug } = await params
+    const supabase = await createClient()
+
+    const { data: store } = await supabase
+        .from('tenants')
+        .select('id, name, seo_title, seo_description, logo_url')
+        .eq('slug', slug)
+        .single()
+
+    if (!store) return { title: '商店不存在' }
+
+    // Check for homepage
+    const { data: homepages } = await supabase
+        .from('pages')
+        .select('title, seo_title, seo_description, seo_keywords, og_image')
+        .eq('tenant_id', store.id)
+        .eq('is_homepage', true)
+        .eq('published', true)
+        .limit(1)
+
+    const homepage = homepages && homepages.length > 0 ? homepages[0] : null
+
+    if (homepage) {
+        return {
+            title: homepage.seo_title || `${homepage.title} | ${store.name}`,
+            description: homepage.seo_description || store.seo_description || undefined,
+            keywords: homepage.seo_keywords || undefined,
+            openGraph: {
+                title: homepage.seo_title || homepage.title,
+                description: homepage.seo_description || store.seo_description || undefined,
+                images: homepage.og_image ? [homepage.og_image] : (store.logo_url ? [store.logo_url] : undefined),
+            },
+        }
+    }
+
+    return {
+        title: store.seo_title || store.name,
+        description: store.seo_description || undefined,
+        openGraph: {
+            title: store.seo_title || store.name,
+            description: store.seo_description || undefined,
+            images: store.logo_url ? [store.logo_url] : undefined,
+        },
+    }
 }
 
 export default async function StorefrontPage({ params }: Props) {

@@ -11,15 +11,15 @@ export function AnimationControls({ animation, onChange }: { animation?: { type:
     }
 
     return (
-        <div className="space-y-3 pt-3 border-t border-zinc-700">
-            <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">進場動畫</label>
+        <div className="space-y-3 pt-3 border-t border-border">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">進場動畫</label>
             <div className="grid grid-cols-2 gap-3">
                 <div>
-                    <label className="block text-xs text-zinc-500 mb-1">效果</label>
+                    <label className="block text-xs text-muted-foreground mb-1">效果</label>
                     <select
                         value={animation?.type || 'none'}
                         onChange={(e) => handleChange('type', e.target.value)}
-                        className="w-full px-2 py-1.5 bg-zinc-700 border border-zinc-600 rounded text-sm text-white"
+                        className="w-full px-2 py-1.5 bg-background border border-input rounded text-sm text-foreground"
                     >
                         <option value="none">無</option>
                         <option value="fade-in">淡入 (Fade In)</option>
@@ -31,11 +31,11 @@ export function AnimationControls({ animation, onChange }: { animation?: { type:
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs text-zinc-500 mb-1">速度</label>
+                    <label className="block text-xs text-muted-foreground mb-1">速度</label>
                     <select
                         value={animation?.duration || 'normal'}
                         onChange={(e) => handleChange('duration', e.target.value)}
-                        className="w-full px-2 py-1.5 bg-zinc-700 border border-zinc-600 rounded text-sm text-white"
+                        className="w-full px-2 py-1.5 bg-background border border-input rounded text-sm text-foreground"
                     >
                         <option value="slower">極慢</option>
                         <option value="slow">慢</option>

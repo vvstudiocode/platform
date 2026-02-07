@@ -59,7 +59,7 @@ export function HomePageClient({ store, page, navItems, homeSlug }: Props) {
                 logoUrl={store.logoUrl || undefined}
                 navItems={navMenuItems}
                 homeSlug={homeSlug}
-                basePath={`/store/${store.slug}`}
+                basePath={store.slug === 'omo' ? '' : `/store/${store.slug}`}
                 onCartClick={() => setIsCartOpen(true)}
             />
 

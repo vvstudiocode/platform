@@ -116,7 +116,7 @@ export function ProductDetailClient({ store, product, navItems, homeSlug }: Prop
                 logoUrl={undefined}
                 navItems={navItems || []}
                 homeSlug={homeSlug}
-                basePath={`/store/${store.slug}`}
+                basePath={store.slug === 'omo' ? '' : `/store/${store.slug}`}
                 onCartClick={() => setIsCartOpen(true)}
             />
 

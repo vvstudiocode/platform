@@ -25,14 +25,14 @@ export function ResponsiveControls({ layout, columns, onChange }: ResponsiveCont
     const isDesktop = mode === 'desktop'
 
     return (
-        <div className="space-y-4 bg-zinc-800/50 p-3 rounded-lg border border-zinc-700">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-700 mb-2">
-                <span className="text-xs font-semibold text-zinc-400">響應式排版</span>
-                <div className="flex bg-zinc-900 rounded-lg p-1">
+        <div className="space-y-4 bg-muted/50 p-3 rounded-lg border border-border">
+            <div className="flex items-center justify-between pb-2 border-b border-border mb-2">
+                <span className="text-xs font-semibold text-muted-foreground">響應式排版</span>
+                <div className="flex bg-background rounded-lg p-1 border border-border">
                     <button
                         type="button"
                         onClick={() => setMode('desktop')}
-                        className={`p-1.5 rounded transition-colors ${isDesktop ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        className={`p-1.5 rounded transition-colors ${isDesktop ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         title="桌面版"
                     >
                         <Monitor className="h-4 w-4" />
@@ -40,7 +40,7 @@ export function ResponsiveControls({ layout, columns, onChange }: ResponsiveCont
                     <button
                         type="button"
                         onClick={() => setMode('mobile')}
-                        className={`p-1.5 rounded transition-colors ${!isDesktop ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        className={`p-1.5 rounded transition-colors ${!isDesktop ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         title="手機版"
                     >
                         <Smartphone className="h-4 w-4" />
@@ -50,7 +50,7 @@ export function ResponsiveControls({ layout, columns, onChange }: ResponsiveCont
 
             <div className="grid grid-cols-2 gap-3">
                 <div>
-                    <Label className="text-xs text-zinc-400 mb-1.5 block">
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">
                         {isDesktop ? '桌面' : '手機'}佈局
                     </Label>
                     <select
@@ -59,14 +59,14 @@ export function ResponsiveControls({ layout, columns, onChange }: ResponsiveCont
                             const val = e.target.value as 'grid' | 'list'
                             onChange(isDesktop ? { layoutDesktop: val } : { layoutMobile: val })
                         }}
-                        className="w-full px-2 py-1.5 bg-zinc-900 border border-zinc-600 rounded text-sm text-white focus:outline-none focus:border-zinc-500"
+                        className="w-full px-2 py-1.5 bg-background border border-input rounded text-sm text-foreground focus:outline-none focus:border-ring"
                     >
                         <option value="grid">網格 Grid</option>
                         <option value="list">列表 List</option>
                     </select>
                 </div>
                 <div>
-                    <Label className="text-xs text-zinc-400 mb-1.5 block">
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">
                         {isDesktop ? '桌面' : '手機'}欄數
                     </Label>
                     <Input
@@ -78,12 +78,12 @@ export function ResponsiveControls({ layout, columns, onChange }: ResponsiveCont
                             const val = parseInt(e.target.value) || 1
                             onChange(isDesktop ? { columnsDesktop: val } : { columnsMobile: val })
                         }}
-                        className="h-8 bg-zinc-900 border-zinc-600"
+                        className="h-8 bg-background border-input text-foreground"
                     />
                 </div>
             </div>
 
-            <div className="text-[10px] text-zinc-500 text-right">
+            <div className="text-[10px] text-muted-foreground text-right">
                 {isDesktop ? '預設: 網格 / 3欄' : '預設: 網格 / 1欄'}
             </div>
         </div>
@@ -99,14 +99,14 @@ export function SpacingControls({ paddingY, onChange }: {
     const value = isDesktop ? (paddingY?.desktop ?? 64) : (paddingY?.mobile ?? 32)
 
     return (
-        <div className="space-y-4 bg-zinc-800/50 p-3 rounded-lg border border-zinc-700">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-700 mb-2">
-                <span className="text-xs font-semibold text-zinc-400">上下間距設定</span>
-                <div className="flex bg-zinc-900 rounded-lg p-1">
+        <div className="space-y-4 bg-muted/50 p-3 rounded-lg border border-border">
+            <div className="flex items-center justify-between pb-2 border-b border-border mb-2">
+                <span className="text-xs font-semibold text-muted-foreground">上下間距設定</span>
+                <div className="flex bg-background rounded-lg p-1 border border-border">
                     <button
                         type="button"
                         onClick={() => setMode('desktop')}
-                        className={`p-1.5 rounded transition-colors ${isDesktop ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        className={`p-1.5 rounded transition-colors ${isDesktop ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         title="桌面版"
                     >
                         <Monitor className="h-4 w-4" />
@@ -114,7 +114,7 @@ export function SpacingControls({ paddingY, onChange }: {
                     <button
                         type="button"
                         onClick={() => setMode('mobile')}
-                        className={`p-1.5 rounded transition-colors ${!isDesktop ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        className={`p-1.5 rounded transition-colors ${!isDesktop ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         title="手機版"
                     >
                         <Smartphone className="h-4 w-4" />
@@ -124,10 +124,10 @@ export function SpacingControls({ paddingY, onChange }: {
 
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                    <Label className="text-xs text-zinc-400">
+                    <Label className="text-xs text-muted-foreground">
                         {isDesktop ? '桌面' : '手機'}垂直間距 (px)
                     </Label>
-                    <span className="text-xs text-zinc-500">{value}px</span>
+                    <span className="text-xs text-muted-foreground">{value}px</span>
                 </div>
                 <input
                     type="range"
@@ -142,7 +142,7 @@ export function SpacingControls({ paddingY, onChange }: {
                         const val = parseInt(e.target.value)
                         onChange(isDesktop ? { paddingYDesktop: val } : { paddingYMobile: val })
                     }}
-                    className="w-full h-1 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                    className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                 />
             </div>
         </div>
@@ -157,14 +157,14 @@ export function ImageControls({ objectFit, onChange }: {
     const isDesktop = mode === 'desktop'
 
     return (
-        <div className="space-y-3 bg-zinc-800/50 p-3 rounded-lg border border-zinc-700 mt-3">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-700 mb-2">
-                <span className="text-xs font-semibold text-zinc-400">圖片顯示設定</span>
-                <div className="flex bg-zinc-900 rounded-lg p-1">
+        <div className="space-y-3 bg-muted/50 p-3 rounded-lg border border-border mt-3">
+            <div className="flex items-center justify-between pb-2 border-b border-border mb-2">
+                <span className="text-xs font-semibold text-muted-foreground">圖片顯示設定</span>
+                <div className="flex bg-background rounded-lg p-1 border border-border">
                     <button
                         type="button"
                         onClick={() => setMode('desktop')}
-                        className={`p-1.5 rounded transition-colors ${isDesktop ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        className={`p-1.5 rounded transition-colors ${isDesktop ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         title="桌面版"
                     >
                         <Monitor className="h-4 w-4" />
@@ -172,7 +172,7 @@ export function ImageControls({ objectFit, onChange }: {
                     <button
                         type="button"
                         onClick={() => setMode('mobile')}
-                        className={`p-1.5 rounded transition-colors ${!isDesktop ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        className={`p-1.5 rounded transition-colors ${!isDesktop ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         title="手機版"
                     >
                         <Smartphone className="h-4 w-4" />
@@ -181,7 +181,7 @@ export function ImageControls({ objectFit, onChange }: {
             </div>
 
             <div>
-                <Label className="text-xs text-zinc-400 mb-1.5 block">
+                <Label className="text-xs text-muted-foreground mb-1.5 block">
                     {isDesktop ? '桌面' : '手機'}圖片填滿方式
                 </Label>
                 <div className="grid grid-cols-2 gap-2">
@@ -189,8 +189,8 @@ export function ImageControls({ objectFit, onChange }: {
                         type="button"
                         onClick={() => onChange(isDesktop ? { objectFitDesktop: 'cover' } : { objectFitMobile: 'cover' })}
                         className={`px-3 py-2 text-xs rounded border transition-colors ${(isDesktop ? objectFit.desktop : objectFit.mobile) === 'cover'
-                            ? 'bg-rose-500/10 border-rose-500 text-rose-500'
-                            : 'border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                            ? 'bg-accent border-primary text-primary'
+                            : 'border-border text-muted-foreground hover:border-input'
                             }`}
                     >
                         放大或縮小來填滿
@@ -199,14 +199,14 @@ export function ImageControls({ objectFit, onChange }: {
                         type="button"
                         onClick={() => onChange(isDesktop ? { objectFitDesktop: 'contain' } : { objectFitMobile: 'contain' })}
                         className={`px-3 py-2 text-xs rounded border transition-colors ${(isDesktop ? objectFit.desktop : objectFit.mobile) === 'contain'
-                            ? 'bg-rose-500/10 border-rose-500 text-rose-500'
-                            : 'border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                            ? 'bg-accent border-primary text-primary'
+                            : 'border-border text-muted-foreground hover:border-input'
                             }`}
                     >
                         完整顯示但不要重複
                     </button>
                 </div>
-                <p className="text-[10px] text-zinc-500 mt-1.5">
+                <p className="text-[10px] text-muted-foreground mt-1.5">
                     {(isDesktop ? objectFit.desktop : objectFit.mobile) === 'cover'
                         ? '圖片會被裁切以填滿區域 (Cover)'
                         : '圖片會完整顯示，不會重複平鋪 (Contain)'}
@@ -224,14 +224,14 @@ export function AspectRatioControls({ aspectRatio, onChange }: {
     const isDesktop = mode === 'desktop'
 
     return (
-        <div className="space-y-3 bg-zinc-800/50 p-3 rounded-lg border border-zinc-700 mt-3">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-700 mb-2">
-                <span className="text-xs font-semibold text-zinc-400">圖片比例設定</span>
-                <div className="flex bg-zinc-900 rounded-lg p-1">
+        <div className="space-y-3 bg-muted/50 p-3 rounded-lg border border-border mt-3">
+            <div className="flex items-center justify-between pb-2 border-b border-border mb-2">
+                <span className="text-xs font-semibold text-muted-foreground">圖片比例設定</span>
+                <div className="flex bg-background rounded-lg p-1 border border-border">
                     <button
                         type="button"
                         onClick={() => setMode('desktop')}
-                        className={`p-1.5 rounded transition-colors ${isDesktop ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        className={`p-1.5 rounded transition-colors ${isDesktop ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         title="桌面版"
                     >
                         <Monitor className="h-4 w-4" />
@@ -239,7 +239,7 @@ export function AspectRatioControls({ aspectRatio, onChange }: {
                     <button
                         type="button"
                         onClick={() => setMode('mobile')}
-                        className={`p-1.5 rounded transition-colors ${!isDesktop ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        className={`p-1.5 rounded transition-colors ${!isDesktop ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         title="手機版"
                     >
                         <Smartphone className="h-4 w-4" />
@@ -248,7 +248,7 @@ export function AspectRatioControls({ aspectRatio, onChange }: {
             </div>
 
             <div>
-                <Label className="text-xs text-zinc-400 mb-1.5 block">
+                <Label className="text-xs text-muted-foreground mb-1.5 block">
                     {isDesktop ? '桌面' : '手機'}圖片比例
                 </Label>
                 <div className="grid grid-cols-3 gap-2">
@@ -262,8 +262,8 @@ export function AspectRatioControls({ aspectRatio, onChange }: {
                             type="button"
                             onClick={() => onChange(isDesktop ? { aspectRatioDesktop: opt.value } : { aspectRatioMobile: opt.value })}
                             className={`px-2 py-2 text-xs rounded border transition-colors ${(isDesktop ? aspectRatio.desktop : aspectRatio.mobile) === opt.value
-                                ? 'bg-rose-500/10 border-rose-500 text-rose-500'
-                                : 'border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                                ? 'bg-accent border-primary text-primary'
+                                : 'border-border text-muted-foreground hover:border-input'
                                 }`}
                         >
                             {opt.label}

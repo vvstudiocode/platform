@@ -38,7 +38,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
     // 如果是商店頁面 (basePath 包含 /store)，路徑不需要加 /p/ (因為路徑是 /store/[slug]/[pageSlug])
     // 如果是總部頁面 (basePath 為空)，路徑需要加 /p/ (因為路徑是 /p/[slug])
     const isStorePath = basePath.includes('/store')
-    const pagePrefix = isStorePath ? '' : '/p'
+    const pagePrefix = (isStorePath || basePath === '') ? '' : '/p'
 
     const homePath = homeSlug ? `${basePath}${pagePrefix}/${homeSlug}` : (basePath || '/')
 

@@ -24,7 +24,7 @@ function LoginForm() {
                     <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
                         <Store className="h-6 w-6 text-accent" />
                     </div>
-                    <CardTitle className="text-2xl font-serif text-foreground">總部管理後台</CardTitle>
+                    <CardTitle className="text-2xl font-serif text-foreground">OMO網站平台</CardTitle>
                     <CardDescription className="text-muted-foreground">
                         登入以管理您的平台
                     </CardDescription>

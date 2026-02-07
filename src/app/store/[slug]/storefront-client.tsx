@@ -56,7 +56,7 @@ export function StorefrontClient({ store, products, navItems = [] }: Props) {
                 logoUrl={settings.logoUrl || undefined}
                 navItems={navItems}
                 homeSlug={undefined}
-                basePath={`/store/${store.slug}`}
+                basePath={store.slug === 'omo' ? '' : `/store/${store.slug}`}
                 onCartClick={() => setIsCartOpen(true)}
             />
 
@@ -69,7 +69,7 @@ export function StorefrontClient({ store, products, navItems = [] }: Props) {
                         {products.map((product) => (
                             <Link
                                 key={product.id}
-                                href={`/store/${store.slug}/product/${product.id}`}
+                                href={store.slug === 'omo' ? `/product/${product.id}` : `/store/${store.slug}/product/${product.id}`}
                                 className="group"
                             >
                                 <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-3">

@@ -11,7 +11,7 @@ import type { Metadata } from 'next'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
 
 export const metadata: Metadata = {
-    title: '商家後台',
+    title: 'OMO網站平台',
 }
 
 
@@ -55,9 +55,12 @@ export default async function AppLayout({
         .maybeSingle()
 
     // 如果有設定首頁，指向該頁面；否則指向商店首頁（商品列表）
-    const homeUrl = homepage?.slug
-        ? `/store/${store.slug}/${homepage.slug}`
-        : `/store/${store.slug}`
+    // 如果是總部商店 (slug=omo)，直接指向根目錄
+    const homeUrl = store.slug === 'omo'
+        ? '/'
+        : homepage?.slug
+            ? `/store/${store.slug}/${homepage.slug}`
+            : `/store/${store.slug}`
 
     // navItems 使用字串名稱而非組件，以便序列化傳遞給 Client Component
     const navItems = [

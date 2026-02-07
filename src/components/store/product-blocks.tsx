@@ -24,7 +24,7 @@ const MD_GRID_COLS: Record<number, string> = {
 function ProductCard({ product, storeSlug, fitDesktop = 'cover', fitMobile = 'cover', aspectRatioDesktop = '1/1', aspectRatioMobile = '1/1' }: { product: any; storeSlug: string; fitDesktop?: string; fitMobile?: string; aspectRatioDesktop?: string; aspectRatioMobile?: string }) {
     return (
         <Link
-            href={`/store/${storeSlug}/product/${product.id}`}
+            href={storeSlug === 'omo' ? `/product/${product.id}` : `/store/${storeSlug}/product/${product.id}`}
             className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300"
         >
             {/* 商品圖片 */}

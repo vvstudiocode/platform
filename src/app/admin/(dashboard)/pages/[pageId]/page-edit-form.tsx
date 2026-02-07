@@ -252,27 +252,27 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
     return (
         <div className="h-screen flex flex-col">
             {/* 頂部標題列 */}
-            <div className="flex items-center justify-between px-6 py-4 bg-zinc-900 border-b border-zinc-800">
+            <div className="flex items-center justify-between px-6 py-4 bg-card border-b border-border">
                 <div className="flex items-center gap-4">
-                    <Link href="/admin/pages" className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white">
+                    <Link href="/admin/pages" className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground">
                         <ArrowLeft className="h-5 w-5" />
                     </Link>
-                    <h1 className="text-xl font-bold text-white">{title}</h1>
+                    <h1 className="text-xl font-bold text-foreground max-w-[200px] truncate">{title}</h1>
                 </div>
                 <div className="flex items-center gap-2">
                     {/* 手機版預覽按鈕 */}
                     <button
                         onClick={() => setShowMobilePreview(true)}
-                        className="md:hidden flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg"
+                        className="md:hidden flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
                     >
                         <Eye className="h-4 w-4" />
                         預覽
                     </button>
                     {storeSlug && published && (
                         <Link
-                            href={`/store/${storeSlug}/${page.slug}`}
+                            href={isHomepage ? `/store/${storeSlug}` : `/store/${storeSlug}/${slug}`}
                             target="_blank"
-                            className="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg"
+                            className="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
                         >
                             <ExternalLink className="h-4 w-4" />
                             查看頁面
@@ -288,7 +288,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
             </div>
 
             {error && (
-                <div className="mx-6 mt-4 bg-red-500/20 border border-red-500 text-red-400 rounded-lg p-4">
+                <div className="mx-6 mt-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg p-4">
                     {error}
                 </div>
             )}
@@ -296,13 +296,13 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
             {/* 主內容區 - 左右分割 */}
             <div className="flex-1 flex overflow-hidden">
                 {/* 左側 - 元件列表編輯 */}
-                <div className="w-full md:w-96 bg-zinc-900 md:border-r border-zinc-800 flex flex-col">
+                <div className="w-full md:w-96 bg-card md:border-r border-border flex flex-col">
                     {/* 頁面設定 - 可收合 */}
-                    <div className="border-b border-zinc-800">
+                    <div className="border-b border-border">
                         <button
                             type="button"
                             onClick={() => setSettingsCollapsed(!settingsCollapsed)}
-                            className="w-full flex items-center justify-between p-4 text-sm font-semibold text-white hover:bg-zinc-800/50 transition-colors"
+                            className="w-full flex items-center justify-between p-4 text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors"
                         >
                             <span>頁面設定</span>
                             <ChevronRight className={`h-4 w-4 transition-transform ${settingsCollapsed ? '' : 'rotate-90'}`} />
@@ -311,94 +311,94 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                             <div className="px-4 pb-4">
                                 <div className="space-y-3">
                                     <div>
-                                        <Label htmlFor="title" className="text-xs text-zinc-400">頁面標題</Label>
+                                        <Label htmlFor="title" className="text-xs text-muted-foreground">頁面標題</Label>
                                         <Input
                                             id="title"
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
-                                            className="h-8 text-sm bg-zinc-800 border-zinc-700 text-white"
+                                            className="h-8 text-sm bg-muted/50 border-border text-foreground"
                                         />
                                     </div>
                                     <div>
-                                        <Label htmlFor="slug" className="text-xs text-zinc-400">頁面網址</Label>
+                                        <Label htmlFor="slug" className="text-xs text-muted-foreground">頁面網址</Label>
                                         <Input
                                             id="slug"
                                             value={slug}
                                             onChange={(e) => setSlug(e.target.value)}
-                                            className="h-8 text-sm bg-zinc-800 border-zinc-700 text-white"
+                                            className="h-8 text-sm bg-muted/50 border-border text-foreground"
                                         />
                                     </div>
                                     <div>
-                                        <Label className="text-xs text-zinc-400">背景顏色</Label>
+                                        <Label className="text-xs text-muted-foreground">背景顏色</Label>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <Input
-                                                value={backgroundColor}
-                                                onChange={(e) => setBackgroundColor(e.target.value)}
-                                                className="h-8 text-sm flex-1 bg-zinc-800 border-zinc-700 text-white"
-                                                placeholder="#ffffff"
-                                            />
                                             <input
                                                 type="color"
                                                 value={backgroundColor}
                                                 onChange={(e) => setBackgroundColor(e.target.value)}
-                                                className="w-8 h-8 rounded cursor-pointer bg-transparent border border-zinc-600"
+                                                className="w-8 h-8 rounded cursor-pointer bg-transparent border border-input"
+                                            />
+                                            <Input
+                                                value={backgroundColor}
+                                                onChange={(e) => setBackgroundColor(e.target.value)}
+                                                className="h-8 text-sm flex-1 bg-muted/50 border-border text-foreground"
+                                                placeholder="#ffffff"
                                             />
                                         </div>
                                     </div>
 
                                     {/* SEO Settings */}
-                                    <div className="pt-2 border-t border-zinc-800">
-                                        <h3 className="text-xs font-semibold text-zinc-400 mb-2">SEO 設定</h3>
+                                    <div className="pt-2 border-t border-border">
+                                        <h3 className="text-xs font-semibold text-muted-foreground mb-2">SEO 設定</h3>
                                         <div className="space-y-3">
                                             <div>
-                                                <Label htmlFor="seo_title" className="text-xs text-zinc-500">SEO 標題 (Title)</Label>
+                                                <Label htmlFor="seo_title" className="text-xs text-muted-foreground">SEO 標題 (Title)</Label>
                                                 <Input
                                                     id="seo_title"
                                                     value={seoTitle}
                                                     onChange={(e) => setSeoTitle(e.target.value)}
-                                                    className="h-8 text-sm bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                                                    className="h-8 text-sm bg-muted/50 border-border text-foreground placeholder:text-muted-foreground"
                                                     placeholder="預設使用頁面標題"
                                                 />
                                             </div>
                                             <div>
-                                                <Label htmlFor="seo_description" className="text-xs text-zinc-500">SEO 描述 (Description)</Label>
+                                                <Label htmlFor="seo_description" className="text-xs text-muted-foreground">SEO 描述 (Description)</Label>
                                                 <textarea
                                                     id="seo_description"
                                                     value={seoDescription}
                                                     onChange={(e) => setSeoDescription(e.target.value)}
-                                                    className="w-full flex min-h-[60px] rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm shadow-sm placeholder:text-zinc-500 text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    className="w-full flex min-h-[60px] rounded-md border border-border bg-muted/50 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                                                     placeholder="簡短描述此頁面內容..."
                                                 />
                                             </div>
                                             <div>
-                                                <Label htmlFor="seo_keywords" className="text-xs text-zinc-500">SEO 關鍵字 (Keywords)</Label>
+                                                <Label htmlFor="seo_keywords" className="text-xs text-muted-foreground">SEO 關鍵字 (Keywords)</Label>
                                                 <Input
                                                     id="seo_keywords"
                                                     value={seoKeywords}
                                                     onChange={(e) => setSeoKeywords(e.target.value)}
-                                                    className="h-8 text-sm bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                                                    className="h-8 text-sm bg-muted/50 border-border text-foreground placeholder:text-muted-foreground"
                                                     placeholder="例如: 產品, 服務, 優惠"
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-4 text-sm">
-                                        <label className="flex items-center gap-2 text-zinc-300 cursor-pointer hover:text-white">
+                                    <div className="flex items-center gap-4 text-sm mt-4">
+                                        <label className="flex items-center gap-2 text-foreground cursor-pointer hover:opacity-80">
                                             <input
                                                 type="checkbox"
                                                 checked={isHomepage}
                                                 onChange={(e) => setIsHomepage(e.target.checked)}
-                                                className="rounded bg-zinc-800 border-zinc-600 accent-rose-500"
+                                                className="rounded border-input accent-primary"
                                             />
                                             設為首頁
                                         </label>
-                                        <label className="flex items-center gap-2 text-zinc-300 cursor-pointer hover:text-white">
+                                        <label className="flex items-center gap-2 text-foreground cursor-pointer hover:opacity-80">
                                             <input
                                                 type="checkbox"
                                                 checked={published}
                                                 onChange={(e) => setPublished(e.target.checked)}
-                                                className="rounded bg-zinc-800 border-zinc-600 accent-rose-500"
+                                                className="rounded border-input accent-primary"
                                             />
                                             發布
                                         </label>
@@ -411,10 +411,10 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                     {/* 元件列表 */}
                     <div className="flex-1 overflow-y-auto scrollbar-hide" ref={componentListRef}>
                         <div className="p-4 space-y-3 pb-20">
-                            <h2 className="text-sm font-semibold text-white mb-2">頁面元件</h2>
+                            <h2 className="text-sm font-semibold text-foreground mb-2">頁面元件</h2>
 
                             {components.length === 0 ? (
-                                <div className="text-center py-12 text-zinc-500 text-sm">
+                                <div className="text-center py-12 text-muted-foreground text-sm">
                                     點擊下方按鈕新增元件
                                 </div>
                             ) : (
@@ -426,9 +426,9 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                         onDragStart={() => handleDragStart(index)}
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDragEnd={handleDragEnd}
-                                        className={`bg-zinc-800 rounded-lg border-2 transition-all ${selectedComponentId === component.id
-                                            ? 'border-rose-500'
-                                            : 'border-transparent hover:border-zinc-600'
+                                        className={`bg-card rounded-lg border-2 transition-all ${selectedComponentId === component.id
+                                            ? 'border-primary ring-1 ring-primary'
+                                            : 'border-border hover:border-primary/50'
                                             }`}
                                     >
                                         <div
@@ -436,16 +436,16 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                             onClick={() => toggleComponent(component.id)}
                                         >
                                             <div className="flex items-center gap-2">
-                                                <GripVertical className="h-4 w-4 text-zinc-500 cursor-grab" />
-                                                <ChevronRight className={`h-4 w-4 text-zinc-500 transition-transform ${selectedComponentId === component.id ? 'rotate-90' : ''}`} />
-                                                <span className="font-medium text-sm text-white">{getComponentLabel(component.type)}</span>
+                                                <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+                                                <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${selectedComponentId === component.id ? 'rotate-90' : ''}`} />
+                                                <span className="font-medium text-sm text-foreground">{getComponentLabel(component.type)}</span>
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <button
                                                     type="button"
                                                     onClick={(e) => { e.stopPropagation(); moveComponent(index, index - 1) }}
                                                     disabled={index === 0}
-                                                    className="p-1 text-zinc-500 hover:text-white disabled:opacity-30"
+                                                    className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
                                                 >
                                                     <ChevronUp className="h-4 w-4" />
                                                 </button>
@@ -453,14 +453,14 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                                     type="button"
                                                     onClick={(e) => { e.stopPropagation(); moveComponent(index, index + 1) }}
                                                     disabled={index === components.length - 1}
-                                                    className="p-1 text-zinc-500 hover:text-white disabled:opacity-30"
+                                                    className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
                                                 >
                                                     <ChevronDown className="h-4 w-4" />
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={(e) => { e.stopPropagation(); removeComponent(component.id) }}
-                                                    className="p-1 text-zinc-500 hover:text-red-400"
+                                                    className="p-1 text-muted-foreground hover:text-destructive"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
@@ -468,11 +468,11 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                         </div>
                                         {selectedComponentId === component.id && (
                                             <div
-                                                className="p-3 border-t border-zinc-700 cursor-auto"
+                                                className="p-3 border-t border-border cursor-auto bg-muted/30"
                                                 draggable={true}
                                                 onDragStart={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
+                                                    e.preventDefault()
+                                                    e.stopPropagation()
                                                 }}
                                                 onPointerDown={(e) => e.stopPropagation()}
                                             >
@@ -491,7 +491,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                     </div>
 
                     {/* 新增按鈕 - 固定在底部 */}
-                    <div className="sticky bottom-0 p-4 bg-zinc-900 border-t border-zinc-800">
+                    <div className="sticky bottom-0 p-4 bg-card border-t border-border">
                         <Button onClick={() => setShowAddModal(true)} className="w-full">
                             <Plus className="h-4 w-4 mr-2" />
                             新增元件
@@ -501,15 +501,15 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
 
                 {/* 右側 - 預覽（僅桌面版顯示） */}
-                <div className="hidden md:block flex-1 bg-white overflow-y-auto scrollbar-hide">
-                    <div className="sticky top-0 bg-zinc-100 px-4 py-2 border-b z-10 flex items-center justify-between">
-                        <span className="text-sm font-medium text-zinc-700">預覽</span>
-                        <div className="flex items-center gap-1 bg-zinc-200 rounded-lg p-1">
+                <div className="hidden md:block flex-1 bg-muted/10 overflow-y-auto scrollbar-hide">
+                    <div className="sticky top-0 bg-background px-4 py-2 border-b border-border z-10 flex items-center justify-between">
+                        <span className="text-sm font-medium text-foreground">預覽</span>
+                        <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
                             <button
                                 onClick={() => setPreviewMode('desktop')}
                                 className={`px-3 py-1 text-xs rounded transition-colors ${previewMode === 'desktop'
-                                    ? 'bg-white text-zinc-900 shadow-sm'
-                                    : 'text-zinc-600 hover:text-zinc-900'
+                                    ? 'bg-background text-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground'
                                     }`}
                                 title="桌面版"
                             >
@@ -518,8 +518,8 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                             <button
                                 onClick={() => setPreviewMode('mobile')}
                                 className={`px-3 py-1 text-xs rounded transition-colors ${previewMode === 'mobile'
-                                    ? 'bg-white text-zinc-900 shadow-sm'
-                                    : 'text-zinc-600 hover:text-zinc-900'
+                                    ? 'bg-background text-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground'
                                     }`}
                                 title="手機版"
                             >
@@ -527,7 +527,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                             </button>
                         </div>
                     </div>
-                    <div className="p-6 flex justify-center min-h-screen bg-zinc-50/50">
+                    <div className="p-6 flex justify-center min-h-screen">
                         <div className={`transition-all duration-300 mx-auto bg-white relative ${previewMode === 'mobile'
                             ? 'w-[375px] min-h-[667px] border-[14px] border-zinc-900 rounded-[3rem] shadow-2xl overflow-hidden'
                             : 'w-full min-h-screen shadow-sm'
@@ -548,7 +548,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
                             <div className={`h-full ${previewMode === 'mobile' ? 'overflow-y-auto scrollbar-hide h-[800px] pt-[30px] pb-[40px]' : ''}`}>
                                 {components.length === 0 ? (
-                                    <div className="text-center py-20 text-zinc-400">
+                                    <div className="text-center py-20 text-muted-foreground">
                                         尚無內容
                                     </div>
                                 ) : (
@@ -571,10 +571,10 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
             {/* 新增元件彈窗 - 兩欄分類顯示 */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-zinc-900 rounded-xl border border-zinc-700 w-full max-w-4xl max-h-[90vh] flex flex-col">
-                        <div className="flex items-center justify-between p-6 border-b border-zinc-700">
-                            <h3 className="text-xl font-bold text-white">選擇元件類型</h3>
-                            <button onClick={() => setShowAddModal(false)} className="p-2 text-zinc-400 hover:text-white transition-colors">
+                    <div className="bg-card rounded-xl border border-border w-full max-w-4xl max-h-[90vh] flex flex-col shadow-xl">
+                        <div className="flex items-center justify-between p-6 border-b border-border">
+                            <h3 className="text-xl font-bold text-foreground">選擇元件類型</h3>
+                            <button onClick={() => setShowAddModal(false)} className="p-2 text-muted-foreground hover:text-foreground transition-colors">
                                 <X className="h-6 w-6" />
                             </button>
                         </div>
@@ -582,20 +582,20 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                             <div className="space-y-8">
                                 {componentCategories.map((category) => (
                                     <div key={category.name}>
-                                        <h4 className="text-sm font-semibold text-zinc-400 mb-3">{category.name}</h4>
+                                        <h4 className="text-sm font-semibold text-muted-foreground mb-3">{category.name}</h4>
                                         <div className="grid grid-cols-2 gap-3">
                                             {category.components.map((ct) => (
                                                 <button
                                                     key={ct.type}
                                                     onClick={() => addComponent(ct.type)}
-                                                    className="flex items-start gap-3 p-4 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-left transition-colors group"
+                                                    className="flex items-start gap-3 p-4 bg-muted/50 hover:bg-accent rounded-lg text-left transition-colors group border border-border hover:border-accent"
                                                 >
-                                                    <div className="p-2 bg-zinc-700 group-hover:bg-zinc-600 rounded-lg transition-colors">
-                                                        <ct.icon className="h-5 w-5 text-zinc-300" />
+                                                    <div className="p-2 bg-muted group-hover:bg-background rounded-lg transition-colors">
+                                                        <ct.icon className="h-5 w-5 text-foreground" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <div className="font-medium text-white mb-1">{ct.label}</div>
-                                                        <div className="text-xs text-zinc-400">{ct.description}</div>
+                                                        <div className="font-medium text-foreground mb-1">{ct.label}</div>
+                                                        <div className="text-xs text-muted-foreground">{ct.description}</div>
                                                     </div>
                                                 </button>
                                             ))}
@@ -610,19 +610,19 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
             {/* 手機版全螢幕預覽 */}
             {showMobilePreview && (
-                <div className="md:hidden fixed inset-0 z-50 bg-white flex flex-col">
-                    <div className="flex items-center justify-between px-4 py-3 bg-zinc-900 border-b border-zinc-800">
-                        <span className="text-white font-medium">頁面預覽</span>
+                <div className="md:hidden fixed inset-0 z-50 bg-background flex flex-col">
+                    <div className="flex items-center justify-between px-4 py-3 bg-card border-b border-border">
+                        <span className="text-foreground font-medium">頁面預覽</span>
                         <button
                             onClick={() => setShowMobilePreview(false)}
-                            className="p-2 text-zinc-400 hover:text-white"
+                            className="p-2 text-muted-foreground hover:text-foreground"
                         >
                             <X className="h-5 w-5" />
                         </button>
                     </div>
                     <div className="flex-1 overflow-y-auto scrollbar-hide p-4">
                         {components.length === 0 ? (
-                            <div className="text-center py-20 text-zinc-400">
+                            <div className="text-center py-20 text-muted-foreground">
                                 尚無內容
                             </div>
                         ) : (

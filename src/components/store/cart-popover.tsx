@@ -128,7 +128,7 @@ export function CartPopover() {
                         <span className="text-lg font-bold text-gray-900">NT$ {getCartTotal().toLocaleString()}</span>
                     </div>
                     <Link
-                        href={`/store/${storeSlug}/checkout`}
+                        href={storeSlug === 'omo' ? '/checkout' : `/store/${storeSlug}/checkout`}
                         onClick={() => setIsCartOpen(false)}
                         className="block w-full py-2.5 bg-gray-900 hover:bg-black text-white text-center rounded-lg font-medium text-sm transition-colors shadow-lg shadow-gray-200"
                     >
