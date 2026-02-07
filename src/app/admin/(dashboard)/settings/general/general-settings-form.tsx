@@ -45,7 +45,7 @@ function CollapsibleSection({ title, children, defaultOpen = false }: { title: s
 }
 
 export function GeneralSettingsForm({ tenant }: Props) {
-    const initialState: State = { error: '', success: '' }
+    const initialState: State = {}
     const [state, formAction, isPending] = useActionState(updateGeneralSettings, initialState)
     const [logoUrl, setLogoUrl] = useState(tenant.logo_url || '')
 
@@ -64,7 +64,7 @@ export function GeneralSettingsForm({ tenant }: Props) {
             {state?.success && (
                 <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-lg p-4 flex items-center gap-2">
                     <Check className="h-4 w-4" />
-                    {state.success}
+                    設定儲存成功
                 </div>
             )}
 

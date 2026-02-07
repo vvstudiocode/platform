@@ -1,129 +1,69 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentTenant } from '@/lib/tenant'
 import { revalidatePath } from 'next/cache'
+import * as sharedCatalog from '@/features/settings/catalog-actions'
 
-// ============ BRANDS ============
-
+// Brands
 export async function getBrands(tenantId: string) {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-        .from('brands')
-        .select('*')
-        .eq('tenant_id', tenantId)
-        .order('name')
-
-    if (error) throw error
-    return data || []
+    return sharedCatalog.getBrands(tenantId)
 }
 
 export async function createBrand(tenantId: string, name: string) {
-    const supabase = await createClient()
-    const { error } = await supabase
-        .from('brands')
-        .insert({ tenant_id: tenantId, name: name.trim() })
+    const tenant = await getCurrentTenant('admin')
+    if (!tenant || tenant.id !== tenantId) return { error: 'Unauthorized' }
 
-    if (error) {
-        if (error.code === '23505') {
-            return { error: '此品牌名稱已存在' }
-        }
-        return { error: error.message }
-    }
-
-    revalidatePath('/admin/settings/brands')
-    revalidatePath('/app/settings/brands')
-    return { success: true }
+    const result = await sharedCatalog.createBrand(tenantId, name)
+    if (result.success) revalidatePath('/admin/settings/brands')
+    return result
 }
 
 export async function updateBrand(brandId: string, name: string) {
-    const supabase = await createClient()
-    const { error } = await supabase
-        .from('brands')
-        .update({ name: name.trim() })
-        .eq('id', brandId)
+    const tenant = await getCurrentTenant('admin')
+    if (!tenant) return { error: 'Unauthorized' }
 
-    if (error) return { error: error.message }
-
-    revalidatePath('/admin/settings/brands')
-    revalidatePath('/app/settings/brands')
-    return { success: true }
+    const result = await sharedCatalog.updateBrand(tenant.id, brandId, name)
+    if (result.success) revalidatePath('/admin/settings/brands')
+    return result
 }
 
 export async function deleteBrand(brandId: string) {
-    const supabase = await createClient()
-    const { error } = await supabase
-        .from('brands')
-        .delete()
-        .eq('id', brandId)
+    const tenant = await getCurrentTenant('admin')
+    if (!tenant) return { error: 'Unauthorized' }
 
-    if (error) return { error: error.message }
-
-    revalidatePath('/admin/settings/brands')
-    revalidatePath('/app/settings/brands')
-    return { success: true }
+    const result = await sharedCatalog.deleteBrand(tenant.id, brandId)
+    if (result.success) revalidatePath('/admin/settings/brands')
+    return result
 }
 
-// ============ CATEGORIES ============
-
+// Categories
 export async function getCategories(tenantId: string) {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('tenant_id', tenantId)
-        .order('sort_order')
-        .order('name')
-
-    if (error) throw error
-    return data || []
+    return sharedCatalog.getCategories(tenantId)
 }
 
 export async function createCategory(tenantId: string, name: string, parentId?: string) {
-    const supabase = await createClient()
-    const { error } = await supabase
-        .from('categories')
-        .insert({
-            tenant_id: tenantId,
-            name: name.trim(),
-            parent_id: parentId || null
-        })
+    const tenant = await getCurrentTenant('admin')
+    if (!tenant || tenant.id !== tenantId) return { error: 'Unauthorized' }
 
-    if (error) {
-        if (error.code === '23505') {
-            return { error: '此分類名稱已存在' }
-        }
-        return { error: error.message }
-    }
-
-    revalidatePath('/admin/settings/categories')
-    revalidatePath('/app/settings/categories')
-    return { success: true }
+    const result = await sharedCatalog.createCategory(tenantId, name, parentId)
+    if (result.success) revalidatePath('/admin/settings/categories')
+    return result
 }
 
 export async function updateCategory(categoryId: string, name: string) {
-    const supabase = await createClient()
-    const { error } = await supabase
-        .from('categories')
-        .update({ name: name.trim() })
-        .eq('id', categoryId)
+    const tenant = await getCurrentTenant('admin')
+    if (!tenant) return { error: 'Unauthorized' }
 
-    if (error) return { error: error.message }
-
-    revalidatePath('/admin/settings/categories')
-    revalidatePath('/app/settings/categories')
-    return { success: true }
+    const result = await sharedCatalog.updateCategory(tenant.id, categoryId, name)
+    if (result.success) revalidatePath('/admin/settings/categories')
+    return result
 }
 
 export async function deleteCategory(categoryId: string) {
-    const supabase = await createClient()
-    const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', categoryId)
+    const tenant = await getCurrentTenant('admin')
+    if (!tenant) return { error: 'Unauthorized' }
 
-    if (error) return { error: error.message }
-
-    revalidatePath('/admin/settings/categories')
-    revalidatePath('/app/settings/categories')
-    return { success: true }
+    const result = await sharedCatalog.deleteCategory(tenant.id, categoryId)
+    if (result.success) revalidatePath('/admin/settings/categories')
+    return result
 }
