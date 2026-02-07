@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { NavigationManager } from './navigation-manager'
+import { NavigationManager } from '@/features/navigation/components/navigation-manager'
 
 export default async function AppNavigationPage() {
     const supabase = await createClient()
@@ -43,7 +43,7 @@ export default async function AppNavigationPage() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-2xl font-serif font-bold text-foreground">導覽目錄管理</h1>
-                <p className="text-muted-foreground text-sm mt-1">拖拉調整選單順序，管理網站導覽列</p>
+                <p className="text-muted-foreground mt-1">設定網站導覽列，支援兩層下拉選單</p>
             </div>
             <NavigationManager
                 navItems={(navItems || []) as any}
