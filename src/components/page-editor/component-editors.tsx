@@ -1182,3 +1182,235 @@ export function FAQEditor({ props, onChange }: { props: Record<string, any>; onC
         </div>
     )
 }
+// ... existing code ...
+
+// 9. 環狀輪播編輯器
+export function CircularCarouselEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+    const images = props.images || []
+
+    const addImage = () => {
+        onChange({ images: [...images, { url: '', alt: '圖片', link: '' }] })
+    }
+
+    const removeImage = (index: number) => {
+        onChange({ images: images.filter((_: any, i: number) => i !== index) })
+    }
+
+    const updateImage = (index: number, field: string, value: string) => {
+        const newImages = [...images]
+        newImages[index] = { ...newImages[index], [field]: value }
+        onChange({ images: newImages })
+    }
+
+    return (
+        <div className="space-y-3">
+            <div className="space-y-2 p-3 bg-muted/30 rounded-lg border border-border">
+                <label className="text-sm font-medium">基本設定</label>
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                            <input
+                                type="checkbox"
+                                checked={props.autoRotate ?? true}
+                                onChange={(e) => onChange({ autoRotate: e.target.checked })}
+                                className="bg-background border-input rounded"
+                            />
+                            自動旋轉
+                        </label>
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="block text-xs text-muted-foreground mb-1">半徑 (px)</label>
+                        <Input
+                            type="number"
+                            value={props.radius || 300}
+                            onChange={(e) => onChange({ radius: parseInt(e.target.value) || 300 })}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs text-muted-foreground mb-1">高度 (px)</label>
+                        <Input
+                            type="number"
+                            value={props.height || 400}
+                            onChange={(e) => onChange({ height: parseInt(e.target.value) || 400 })}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs text-muted-foreground mb-1">項目寬度 (px)</label>
+                        <Input
+                            type="number"
+                            value={props.itemWidth || 200}
+                            onChange={(e) => onChange({ itemWidth: parseInt(e.target.value) || 200 })}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs text-muted-foreground mb-1">項目高度 (px)</label>
+                        <Input
+                            type="number"
+                            value={props.itemHeight || 300}
+                            onChange={(e) => onChange({ itemHeight: parseInt(e.target.value) || 300 })}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">圖片列表</label>
+                {images.map((img: any, index: number) => (
+                    <div key={index} className="p-3 bg-muted/50 rounded-lg space-y-2">
+                        <ImageInput
+                            value={img.url || ''}
+                            onChange={(url) => updateImage(index, 'url', url)}
+                            placeholder="圖片 URL"
+                        />
+
+                        <div className="flex gap-2 items-center">
+                            <div className="flex-1">
+                                <Input placeholder="圖片說明" value={img.alt || ''} onChange={(e) => updateImage(index, 'alt', e.target.value)} />
+                            </div>
+                            <button type="button" onClick={() => removeImage(index)} className="p-2 text-muted-foreground hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <Input placeholder="連結 (可選)" value={img.link || ''} onChange={(e) => updateImage(index, 'link', e.target.value)} />
+                    </div>
+                ))}
+                <button
+                    type="button"
+                    onClick={addImage}
+                    className="w-full py-2 border-2 border-dashed border-input rounded-lg text-muted-foreground hover:text-foreground hover:border-accent transition-colors"
+                >
+                    + 新增圖片
+                </button>
+            </div>
+
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 64,
+                    mobile: props.paddingYMobile ?? 32
+                }}
+                onChange={onChange}
+            />
+        </div>
+    )
+}
+// 11. Showcase Slider 編輯器
+export function ShowcaseSliderEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+    const slides = props.slides || []
+
+    const addSlide = () => {
+        onChange({
+            slides: [...slides, {
+                image: '',
+                title: 'New Slide',
+                subtitle: 'Subtitle',
+                buttonText: 'View More',
+                link: ''
+            }]
+        })
+    }
+
+    const removeSlide = (index: number) => {
+        onChange({ slides: slides.filter((_: any, i: number) => i !== index) })
+    }
+
+    const updateSlide = (index: number, field: string, value: string) => {
+        const newSlides = [...slides]
+        newSlides[index] = { ...newSlides[index], [field]: value }
+        onChange({ slides: newSlides })
+    }
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    checked={props.autoplay ?? true}
+                    onChange={(e) => onChange({ autoplay: e.target.checked })}
+                    className="bg-background border-input rounded"
+                />
+                <label className="text-sm text-muted-foreground">自動輪播</label>
+            </div>
+
+            <div className="space-y-4">
+                {slides.map((slide: any, index: number) => (
+                    <div key={index} className="p-4 bg-muted/50 rounded-lg space-y-3 border border-border">
+                        <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium">Slide {index + 1}</span>
+                            <button onClick={() => removeSlide(index)} className="text-muted-foreground hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </div>
+
+                        <ImageInput
+                            value={slide.image || ''}
+                            onChange={(url) => updateSlide(index, 'image', url)}
+                            placeholder="圖片 URL"
+                        />
+
+                        <Input
+                            placeholder="標題"
+                            value={slide.title || ''}
+                            onChange={(e) => updateSlide(index, 'title', e.target.value)}
+                        />
+                        <Input
+                            placeholder="副標題"
+                            value={slide.subtitle || ''}
+                            onChange={(e) => updateSlide(index, 'subtitle', e.target.value)}
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input
+                                placeholder="按鈕文字"
+                                value={slide.buttonText || ''}
+                                onChange={(e) => updateSlide(index, 'buttonText', e.target.value)}
+                            />
+                            <Input
+                                placeholder="連結"
+                                value={slide.link || ''}
+                                onChange={(e) => updateSlide(index, 'link', e.target.value)}
+                            />
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <button
+                type="button"
+                onClick={addSlide}
+                className="w-full py-2 border-2 border-dashed border-input rounded-lg text-muted-foreground hover:text-foreground hover:border-accent transition-colors"
+            >
+                + 新增投影片
+            </button>
+
+            <div className="space-y-2 pt-4 border-t border-border">
+                <label className="text-sm text-muted-foreground">高度 (例如: 100vh, 600px)</label>
+                <Input
+                    value={props.height || '100vh'}
+                    onChange={(e) => onChange({ height: e.target.value })}
+                />
+            </div>
+
+            <div className="space-y-2 pt-2">
+                <label className="block text-sm text-muted-foreground mb-1">按鈕 Hover 顏色</label>
+                <div className="flex gap-2 items-center">
+                    <input
+                        type="color"
+                        value={props.buttonHoverColor || '#e11d48'}
+                        onChange={(e) => onChange({ buttonHoverColor: e.target.value })}
+                        className="h-9 w-16 p-1 rounded cursor-pointer bg-background border border-input"
+                    />
+                    <span className="text-sm text-muted-foreground uppercase">{props.buttonHoverColor || '#e11d48'}</span>
+                </div>
+            </div>
+
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 0,
+                    mobile: props.paddingYMobile ?? 0
+                }}
+                onChange={onChange}
+            />
+        </div>
+    )
+}

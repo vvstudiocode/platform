@@ -55,10 +55,10 @@ export function CollapsibleSidebar({ navItems, navSections }: Props) {
     return (
         <div className={`
             ${collapsed ? 'w-20' : 'w-48'} 
-            hidden md:flex flex-shrink-0 sticky top-0 h-screen transition-all duration-300 relative
+            hidden md:flex flex-shrink-0 sticky top-[4.5rem] h-[calc(100vh-4.5rem)] transition-all duration-300 relative
         `}>
             {/* 側邊欄主體 */}
-            <aside className="flex-1 border-r border-sidebar-border bg-sidebar py-4 overflow-y-auto flex flex-col">
+            <aside className={`flex-1 border-r border-sidebar-border bg-sidebar py-4 flex flex-col ${collapsed ? 'overflow-visible' : 'overflow-y-auto'}`}>
                 <nav className="space-y-4 px-2 flex-1">
                     {sections.map((section, sectionIndex) => (
                         <div key={section.title || sectionIndex}>
@@ -93,7 +93,7 @@ export function CollapsibleSidebar({ navItems, navSections }: Props) {
 
                                             {/* 收合時的 Tooltip */}
                                             {collapsed && (
-                                                <div className="invisible group-hover:visible absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded whitespace-nowrap z-50 shadow-soft border border-border">
+                                                <div className="invisible group-hover:visible absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded whitespace-nowrap z-[100] shadow-md border border-border">
                                                     {item.label}
                                                 </div>
                                             )}

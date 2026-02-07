@@ -16,9 +16,13 @@ import {
     ImageGridEditor,
     ProductListEditor,
     ProductCategoryEditor,
-    ProductCarouselEditor
+    ProductCarouselEditor,
+    CircularCarouselEditor,
+    ShowcaseSliderEditor,
 } from '@/components/page-editor/component-editors'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
+import { CartProvider } from '@/lib/cart-context'
+import { StoreFooter } from '@/components/store/store-footer'
 import { updatePageContent } from '../actions'
 
 interface PageComponent {
@@ -44,6 +48,8 @@ interface Props {
     }
     updateAction: (prevState: any, formData: FormData) => Promise<{ error?: string }>
     storeSlug?: string
+    storeName?: string
+    footerSettings?: any
     tenantId?: string
 }
 
@@ -54,6 +60,8 @@ const componentCategories = [
         components: [
             { type: 'hero', icon: Image, label: 'Hero Banner', description: '大型橫幅圖片' },
             { type: 'carousel', icon: Image, label: '輪播圖', description: '圖片輪播' },
+            { type: 'circular_carousel', icon: Image, label: '3D 環狀輪播', description: '立體旋轉展示' },
+            { type: 'showcase_slider', icon: Image, label: '焦點展示', description: '高質感全螢幕輪播' },
             { type: 'image_text', icon: LayoutGrid, label: '圖文組合', description: '圖片+文字' },
             { type: 'image_grid', icon: LayoutGrid, label: '圖片組合', description: '多圖網格' },
         ]
@@ -81,7 +89,7 @@ const componentCategories = [
 const allComponentTypes = componentCategories.flatMap(cat => cat.components)
 
 
-export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props) {
+export function PageEditForm({ page, updateAction, storeSlug, tenantId, storeName, footerSettings }: Props) {
     // State for settings
     const [title, setTitle] = useState(page.title)
     const [slug, setSlug] = useState(page.slug)
@@ -250,7 +258,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
     }
 
     return (
-        <div className="h-screen flex flex-col">
+        <div className="h-[calc(100vh-8rem)] flex flex-col">
             {/* 頂部標題列 */}
             <div className="flex items-center justify-between px-6 py-4 bg-card border-b border-border">
                 <div className="flex items-center gap-4">
@@ -491,7 +499,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                     </div>
 
                     {/* 新增按鈕 - 固定在底部 */}
-                    <div className="sticky bottom-0 p-4 bg-card border-t border-border">
+                    <div className="sticky bottom-0 p-4 bg-card border-t border-border z-10">
                         <Button onClick={() => setShowAddModal(true)} className="w-full">
                             <Plus className="h-4 w-4 mr-2" />
                             新增元件
@@ -502,7 +510,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
                 {/* 右側 - 預覽（僅桌面版顯示） */}
                 <div className="hidden md:block flex-1 bg-muted/10 overflow-y-auto scrollbar-hide">
-                    <div className="sticky top-0 bg-background px-4 py-2 border-b border-border z-10 flex items-center justify-between">
+                    <div className="sticky top-0 bg-background px-4 py-2 border-b border-border z-[100] flex items-center justify-between">
                         <span className="text-sm font-medium text-foreground">預覽</span>
                         <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
                             <button
@@ -527,39 +535,73 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                             </button>
                         </div>
                     </div>
-                    <div className="p-6 flex justify-center min-h-screen">
+                    <div className="p-6 flex justify-center h-full">
                         <div className={`transition-all duration-300 mx-auto bg-white relative ${previewMode === 'mobile'
-                            ? 'w-[375px] min-h-[667px] border-[14px] border-zinc-900 rounded-[3rem] shadow-2xl overflow-hidden'
-                            : 'w-full min-h-screen shadow-sm'
+                            ? 'w-[390px] h-[844px] rounded-[50px] shadow-2xl border-[8px] border-zinc-900 overflow-hidden ring-4 ring-zinc-300 my-auto'
+                            : 'w-full h-full shadow-sm'
                             }`}>
-                            {/* Mobile Notch Simulation */}
+
                             {/* Mobile Notch Simulation */}
                             {previewMode === 'mobile' && (
                                 <>
-                                    {/* Notch */}
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[30px] bg-zinc-900 rounded-b-[18px] z-50 flex items-center justify-center gap-3 pointer-events-none shadow-md">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-zinc-800/50"></div>
-                                        <div className="w-16 h-1 rounded-full bg-zinc-800/50"></div>
+                                    {/* Island/Notch Area */}
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[35px] bg-black rounded-b-[20px] z-20 flex items-center justify-center gap-3 pointer-events-none">
+                                        <div className="w-2 h-2 rounded-full bg-zinc-800/80"></div>
+                                        <div className="w-16 h-1.5 rounded-full bg-zinc-800/80"></div>
                                     </div>
+
+                                    {/* Status Bar Time (Fake) */}
+                                    <div className="absolute top-3 left-8 text-xs font-bold text-black z-10 select-none">9:41</div>
+
+                                    {/* Status Bar Icons (Fake) */}
+                                    <div className="absolute top-3 right-8 flex gap-1.5 z-10">
+                                        <div className="w-4 h-3 bg-black rounded-[2px] opacity-80"></div>
+                                        <div className="w-3 h-3 bg-black rounded-full opacity-80"></div>
+                                    </div>
+
                                     {/* Home Indicator */}
-                                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[130px] h-[5px] bg-black/20 rounded-full z-50 pointer-events-none backdrop-blur-sm"></div>
+                                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[130px] h-[5px] bg-black/40 rounded-full z-20 pointer-events-none backdrop-blur-sm"></div>
                                 </>
                             )}
 
-                            <div className={`h-full ${previewMode === 'mobile' ? 'overflow-y-auto scrollbar-hide h-[800px] pt-[30px] pb-[40px]' : ''}`}>
+                            {/* Content Area - Scrollable inside the phone frame */}
+                            <div
+                                className={`h-full w-full bg-white relative ${previewMode === 'mobile'
+                                    ? 'overflow-y-auto overflow-x-hidden scrollbar-hide'
+                                    : ''
+                                    }`}
+                                style={{
+                                    backgroundColor: backgroundColor || '#ffffff',
+                                    paddingTop: previewMode === 'mobile' ? '40px' : '0', // Space for status bar
+                                    paddingBottom: previewMode === 'mobile' ? '20px' : '0' // Space for home indicator
+                                }}
+                            >
                                 {components.length === 0 ? (
-                                    <div className="text-center py-20 text-muted-foreground">
+                                    <div className="h-full flex items-center justify-center text-muted-foreground p-8 text-center">
                                         尚無內容
                                     </div>
                                 ) : (
-                                    <PageContentRenderer
-                                        content={components}
-                                        storeSlug={storeSlug}
-                                        tenantId={tenantId}
-                                        preview={true}
-                                        backgroundColor={backgroundColor}
-                                        previewDevice={previewMode}
-                                        selectedId={selectedComponentId || undefined}
+                                    <div className="min-h-0">
+                                        <CartProvider>
+                                            <PageContentRenderer
+                                                content={components}
+                                                storeSlug={storeSlug}
+                                                tenantId={tenantId}
+                                                preview={true}
+                                                backgroundColor={backgroundColor}
+                                                previewDevice={previewMode}
+                                                selectedId={selectedComponentId || undefined}
+                                            />
+                                        </CartProvider>
+                                    </div>
+                                )}
+
+                                {/* Footer (Only show in mobile preview to complete the look, or both if desired) */}
+                                {previewMode === 'mobile' && (
+                                    <StoreFooter
+                                        storeName={storeName || '商店名稱'}
+                                        storeSlug={storeSlug || ''}
+                                        settings={footerSettings}
                                     />
                                 )}
                             </div>
@@ -570,7 +612,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
             {/* 新增元件彈窗 - 兩欄分類顯示 */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
                     <div className="bg-card rounded-xl border border-border w-full max-w-4xl max-h-[90vh] flex flex-col shadow-xl">
                         <div className="flex items-center justify-between p-6 border-b border-border">
                             <h3 className="text-xl font-bold text-foreground">選擇元件類型</h3>
@@ -610,7 +652,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
             {/* 手機版全螢幕預覽 */}
             {showMobilePreview && (
-                <div className="md:hidden fixed inset-0 z-50 bg-background flex flex-col">
+                <div className="md:hidden fixed inset-0 z-[200] bg-background flex flex-col">
                     <div className="flex items-center justify-between px-4 py-3 bg-card border-b border-border">
                         <span className="text-foreground font-medium">頁面預覽</span>
                         <button
@@ -626,15 +668,17 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                 尚無內容
                             </div>
                         ) : (
-                            <PageContentRenderer
-                                content={components}
-                                storeSlug={storeSlug}
-                                tenantId={tenantId}
-                                preview={true}
-                                backgroundColor={backgroundColor}
-                                previewDevice="mobile"
-                                selectedId={selectedComponentId || undefined}
-                            />
+                            <CartProvider>
+                                <PageContentRenderer
+                                    content={components}
+                                    storeSlug={storeSlug}
+                                    tenantId={tenantId}
+                                    preview={true}
+                                    backgroundColor={backgroundColor}
+                                    previewDevice="mobile"
+                                    selectedId={selectedComponentId || undefined}
+                                />
+                            </CartProvider>
                         )}
                     </div>
                 </div>
@@ -654,6 +698,42 @@ function getDefaultProps(type: string): Record<string, any> {
             return { title: '歡迎', subtitle: '這是副標題', backgroundUrl: '', buttonText: '了解更多', buttonUrl: '' }
         case 'carousel':
             return { images: [{ url: '', alt: '圖片 1', link: '' }], autoplay: true, interval: 5 }
+        case 'circular_carousel':
+            return {
+                images: [
+                    { url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff', alt: 'Nike Red', link: '' },
+                    { url: 'https://images.unsplash.com/photo-1543508282-6319a3e2621f', alt: 'Nike Blue', link: '' },
+                    { url: 'https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111', alt: 'Nike Green', link: '' },
+                    { url: 'https://images.unsplash.com/photo-1552346154-21d32810aba3', alt: 'Nike Orange', link: '' },
+                    { url: 'https://images.unsplash.com/photo-1560769629-9750c3c0ce99', alt: 'Nike Grey', link: '' }
+                ],
+                autoRotate: true,
+                radius: 300,
+                height: 400,
+                itemWidth: 200,
+                itemHeight: 300
+            }
+        case 'showcase_slider':
+            return {
+                slides: [
+                    {
+                        image: 'https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?q=80&w=3270',
+                        title: 'Elegance',
+                        subtitle: 'Premium Collection',
+                        buttonText: 'View Collection',
+                        link: ''
+                    },
+                    {
+                        image: 'https://images.unsplash.com/photo-1509319117193-51043812013d?q=80&w=3270',
+                        title: 'Sophistication',
+                        subtitle: 'New Arrivals',
+                        buttonText: 'Shop Now',
+                        link: ''
+                    }
+                ],
+                autoplay: true,
+                height: '100vh'
+            }
         case 'image_text':
             return { layout: 'left', imageUrl: '', title: '標題', content: '內容說明', buttonText: '', buttonUrl: '' }
         case 'image_grid':
@@ -683,6 +763,10 @@ function ComponentEditor({ type, props, onChange, tenantId }: { type: string; pr
             return <HeroEditor props={props} onChange={onChange} />
         case 'carousel':
             return <CarouselEditor props={props} onChange={onChange} />
+        case 'circular_carousel':
+            return <CircularCarouselEditor props={props} onChange={onChange} />
+        case 'showcase_slider':
+            return <ShowcaseSliderEditor props={props} onChange={onChange} />
         case 'image_text':
             return <ImageTextEditor props={props} onChange={onChange} />
         case 'image_grid':

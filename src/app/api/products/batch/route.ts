@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { data: products, error } = await supabase
         .from('products')
-        .select('*')
+        .select('*, variants:product_variants(*)')
         .in('id', ids)
 
     if (error) {

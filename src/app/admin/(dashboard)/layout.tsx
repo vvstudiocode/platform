@@ -48,7 +48,7 @@ export default async function AdminLayout({
     // 取得總部商店（slug = 'hq' 或第一個 managed_by 為當前用戶的商店）
     const { data: hqStore } = await supabase
         .from('tenants')
-        .select('id, slug')
+        .select('id, slug, name')
         .eq('managed_by', user.id)
         .order('created_at', { ascending: true })
         .limit(1)
@@ -103,7 +103,7 @@ export default async function AdminLayout({
                     <div className="p-1.5 bg-accent/10 rounded-lg">
                         <Store className="h-5 w-5 text-accent" />
                     </div>
-                    OMO網站平台
+                    {hqStore?.name || '總部'} 後台
                 </Link>
                 <div className="flex items-center gap-4">
                     <a

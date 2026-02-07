@@ -4,6 +4,12 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import { ProductListBlock, ProductCategoryBlock, ProductCarouselBlock } from './product-blocks'
+import { CircularCarousel } from './circular-carousel'
+import { ShowcaseSlider } from '../store/showcase-slider'
+
+// ... existing code ...
+
+
 
 interface PageComponent {
     id?: string
@@ -74,21 +80,44 @@ function AnimationWrapper({ children, animation, className }: { children: ReactN
 }
 
 export function PageContentRenderer({ content, storeSlug = '', tenantId = '', preview = false, previewDevice = 'desktop', backgroundColor = '#ffffff', selectedId, children }: Props & { selectedId?: string }) {
+    // 定義哪些區塊應該是全寬的
+    const isFullWidthBlock = (type: string) => {
+        // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
+        return ['hero', 'showcase_slider'].includes(type)
+    }
+
     return (
         <div
-            className="min-h-full w-full"
+            className="min-h-full w-full flex flex-col"
             style={{ backgroundColor: backgroundColor || '#ffffff' }}
         >
-            <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-                {children}
-                {content.map((block, index) => (
+            {/* 靜態內容（如果有）保持限制寬度 */}
+            {children && (
+                <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8 mb-8">
+                    {children}
+                </div>
+            )}
+
+            {content.map((block, index) => {
+                const fullWidth = isFullWidthBlock(block.type)
+
+                return (
                     <div
                         key={`${block.id || index}-${JSON.stringify(block.props?.animation)}`}
                         id={`preview-${block.id}`}
-                        className={`scroll-mt-32 transition-all duration-300 ${block.id === selectedId
-                            ? 'ring-2 ring-rose-500 ring-offset-4 rounded-lg'
-                            : ''
-                            } ${preview && previewDevice === 'mobile'
+                        className={`scroll-mt-32 transition-all duration-300 w-full ${
+                            // 只有被選中時才顯示外框，且要確保外框可見
+                            block.id === selectedId
+                                ? 'relative z-10 ring-2 ring-rose-500 ring-offset-4 ring-offset-white'
+                                : ''
+                            } ${
+                            // 根據區塊類型決定是否限制寬度
+                            fullWidth
+                                ? ''
+                                : 'max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8'
+                            } ${
+                            // 垂直間距
+                            preview && previewDevice === 'mobile'
                                 ? 'py-[var(--py-mobile)]'
                                 : 'py-[var(--py-mobile)] md:py-[var(--py-desktop)]'
                             }`}
@@ -97,12 +126,12 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
                             '--py-mobile': `${block.props?.paddingYMobile ?? 32}px`,
                         } as any}
                     >
-                        <AnimationWrapper animation={block.props?.animation}>
+                        <AnimationWrapper animation={block.props?.animation} className="w-full h-full">
                             <ContentBlock block={block} storeSlug={storeSlug} tenantId={tenantId} preview={preview} previewDevice={previewDevice} />
                         </AnimationWrapper>
                     </div>
-                ))}
-            </div>
+                )
+            })}
         </div>
     )
 }
@@ -219,6 +248,24 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 aspectRatioDesktop={block.props?.aspectRatioDesktop}
                 aspectRatioMobile={block.props?.aspectRatioMobile}
             />
+        case 'circular_carousel':
+            return <CircularCarousel
+                images={block.props?.images || []}
+                autoRotate={block.props?.autoRotate ?? true}
+                radius={block.props?.radius ?? 300}
+                height={block.props?.height ?? 400}
+                itemWidth={block.props?.itemWidth ?? 200}
+                itemHeight={block.props?.itemHeight ?? 300}
+            />;
+        case 'showcase_slider':
+            return <ShowcaseSlider
+                slides={block.props?.slides || []}
+                autoplay={block.props?.autoplay ?? true}
+                height={block.props?.height}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                buttonHoverColor={block.props?.buttonHoverColor}
+            />;
         default:
             return null
     }

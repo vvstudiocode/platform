@@ -30,13 +30,18 @@ export default async function EditPagePage({ params }: Props) {
 
     // 3. 取得商店 slug
     let storeSlug: string | undefined
+    let storeName: string | undefined
+    let footerSettings: any
+
     if (tenantId) {
         const { data: tenant } = await supabase
             .from('tenants')
-            .select('slug')
+            .select('slug, name, footer_settings')
             .eq('id', tenantId)
             .single()
         storeSlug = tenant?.slug
+        storeName = tenant?.name
+        footerSettings = tenant?.footer_settings
     }
 
     const boundUpdatePage = updatePage.bind(null, pageId)
@@ -59,6 +64,8 @@ export default async function EditPagePage({ params }: Props) {
             }}
             updateAction={boundUpdatePage}
             storeSlug={storeSlug}
+            storeName={storeName}
+            footerSettings={footerSettings}
             tenantId={tenantId || ''}
         />
     )

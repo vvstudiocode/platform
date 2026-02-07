@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, Plus, Minus, X, Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useCart } from '@/lib/cart-context'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 
 // 靜態映射以確保 Tailwind 能抓取到 class
 const GRID_COLS: Record<number, string> = {
@@ -22,51 +25,237 @@ const MD_GRID_COLS: Record<number, string> = {
 
 // 商品卡片元件（共用）
 function ProductCard({ product, storeSlug, fitDesktop = 'cover', fitMobile = 'cover', aspectRatioDesktop = '1/1', aspectRatioMobile = '1/1' }: { product: any; storeSlug: string; fitDesktop?: string; fitMobile?: string; aspectRatioDesktop?: string; aspectRatioMobile?: string }) {
-    return (
-        <Link
-            href={storeSlug === 'omo' ? `/product/${product.id}` : `/store/${storeSlug}/product/${product.id}`}
-            className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300"
-        >
-            {/* 商品圖片 */}
-            <div
-                className="relative overflow-hidden bg-gray-100 aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)]"
-                style={{
-                    '--aspect-desktop': typeof fitDesktop === 'string' && fitDesktop.includes('/') ? fitDesktop : '1/1',
-                    '--aspect-mobile': typeof fitMobile === 'string' && fitMobile.includes('/') ? fitMobile : '1/1',
-                } as React.CSSProperties}
-            >
-                {product.image_url ? (
-                    <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-full group-hover:scale-110 transition-transform duration-500 object-cover"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <span>無圖片</span>
-                    </div>
-                )}
-                {/* 庫存標籤 (Removed per user request) */}
-            </div>
+    const { addItem } = useCart()
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [quantity, setQuantity] = useState(1)
+    const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
+    const [isAdded, setIsAdded] = useState(false)
+    const [selectedImage, setSelectedImage] = useState(0)
 
-            {/* 商品資訊 */}
-            <div className="p-4 space-y-2">
-                <h3 className="font-semibold text-gray-900 group-hover:text-rose-600 transition-colors line-clamp-2">
-                    {product.name}
-                </h3>
-                {product.description && (
-                    <p className="text-sm text-gray-500 line-clamp-2">{product.description}</p>
-                )}
-                <div className="flex items-baseline justify-between">
-                    <div className="text-lg font-bold text-rose-600">
-                        NT$ {product.price.toLocaleString()}
+    // Initialize options
+    useEffect(() => {
+        if (isModalOpen && product.options && Array.isArray(product.options)) {
+            const initial: Record<string, string> = {}
+            product.options.forEach((option: any) => {
+                if (option.values && option.values.length > 0) {
+                    initial[option.name] = option.values[0]
+                }
+            })
+            setSelectedOptions(initial)
+            setQuantity(1)
+            setSelectedImage(0)
+        }
+    }, [isModalOpen, product.options])
+
+    const allImages = useMemo(() => {
+        const imgs = []
+        if (product.image_url) imgs.push(product.image_url)
+        if (product.images && product.images.length > 0) {
+            product.images.forEach((img: string) => {
+                if (img !== product.image_url) imgs.push(img)
+            })
+        }
+        return imgs.length > 0 ? imgs : []
+    }, [product.image_url, product.images])
+
+    const currentVariant = useMemo(() => {
+        if (!product.variants || product.variants.length === 0) return null
+        return product.variants.find((v: any) => {
+            const vOptions = v.options || {}
+            if (Object.keys(selectedOptions).length !== Object.keys(vOptions).length) return false
+            return Object.entries(selectedOptions).every(([key, value]) => vOptions[key] === value)
+        })
+    }, [product.variants, selectedOptions])
+
+    const currentPrice = currentVariant ? currentVariant.price : product.price
+    const currentStock = currentVariant ? currentVariant.stock : product.stock
+
+    const handleAddToCart = (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        // If product has multiple variants/options, open modal
+        if ((product.variants && product.variants.length > 0) || (product.options && product.options.length > 0)) {
+            setIsModalOpen(true)
+            return
+        }
+
+        // Direct add for simple products
+        addItem({
+            productId: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image_url,
+            maxStock: product.stock,
+            quantity: 1,
+        })
+        setIsAdded(true)
+        setTimeout(() => setIsAdded(false), 2000)
+    }
+
+    const handleModalAddToCart = () => {
+        addItem({
+            productId: product.id,
+            variantId: currentVariant?.id,
+            name: product.name,
+            price: currentPrice,
+            image: allImages[0],
+            options: Object.keys(selectedOptions).length > 0 ? selectedOptions : undefined,
+            maxStock: currentStock,
+            quantity,
+        })
+        setIsModalOpen(false)
+        // Optional: show global toast or feedback
+    }
+
+    const productLink = storeSlug === 'omo' ? `/product/${product.id}` : `/store/${storeSlug}/product/${product.id}`
+
+    return (
+        <>
+            <div className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300">
+                {/* Image Area - Link */}
+                <Link href={productLink} className="block relative overflow-hidden bg-gray-100 aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)]"
+                    style={{
+                        '--aspect-desktop': typeof fitDesktop === 'string' && fitDesktop.includes('/') ? fitDesktop : '1/1',
+                        '--aspect-mobile': typeof fitMobile === 'string' && fitMobile.includes('/') ? fitMobile : '1/1',
+                    } as React.CSSProperties}
+                >
+                    {product.image_url ? (
+                        <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-full h-full group-hover:scale-110 transition-transform duration-500 object-cover"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <span>無圖片</span>
+                        </div>
+                    )}
+
+                    {/* Sold Out Badge - Top Right */}
+                    {product.stock <= 0 && (
+                        <div className="absolute top-2 right-2 px-2 py-1 bg-black/70 text-white text-xs font-bold rounded">
+                            已售完
+                        </div>
+                    )}
+                </Link>
+
+                {/* Info Area */}
+                <div className="p-4 space-y-2">
+                    <Link href={productLink}>
+                        <h3 className="font-semibold text-gray-900 group-hover:text-rose-600 transition-colors line-clamp-2">
+                            {product.name}
+                        </h3>
+                    </Link>
+                    {product.description && (
+                        <p className="text-sm text-gray-500 line-clamp-2">{product.description}</p>
+                    )}
+                    <div className="flex items-center justify-between mt-2">
+                        <div className="text-lg font-bold text-rose-600">
+                            NT$ {product.price.toLocaleString()}
+                        </div>
+
+                        {/* Cart Button */}
+                        <button
+                            onClick={handleAddToCart}
+                            disabled={product.stock <= 0}
+                            className={cn(
+                                "p-2 rounded-full transition-all duration-300",
+                                product.stock <= 0
+                                    ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                                    : isAdded
+                                        ? "bg-green-500 text-white shadow-md scale-110"
+                                        : "bg-gray-100 text-gray-800 hover:bg-rose-600 hover:text-white hover:shadow-md"
+                            )}
+                        >
+                            {isAdded ? <Check className="w-5 h-5" /> : <ShoppingCart className="w-5 h-5" />}
+                        </button>
                     </div>
-                    {product.stock <= 0 ? (
-                        <div className="text-xs font-medium text-red-500">已售完</div>
-                    ) : null}
                 </div>
             </div>
-        </Link>
+
+            {/* Quick Add Modal */}
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden gap-0 bg-white">
+                    <div className="relative aspect-[4/3] bg-gray-100">
+                        {allImages[selectedImage] && (
+                            <img
+                                src={allImages[selectedImage]}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                            />
+                        )}
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="absolute top-2 right-2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <div className="p-6 space-y-6">
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-1">{product.name}</h3>
+                            <p className="text-lg font-bold text-rose-600">NT$ {Number(currentPrice).toLocaleString()}</p>
+                        </div>
+
+                        {/* Options */}
+                        {product.options && product.options.map((option: any) => (
+                            <div key={option.name} className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">{option.name}</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {option.values.map((value: string) => (
+                                        <button
+                                            key={value}
+                                            onClick={() => setSelectedOptions(prev => ({ ...prev, [option.name]: value }))}
+                                            className={cn(
+                                                "px-3 py-1.5 text-sm border rounded-full transition-colors",
+                                                selectedOptions[option.name] === value
+                                                    ? "bg-zinc-900 text-white border-zinc-900"
+                                                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"
+                                            )}
+                                        >
+                                            {value}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Quantity */}
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-700">數量</span>
+                            <div className="flex items-center rounded-lg border border-gray-200">
+                                <button
+                                    onClick={() => quantity > 1 && setQuantity(quantity - 1)}
+                                    className="p-2 hover:bg-gray-50 text-gray-600 disabled:opacity-30"
+                                    disabled={currentStock <= 0}
+                                >
+                                    <Minus className="w-4 h-4" />
+                                </button>
+                                <span className="w-10 text-center text-sm font-medium">{quantity}</span>
+                                <button
+                                    onClick={() => quantity < currentStock && setQuantity(quantity + 1)}
+                                    className="p-2 hover:bg-gray-50 text-gray-600 disabled:opacity-30"
+                                    disabled={currentStock <= 0 || quantity >= currentStock}
+                                >
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Add Button */}
+                        <button
+                            onClick={handleModalAddToCart}
+                            disabled={currentStock <= 0}
+                            className="w-full py-3 bg-zinc-900 text-white rounded-lg font-bold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {currentStock > 0 ? '加入購物車' : '已售完'}
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
     )
 }
 
@@ -128,7 +317,7 @@ export function ProductListBlock({
             const supabase = createClient()
             let query = supabase
                 .from('products')
-                .select('*')
+                .select('*, variants:product_variants(*)')
                 .in('id', productIds)
 
             if (!preview) {
@@ -260,7 +449,7 @@ export function ProductCategoryBlock({
             const supabase = createClient()
             let query = supabase
                 .from('products')
-                .select('*')
+                .select('*, variants:product_variants(*)')
                 .eq('tenant_id', tenantId)
                 .eq('category', category)
 

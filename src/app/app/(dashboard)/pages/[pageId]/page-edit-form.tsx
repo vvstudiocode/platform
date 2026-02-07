@@ -16,9 +16,13 @@ import {
     ImageGridEditor,
     ProductListEditor,
     ProductCategoryEditor,
-    ProductCarouselEditor
+    ProductCarouselEditor,
+    CircularCarouselEditor,
+    ShowcaseSliderEditor,
 } from '@/components/page-editor/component-editors'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
+import { CartProvider } from '@/lib/cart-context'
+import { StoreFooter } from '@/components/store/store-footer'
 import { updatePageContent } from '../actions'
 
 interface PageComponent {
@@ -36,14 +40,16 @@ interface Props {
         published: boolean
         show_in_nav: boolean
         nav_order: number
-        content: PageComponent[]
+        background_color?: string
         seo_title?: string
         seo_description?: string
         seo_keywords?: string
-        background_color?: string
+        content: PageComponent[]
     }
     updateAction: (prevState: any, formData: FormData) => Promise<{ error?: string }>
     storeSlug?: string
+    storeName?: string
+    footerSettings?: any
     tenantId?: string
 }
 
@@ -54,6 +60,8 @@ const componentCategories = [
         components: [
             { type: 'hero', icon: Image, label: 'Hero Banner', description: '大型橫幅圖片' },
             { type: 'carousel', icon: Image, label: '輪播圖', description: '圖片輪播' },
+            { type: 'circular_carousel', icon: Image, label: '3D 環狀輪播', description: '立體旋轉展示' },
+            { type: 'showcase_slider', icon: Image, label: '焦點展示', description: '高質感全螢幕輪播' },
             { type: 'image_text', icon: LayoutGrid, label: '圖文組合', description: '圖片+文字' },
             { type: 'image_grid', icon: LayoutGrid, label: '圖片組合', description: '多圖網格' },
         ]
@@ -81,14 +89,14 @@ const componentCategories = [
 const allComponentTypes = componentCategories.flatMap(cat => cat.components)
 
 
-export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props) {
+export function PageEditForm({ page, updateAction, storeSlug, tenantId, storeName, footerSettings }: Props) {
     // State for settings
     const [title, setTitle] = useState(page.title)
     const [slug, setSlug] = useState(page.slug)
     const [seoTitle, setSeoTitle] = useState(page.seo_title || '')
     const [seoDescription, setSeoDescription] = useState(page.seo_description || '')
     const [seoKeywords, setSeoKeywords] = useState(page.seo_keywords || '')
-    const [backgroundColor, setBackgroundColor] = useState(page.background_color || (page.content?.[0] as any)?.props?.pageBackgroundColor || '#ffffff')
+    const [backgroundColor, setBackgroundColor] = useState(page.background_color || '#ffffff')
     const [isHomepage, setIsHomepage] = useState(page.is_homepage)
     const [published, setPublished] = useState(page.published)
     const [showInNav, setShowInNav] = useState(page.show_in_nav)
@@ -96,7 +104,13 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
     const [error, setError] = useState('')
 
-    const [components, setComponents] = useState<PageComponent[]>(page.content || [])
+    // Ensure all components have an ID on load
+    const [components, setComponents] = useState<PageComponent[]>(() => {
+        return (page.content || []).map(c => ({
+            ...c,
+            id: c.id || crypto.randomUUID()
+        }))
+    })
     const [saving, setSaving] = useState(false)
     const [showAddModal, setShowAddModal] = useState(false)
     const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null)
@@ -121,7 +135,6 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
             setSelectedComponentId(null)
         } else {
             setSelectedComponentId(componentId)
-            // 延遲滾動以確保展開動畫開始/DOM已更新
             // Use requestAnimationFrame for better timing
             requestAnimationFrame(() => {
                 setTimeout(() => {
@@ -245,7 +258,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
     }
 
     return (
-        <div className="h-screen flex flex-col">
+        <div className="h-[calc(100vh-8rem)] flex flex-col">
             {/* 頂部標題列 */}
             <div className="flex items-center justify-between px-6 py-4 bg-card border-b border-border">
                 <div className="flex items-center gap-4">
@@ -486,7 +499,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                     </div>
 
                     {/* 新增按鈕 - 固定在底部 */}
-                    <div className="sticky bottom-0 p-4 bg-card border-t border-border">
+                    <div className="sticky bottom-0 p-4 bg-card border-t border-border z-10">
                         <Button onClick={() => setShowAddModal(true)} className="w-full">
                             <Plus className="h-4 w-4 mr-2" />
                             新增元件
@@ -497,7 +510,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
                 {/* 右側 - 預覽（僅桌面版顯示） */}
                 <div className="hidden md:block flex-1 bg-muted/10 overflow-y-auto scrollbar-hide">
-                    <div className="sticky top-0 bg-background px-4 py-2 border-b border-border z-10 flex items-center justify-between">
+                    <div className="sticky top-0 bg-background px-4 py-2 border-b border-border z-[100] flex items-center justify-between">
                         <span className="text-sm font-medium text-foreground">預覽</span>
                         <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
                             <button
@@ -522,39 +535,73 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                             </button>
                         </div>
                     </div>
-                    <div className="p-6 flex justify-center min-h-screen">
+                    <div className="p-6 flex justify-center h-full">
                         <div className={`transition-all duration-300 mx-auto bg-white relative ${previewMode === 'mobile'
-                            ? 'w-[375px] min-h-[667px] border-[14px] border-zinc-900 rounded-[3rem] shadow-2xl overflow-hidden'
-                            : 'w-full min-h-screen shadow-sm'
+                            ? 'w-[390px] h-[844px] rounded-[50px] shadow-2xl border-[8px] border-zinc-900 overflow-hidden ring-4 ring-zinc-300 my-auto'
+                            : 'w-full h-full shadow-sm'
                             }`}>
-                            {/* Mobile Notch Simulation */}
+
                             {/* Mobile Notch Simulation */}
                             {previewMode === 'mobile' && (
                                 <>
-                                    {/* Notch */}
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[30px] bg-zinc-900 rounded-b-[18px] z-50 flex items-center justify-center gap-3 pointer-events-none shadow-md">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-zinc-800/50"></div>
-                                        <div className="w-16 h-1 rounded-full bg-zinc-800/50"></div>
+                                    {/* Island/Notch Area */}
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[35px] bg-black rounded-b-[20px] z-20 flex items-center justify-center gap-3 pointer-events-none">
+                                        <div className="w-2 h-2 rounded-full bg-zinc-800/80"></div>
+                                        <div className="w-16 h-1.5 rounded-full bg-zinc-800/80"></div>
                                     </div>
+
+                                    {/* Status Bar Time (Fake) */}
+                                    <div className="absolute top-3 left-8 text-xs font-bold text-black z-10 select-none">9:41</div>
+
+                                    {/* Status Bar Icons (Fake) */}
+                                    <div className="absolute top-3 right-8 flex gap-1.5 z-10">
+                                        <div className="w-4 h-3 bg-black rounded-[2px] opacity-80"></div>
+                                        <div className="w-3 h-3 bg-black rounded-full opacity-80"></div>
+                                    </div>
+
                                     {/* Home Indicator */}
-                                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[130px] h-[5px] bg-black/20 rounded-full z-50 pointer-events-none backdrop-blur-sm"></div>
+                                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[130px] h-[5px] bg-black/40 rounded-full z-20 pointer-events-none backdrop-blur-sm"></div>
                                 </>
                             )}
 
-                            <div className={`h-full ${previewMode === 'mobile' ? 'overflow-y-auto scrollbar-hide h-[800px] pt-[30px] pb-[40px]' : ''}`}>
+                            {/* Content Area - Scrollable inside the phone frame */}
+                            <div
+                                className={`h-full w-full bg-white relative ${previewMode === 'mobile'
+                                    ? 'overflow-y-auto overflow-x-hidden scrollbar-hide'
+                                    : ''
+                                    }`}
+                                style={{
+                                    backgroundColor: backgroundColor || '#ffffff',
+                                    paddingTop: previewMode === 'mobile' ? '40px' : '0', // Space for status bar
+                                    paddingBottom: previewMode === 'mobile' ? '20px' : '0' // Space for home indicator
+                                }}
+                            >
                                 {components.length === 0 ? (
-                                    <div className="text-center py-20 text-muted-foreground">
+                                    <div className="h-full flex items-center justify-center text-muted-foreground p-8 text-center">
                                         尚無內容
                                     </div>
                                 ) : (
-                                    <PageContentRenderer
-                                        content={components}
-                                        storeSlug={storeSlug}
-                                        tenantId={tenantId}
-                                        preview={true}
-                                        backgroundColor={backgroundColor}
-                                        previewDevice={previewMode}
-                                        selectedId={selectedComponentId || undefined}
+                                    <div className="min-h-0">
+                                        <CartProvider>
+                                            <PageContentRenderer
+                                                content={components}
+                                                storeSlug={storeSlug}
+                                                tenantId={tenantId}
+                                                preview={true}
+                                                backgroundColor={backgroundColor}
+                                                previewDevice={previewMode}
+                                                selectedId={selectedComponentId || undefined}
+                                            />
+                                        </CartProvider>
+                                    </div>
+                                )}
+
+                                {/* Footer (Only show in mobile preview to complete the look, or both if desired) */}
+                                {previewMode === 'mobile' && (
+                                    <StoreFooter
+                                        storeName={storeName || '商店名稱'}
+                                        storeSlug={storeSlug || ''}
+                                        settings={footerSettings}
                                     />
                                 )}
                             </div>
@@ -565,7 +612,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
             {/* 新增元件彈窗 - 兩欄分類顯示 */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
                     <div className="bg-card rounded-xl border border-border w-full max-w-4xl max-h-[90vh] flex flex-col shadow-xl">
                         <div className="flex items-center justify-between p-6 border-b border-border">
                             <h3 className="text-xl font-bold text-foreground">選擇元件類型</h3>
@@ -605,7 +652,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
 
             {/* 手機版全螢幕預覽 */}
             {showMobilePreview && (
-                <div className="md:hidden fixed inset-0 z-50 bg-background flex flex-col">
+                <div className="md:hidden fixed inset-0 z-[200] bg-background flex flex-col">
                     <div className="flex items-center justify-between px-4 py-3 bg-card border-b border-border">
                         <span className="text-foreground font-medium">頁面預覽</span>
                         <button
@@ -621,14 +668,17 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId }: Props)
                                 尚無內容
                             </div>
                         ) : (
-                            <PageContentRenderer
-                                content={components}
-                                storeSlug={storeSlug}
-                                tenantId={tenantId}
-                                preview={true}
-                                previewDevice="mobile"
-                                selectedId={selectedComponentId || undefined}
-                            />
+                            <CartProvider>
+                                <PageContentRenderer
+                                    content={components}
+                                    storeSlug={storeSlug}
+                                    tenantId={tenantId}
+                                    preview={true}
+                                    backgroundColor={backgroundColor}
+                                    previewDevice="mobile"
+                                    selectedId={selectedComponentId || undefined}
+                                />
+                            </CartProvider>
                         )}
                     </div>
                 </div>
@@ -648,6 +698,42 @@ function getDefaultProps(type: string): Record<string, any> {
             return { title: '歡迎', subtitle: '這是副標題', backgroundUrl: '', buttonText: '了解更多', buttonUrl: '' }
         case 'carousel':
             return { images: [{ url: '', alt: '圖片 1', link: '' }], autoplay: true, interval: 5 }
+        case 'circular_carousel':
+            return {
+                images: [
+                    { url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff', alt: 'Nike Red', link: '' },
+                    { url: 'https://images.unsplash.com/photo-1543508282-6319a3e2621f', alt: 'Nike Blue', link: '' },
+                    { url: 'https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111', alt: 'Nike Green', link: '' },
+                    { url: 'https://images.unsplash.com/photo-1552346154-21d32810aba3', alt: 'Nike Orange', link: '' },
+                    { url: 'https://images.unsplash.com/photo-1560769629-9750c3c0ce99', alt: 'Nike Grey', link: '' }
+                ],
+                autoRotate: true,
+                radius: 300,
+                height: 400,
+                itemWidth: 200,
+                itemHeight: 300
+            }
+        case 'showcase_slider':
+            return {
+                slides: [
+                    {
+                        image: 'https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?q=80&w=3270',
+                        title: 'Elegance',
+                        subtitle: 'Premium Collection',
+                        buttonText: 'View Collection',
+                        link: ''
+                    },
+                    {
+                        image: 'https://images.unsplash.com/photo-1509319117193-51043812013d?q=80&w=3270',
+                        title: 'Sophistication',
+                        subtitle: 'New Arrivals',
+                        buttonText: 'Shop Now',
+                        link: ''
+                    }
+                ],
+                autoplay: true,
+                height: '100vh'
+            }
         case 'image_text':
             return { layout: 'left', imageUrl: '', title: '標題', content: '內容說明', buttonText: '', buttonUrl: '' }
         case 'image_grid':
@@ -677,6 +763,10 @@ function ComponentEditor({ type, props, onChange, tenantId }: { type: string; pr
             return <HeroEditor props={props} onChange={onChange} />
         case 'carousel':
             return <CarouselEditor props={props} onChange={onChange} />
+        case 'circular_carousel':
+            return <CircularCarouselEditor props={props} onChange={onChange} />
+        case 'showcase_slider':
+            return <ShowcaseSliderEditor props={props} onChange={onChange} />
         case 'image_text':
             return <ImageTextEditor props={props} onChange={onChange} />
         case 'image_grid':
@@ -812,159 +902,4 @@ function FAQEditor({ props, onChange }: { props: Record<string, any>; onChange: 
             </div>
         </div>
     )
-}
-
-function ComponentPreview({ type, props }: { type: string; props: Record<string, any> }) {
-    switch (type) {
-        case 'hero':
-            return (
-                <div
-                    className="relative py-20 px-8 mb-4 rounded-lg overflow-hidden"
-                    style={{
-                        backgroundImage: props.backgroundUrl ? `url(${props.backgroundUrl})` : undefined,
-                        backgroundColor: props.backgroundUrl ? undefined : '#1f2937',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                    }}
-                >
-                    <div className="absolute inset-0 bg-black/40" />
-                    <div className="relative z-10 text-center">
-                        <h1 className="text-3xl font-bold text-white mb-2">{props.title || '標題'}</h1>
-                        <p className="text-lg text-gray-300">{props.subtitle || '副標題'}</p>
-                        {props.buttonText && (
-                            <button className="mt-4 px-6 py-2 bg-white text-gray-900 rounded-lg font-medium">
-                                {props.buttonText}
-                            </button>
-                        )}
-                    </div>
-                </div>
-            )
-        case 'carousel':
-            return (
-                <div className="py-4 mb-4 bg-gray-100 rounded-lg">
-                    <div className="flex items-center justify-center h-32 bg-gray-200 rounded-lg mx-4">
-                        <div className="text-center text-gray-500">
-                            <div className="text-2xl mb-2">🖼️</div>
-                            <div>輪播圖 ({(props.slides || []).length} 張)</div>
-                        </div>
-                    </div>
-                </div>
-            )
-        case 'image_text':
-            return (
-                <div className="py-4 mb-4 flex gap-4 bg-gray-50 rounded-lg p-4">
-                    <div className="w-1/2 h-24 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
-                        {props.imageUrl ? <img src={props.imageUrl} alt="" className="w-full h-full object-cover rounded-lg" /> : '圖片'}
-                    </div>
-                    <div className="w-1/2">
-                        <h3 className="font-bold text-gray-800">{props.title || '標題'}</h3>
-                        <p className="text-sm text-gray-500">{props.text || '文字內容'}</p>
-                    </div>
-                </div>
-            )
-        case 'image_grid':
-            return (
-                <div className="py-4 mb-4 bg-gray-50 rounded-lg p-4">
-                    <div className="grid grid-cols-3 gap-2">
-                        {(props.images || [{ url: '' }, { url: '' }, { url: '' }]).slice(0, 6).map((img: any, i: number) => (
-                            <div key={i} className="h-16 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
-                                {img.url ? <img src={img.url} alt="" className="w-full h-full object-cover rounded" /> : `圖${i + 1}`}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )
-        case 'text':
-            return (
-                <div className="py-6 px-4 mb-4">
-                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{props.content || '內容'}</p>
-                </div>
-            )
-        case 'text_columns':
-            return (
-                <div className="py-4 mb-4 bg-gray-50 rounded-lg p-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        {(props.columns || [{ title: '欄位 1', content: '內容' }, { title: '欄位 2', content: '內容' }]).map((col: any, i: number) => (
-                            <div key={i} className="p-3 bg-white rounded border border-gray-200">
-                                <h4 className="font-medium text-gray-800">{col.title}</h4>
-                                <p className="text-sm text-gray-500">{col.content}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )
-        case 'features':
-            return (
-                <div className="py-8 px-4 mb-4 bg-gray-50 rounded-lg">
-                    <h2 className="text-xl font-bold text-gray-800 text-center mb-6">{props.title || '特色'}</h2>
-                    <div className="grid grid-cols-3 gap-4">
-                        {(props.items || []).map((item: any, i: number) => (
-                            <div key={i} className="text-center">
-                                <div className="text-3xl mb-2">{item.icon}</div>
-                                <h3 className="font-medium text-gray-800">{item.title}</h3>
-                                <p className="text-sm text-gray-500">{item.description}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )
-        case 'faq':
-            return (
-                <div className="py-8 px-4 mb-4">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">{props.title || 'FAQ'}</h2>
-                    <div className="space-y-3">
-                        {(props.items || []).map((item: any, i: number) => (
-                            <div key={i} className="border border-gray-200 rounded-lg p-4">
-                                <h3 className="font-medium text-gray-800">{item.question}</h3>
-                                <p className="text-gray-600 mt-2 text-sm">{item.answer}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )
-        case 'product_list':
-            return (
-                <div className="py-4 mb-4 bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-bold text-gray-800 mb-3">{props.title || '商品列表'}</h3>
-                    <div className="grid grid-cols-4 gap-2">
-                        {Array.from({ length: Math.min((props.productIds || []).length || 4, 4) }).map((_, i) => (
-                            <div key={i} className="h-16 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
-                                商品 {i + 1}
-                            </div>
-                        ))}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-2">已選 {(props.productIds || []).length} 個商品</div>
-                </div>
-            )
-        case 'product_category':
-            return (
-                <div className="py-4 mb-4 bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-bold text-gray-800 mb-2">分類商品</h3>
-                    <div className="text-sm text-gray-500">分類: {props.category || '未選擇'}</div>
-                    <div className="grid grid-cols-3 gap-2 mt-3">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
-                                商品
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )
-        case 'product_carousel':
-            return (
-                <div className="py-4 mb-4 bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-bold text-gray-800 mb-2">{props.title || '商品輪播'}</h3>
-                    <div className="flex gap-2 overflow-hidden">
-                        {Array.from({ length: Math.min((props.productIds || []).length || 3, 4) }).map((_, i) => (
-                            <div key={i} className="w-20 h-20 flex-shrink-0 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
-                                商品 {i + 1}
-                            </div>
-                        ))}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-2">已選 {(props.productIds || []).length} 個商品</div>
-                </div>
-            )
-        default:
-            return <div className="py-4 text-gray-400">未知元件: {type}</div>
-    }
 }

@@ -83,7 +83,7 @@ export default async function AppLayout({
                             <Store className="h-5 w-5 text-accent" />
                         </div>
                     )}
-                    <span className="font-bold text-foreground font-serif">{store.name}</span>
+                    <span className="font-bold text-foreground font-serif">{store.name} 後台</span>
                 </div>
                 <div className="flex items-center gap-4">
                     <Link href="/app/settings" className="md:hidden text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm border border-border rounded-lg px-3 py-1.5 hover:bg-muted transition-colors">
