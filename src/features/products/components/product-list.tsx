@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Package, Edit, GripVertical, Loader2 } from 'lucide-react'
-import { ProductDeleteButton } from './product-delete-button'
-import { updateProductStatus, updateProductOrder } from './actions'
+import { DeleteButton } from '@/components/ui/delete-button'
 
 interface Product {
     id: string
@@ -22,9 +21,13 @@ interface Product {
 
 interface Props {
     initialProducts: Product[]
+    basePath: string // '/admin/products' or '/app/products'
+    deleteAction: (id: string) => Promise<{ error?: string; success?: boolean }>
+    updateStatusAction: (id: string, status: string) => Promise<{ error?: string; success?: boolean }>
+    updateOrderAction: (items: { id: string; order: number }[]) => Promise<{ error?: string; success?: boolean }>
 }
 
-export function ProductListClient({ initialProducts }: Props) {
+export function ProductList({ initialProducts, basePath, deleteAction, updateStatusAction, updateOrderAction }: Props) {
     const [products, setProducts] = useState<Product[]>(initialProducts)
     const [dragIndex, setDragIndex] = useState<number | null>(null)
     const [updating, setUpdating] = useState<string | null>(null)
@@ -40,7 +43,7 @@ export function ProductListClient({ initialProducts }: Props) {
         const newStatus = currentStatus === 'active' ? 'draft' : 'active'
         setUpdating(productId)
 
-        const result = await updateProductStatus(productId, newStatus)
+        const result = await updateStatusAction(productId, newStatus)
 
         if (!result.error) {
             setProducts(products.map(p =>
@@ -72,7 +75,7 @@ export function ProductListClient({ initialProducts }: Props) {
         if (dragIndex !== null) {
             // 儲存新順序
             const orderData = products.map((p, i) => ({ id: p.id, order: i }))
-            await updateProductOrder(orderData)
+            await updateOrderAction(orderData)
         }
         setDragIndex(null)
     }
@@ -86,7 +89,7 @@ export function ProductListClient({ initialProducts }: Props) {
     return (
         <div className="rounded-xl border border-border bg-card overflow-hidden shadow-soft">
             <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[1000px]">
                     <thead className="bg-muted/30">
                         <tr className="border-b border-border text-left">
                             <th className="w-10 px-4 py-4"></th>
@@ -189,12 +192,16 @@ export function ProductListClient({ initialProducts }: Props) {
                                         </td>
                                         <td className="px-4 py-4 text-right align-top">
                                             <div className="flex items-center justify-end gap-1">
-                                                <Link href={`/admin/products/${product.id}`}>
+                                                <Link href={`${basePath}/${product.id}`}>
                                                     <button className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors">
                                                         <Edit className="h-4 w-4" />
                                                     </button>
                                                 </Link>
-                                                <ProductDeleteButton productId={product.id} productName={product.name} />
+                                                <DeleteButton
+                                                    itemId={product.id}
+                                                    itemName={product.name}
+                                                    onDelete={deleteAction}
+                                                />
                                             </div>
                                         </td>
                                     </tr>

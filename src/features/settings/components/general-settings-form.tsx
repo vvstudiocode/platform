@@ -1,11 +1,10 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useState, useEffect } from 'react'
+import { Loader2, Store, Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { updateGeneralSettings, State } from './actions'
-import { Loader2, Store, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { ImageUpload } from '@/components/ui/image-upload'
 import { uploadImage } from '@/lib/upload-utils'
 
@@ -19,9 +18,9 @@ interface Props {
         settings?: any
         footer_settings?: any
     }
+    updateAction: (prevState: any, formData: FormData) => Promise<{ error?: string; success?: boolean }>
 }
 
-// Helper Component for Collapsible Sections
 function CollapsibleSection({ title, children, defaultOpen = false }: { title: string, children: React.ReactNode, defaultOpen?: boolean }) {
     const [isOpen, setIsOpen] = useState(defaultOpen)
 
@@ -44,12 +43,10 @@ function CollapsibleSection({ title, children, defaultOpen = false }: { title: s
     )
 }
 
-export function GeneralSettingsForm({ tenant }: Props) {
-    const initialState: State = {}
-    const [state, formAction, isPending] = useActionState(updateGeneralSettings, initialState)
+export function GeneralSettingsForm({ tenant, updateAction }: Props) {
+    const [state, formAction, isPending] = useActionState(updateAction, {})
     const [logoUrl, setLogoUrl] = useState(tenant.logo_url || '')
 
-    // Initial values
     const settings = tenant.settings || {}
     const footer = tenant.footer_settings || {}
     const social = footer.socialLinks || {}
@@ -64,10 +61,11 @@ export function GeneralSettingsForm({ tenant }: Props) {
             {state?.success && (
                 <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-lg p-4 flex items-center gap-2">
                     <Check className="h-4 w-4" />
-                    設定儲存成功
+                    設定已儲存
                 </div>
             )}
 
+            {/* 基本資訊 */}
             <CollapsibleSection title="基本資訊" defaultOpen={true}>
                 <div className="space-y-4">
                     <div>
@@ -114,6 +112,7 @@ export function GeneralSettingsForm({ tenant }: Props) {
                             />
                             <input type="hidden" name="logo_url" value={logoUrl} />
                         </div>
+                        <p className="text-xs text-muted-foreground mt-2">建議尺寸：512x512px，支援 JPG/PNG。</p>
                     </div>
 
                     <div>
@@ -152,8 +151,43 @@ export function GeneralSettingsForm({ tenant }: Props) {
                 </div>
             </CollapsibleSection>
 
-            {/* 付款設定 */}
-            <CollapsibleSection title="付款設定">
+            {/* 付款方式 (來自 App，新增至 Admin) */}
+            <CollapsibleSection title="付款方式">
+                <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">勾選要在結帳頁面顯示的付款方式。</p>
+
+                    <div className="flex flex-col gap-3">
+                        <label className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/20 cursor-pointer hover:border-primary/50 transition-colors">
+                            <input
+                                type="checkbox"
+                                name="payment_credit_card"
+                                defaultChecked={settings.payment_methods?.credit_card !== false}
+                                className="w-4 h-4 rounded border-input text-primary focus:ring-primary bg-background"
+                            />
+                            <div>
+                                <span className="text-foreground font-medium block">信用卡一次付清</span>
+                                <span className="text-xs text-muted-foreground">支援 Visa, MasterCard, JCB</span>
+                            </div>
+                        </label>
+
+                        <label className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/20 cursor-pointer hover:border-primary/50 transition-colors">
+                            <input
+                                type="checkbox"
+                                name="payment_bank_transfer"
+                                defaultChecked={settings.payment_methods?.bank_transfer !== false}
+                                className="w-4 h-4 rounded border-input text-primary focus:ring-primary bg-background"
+                            />
+                            <div>
+                                <span className="text-foreground font-medium block">銀行轉帳 / 面交付款</span>
+                                <span className="text-xs text-muted-foreground">顧客下單後顯示匯款資訊</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </CollapsibleSection>
+
+            {/* 匯款資訊 (來自 Admin & App) */}
+            <CollapsibleSection title="匯款資訊">
                 <div className="space-y-4">
                     <div className="grid gap-4 sm:grid-cols-3">
                         <div>
@@ -184,7 +218,7 @@ export function GeneralSettingsForm({ tenant }: Props) {
                 </div>
             </CollapsibleSection>
 
-            {/* 運費設定 */}
+            {/* 運費設定 (來自 Admin & App) */}
             <CollapsibleSection title="運費設定">
                 <div className="space-y-4">
                     <div className="grid gap-4 sm:grid-cols-3">
@@ -258,74 +292,72 @@ export function GeneralSettingsForm({ tenant }: Props) {
                 </div>
             </CollapsibleSection>
 
-            {/* 頁尾設定 */}
+            {/* 頁尾設定 (來自 Admin & App) */}
             <CollapsibleSection title="頁尾設定">
                 <div className="space-y-4">
-                    <div className="space-y-4">
-                        <div>
-                            <Label className="text-sm font-medium text-foreground mb-2 block">社交媒體連結</Label>
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <div>
-                                    <Label htmlFor="footer_line" className="text-xs text-muted-foreground">LINE</Label>
-                                    <Input id="footer_line" name="footer_line" placeholder="https://..." defaultValue={social.line || ''} className="bg-background" />
-                                </div>
-                                <div>
-                                    <Label htmlFor="footer_facebook" className="text-xs text-muted-foreground">Facebook</Label>
-                                    <Input id="footer_facebook" name="footer_facebook" placeholder="https://..." defaultValue={social.facebook || ''} className="bg-background" />
-                                </div>
-                                <div>
-                                    <Label htmlFor="footer_instagram" className="text-xs text-muted-foreground">Instagram</Label>
-                                    <Input id="footer_instagram" name="footer_instagram" placeholder="https://..." defaultValue={social.instagram || ''} className="bg-background" />
-                                </div>
-                                <div>
-                                    <Label htmlFor="footer_threads" className="text-xs text-muted-foreground">Threads</Label>
-                                    <Input id="footer_threads" name="footer_threads" placeholder="https://..." defaultValue={social.threads || ''} className="bg-background" />
-                                </div>
-                                <div>
-                                    <Label htmlFor="footer_youtube" className="text-xs text-muted-foreground">YouTube</Label>
-                                    <Input id="footer_youtube" name="footer_youtube" placeholder="https://..." defaultValue={social.youtube || ''} className="bg-background" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <Label className="text-sm font-medium text-foreground mb-2 block">社交媒體連結</Label>
+                        <div className="grid gap-3 sm:grid-cols-2">
                             <div>
-                                <Label htmlFor="footer_email">Email</Label>
-                                <Input id="footer_email" name="footer_email" type="email" placeholder="contact@example.com" defaultValue={footer.email || ''} className="bg-background" />
+                                <Label htmlFor="footer_line" className="text-xs text-muted-foreground">LINE</Label>
+                                <Input id="footer_line" name="footer_line" placeholder="https://..." defaultValue={social.line || ''} className="bg-background" />
                             </div>
                             <div>
-                                <Label htmlFor="footer_phone">電話</Label>
-                                <Input id="footer_phone" name="footer_phone" placeholder="02-1234-5678" defaultValue={footer.phone || ''} className="bg-background" />
+                                <Label htmlFor="footer_facebook" className="text-xs text-muted-foreground">Facebook</Label>
+                                <Input id="footer_facebook" name="footer_facebook" placeholder="https://..." defaultValue={social.facebook || ''} className="bg-background" />
+                            </div>
+                            <div>
+                                <Label htmlFor="footer_instagram" className="text-xs text-muted-foreground">Instagram</Label>
+                                <Input id="footer_instagram" name="footer_instagram" placeholder="https://..." defaultValue={social.instagram || ''} className="bg-background" />
+                            </div>
+                            <div>
+                                <Label htmlFor="footer_threads" className="text-xs text-muted-foreground">Threads</Label>
+                                <Input id="footer_threads" name="footer_threads" placeholder="https://..." defaultValue={social.threads || ''} className="bg-background" />
+                            </div>
+                            <div>
+                                <Label htmlFor="footer_youtube" className="text-xs text-muted-foreground">YouTube</Label>
+                                <Input id="footer_youtube" name="footer_youtube" placeholder="https://..." defaultValue={social.youtube || ''} className="bg-background" />
                             </div>
                         </div>
+                    </div>
 
+                    <div className="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <Label htmlFor="footer_address">地址</Label>
-                            <Input id="footer_address" name="footer_address" placeholder="台北市..." defaultValue={footer.address || ''} className="bg-background" />
+                            <Label htmlFor="footer_email">Email</Label>
+                            <Input id="footer_email" name="footer_email" type="email" placeholder="contact@example.com" defaultValue={footer.email || ''} className="bg-background" />
                         </div>
+                        <div>
+                            <Label htmlFor="footer_phone">電話 (10碼)</Label>
+                            <Input id="footer_phone" name="footer_phone" placeholder="例：0912345678" maxLength={10} defaultValue={footer.phone || ''} className="bg-background" />
+                        </div>
+                    </div>
 
-                        <div>
-                            <Label htmlFor="footer_about">關於我們</Label>
-                            <textarea
-                                id="footer_about"
-                                name="footer_about"
-                                rows={3}
-                                defaultValue={footer.about || ''}
-                                className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-sm"
-                                placeholder="簡短介紹您的商店..."
-                            />
-                        </div>
+                    <div>
+                        <Label htmlFor="footer_address">地址</Label>
+                        <Input id="footer_address" name="footer_address" placeholder="台北市..." defaultValue={footer.address || ''} className="bg-background" />
+                    </div>
 
-                        <div>
-                            <Label htmlFor="footer_copyright">版權宣告</Label>
-                            <Input id="footer_copyright" name="footer_copyright" placeholder="© 2024 商店名稱" defaultValue={footer.copyright || ''} className="bg-background" />
-                        </div>
+                    <div>
+                        <Label htmlFor="footer_about">關於我們</Label>
+                        <textarea
+                            id="footer_about"
+                            name="footer_about"
+                            rows={3}
+                            defaultValue={footer.about || ''}
+                            className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-sm"
+                            placeholder="簡短介紹您的商店..."
+                        />
+                    </div>
+
+                    <div>
+                        <Label htmlFor="footer_copyright">版權宣告</Label>
+                        <Input id="footer_copyright" name="footer_copyright" placeholder="© 2024 商店名稱" defaultValue={footer.copyright || ''} className="bg-background" />
                     </div>
                 </div>
             </CollapsibleSection>
 
             <div className="flex justify-end pt-4">
-                <Button type="submit" disabled={isPending} className="shadow-soft">
+                <Button type="submit" disabled={isPending} className="w-full sm:w-auto shadow-soft">
                     {isPending ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

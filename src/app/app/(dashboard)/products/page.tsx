@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Search, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ProductListClient } from './product-list-client'
+import { ProductList } from '@/features/products/components/product-list'
+import { deleteProduct, updateProductStatus, updateProductOrder } from './actions'
 
 async function getUserStoreId(supabase: any, userId: string) {
     const { data } = await supabase
@@ -60,14 +61,19 @@ export default async function AppProductsPage() {
             </div>
 
             {/* Product List */}
-            <ProductListClient initialProducts={products?.map(p => ({
-                ...p,
-                cost: p.cost || 0,
-                stock: p.stock || 0,
-                status: p.status as any,
-                sort_order: p.sort_order || 0,
-                images: (p.images as string[]) || []
-            })) || []} />
+            <ProductList
+                initialProducts={products?.map(p => ({
+                    ...p,
+                    cost: p.cost || 0,
+                    stock: p.stock || 0,
+                    status: (p.status as 'active' | 'draft' | 'archived') || 'draft',
+                    sort_order: p.sort_order || 0
+                })) || []}
+                basePath="/app/products"
+                deleteAction={deleteProduct}
+                updateStatusAction={updateProductStatus}
+                updateOrderAction={updateProductOrder}
+            />
         </div>
     )
 }

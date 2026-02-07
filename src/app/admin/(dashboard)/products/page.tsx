@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Search, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ProductListClient } from './product-list-client'
+import { ProductList } from '@/features/products/components/product-list'
+import { deleteProduct, updateProductStatus, updateProductOrder } from './actions'
 
 // 取得或建立總部商店
 async function getOrCreateHQStore(supabase: any, userId: string) {
@@ -80,13 +81,19 @@ export default async function AdminProductsPage() {
             </div>
 
             {/* Product List */}
-            <ProductListClient initialProducts={products?.map(p => ({
-                ...p,
-                cost: p.cost || 0,
-                stock: p.stock || 0,
-                status: (p.status as 'active' | 'draft' | 'archived') || 'draft',
-                sort_order: p.sort_order || 0
-            })) || []} />
+            <ProductList
+                initialProducts={products?.map(p => ({
+                    ...p,
+                    cost: p.cost || 0,
+                    stock: p.stock || 0,
+                    status: (p.status as 'active' | 'draft' | 'archived') || 'draft',
+                    sort_order: p.sort_order || 0
+                })) || []}
+                basePath="/admin/products"
+                deleteAction={deleteProduct}
+                updateStatusAction={updateProductStatus}
+                updateOrderAction={updateProductOrder}
+            />
         </div>
     )
 }
