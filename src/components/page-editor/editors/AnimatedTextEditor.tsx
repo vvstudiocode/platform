@@ -110,10 +110,7 @@ export function AnimatedTextEditor({ props, onChange }: EditorProps) {
                 {fontSizeMode === 'desktop' ? (
                     <div>
                         <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                            <span>💻 桌面版</span>
-                            <span className="px-1.5 py-0.5 bg-background rounded border border-border min-w-[3rem] text-center">
-                                {props.fontSizeDesktop || 8}vw
-                            </span>
+                            <span>{props.fontSizeDesktop || 8}vw</span>
                         </div>
                         <input
                             type="range"
@@ -128,10 +125,7 @@ export function AnimatedTextEditor({ props, onChange }: EditorProps) {
                 ) : (
                     <div>
                         <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                            <span>📱 手機版</span>
-                            <span className="px-1.5 py-0.5 bg-background rounded border border-border min-w-[3rem] text-center">
-                                {props.fontSizeMobile || 10}vw
-                            </span>
+                            <span>{props.fontSizeMobile || 10}vw</span>
                         </div>
                         <input
                             type="range"
@@ -170,34 +164,38 @@ export function AnimatedTextEditor({ props, onChange }: EditorProps) {
                 <div>
                     <Label className="text-xs text-muted-foreground">文字顏色</Label>
                     <div className="flex items-center gap-2 mt-1">
-                        <input
-                            type="color"
-                            value={props.textColor || '#1C1C1C'}
-                            onChange={(e) => onChange({ textColor: e.target.value })}
-                            className="w-8 h-8 rounded cursor-pointer bg-transparent border border-input"
-                        />
+                        <div className="relative w-10 h-10 rounded overflow-hidden border border-input">
+                            <input
+                                type="color"
+                                value={props.textColor || '#1C1C1C'}
+                                onChange={(e) => onChange({ textColor: e.target.value })}
+                                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] p-0 m-0 cursor-pointer border-none"
+                            />
+                        </div>
                         <input
                             type="text"
                             value={props.textColor || '#1C1C1C'}
                             onChange={(e) => onChange({ textColor: e.target.value })}
-                            className="flex-1 h-8 text-xs px-2 border border-input rounded bg-background"
+                            className="flex-1 h-10 text-xs px-2 border border-input rounded bg-background"
                         />
                     </div>
                 </div>
                 <div>
                     <Label className="text-xs text-muted-foreground">背景顏色</Label>
                     <div className="flex items-center gap-2 mt-1">
-                        <input
-                            type="color"
-                            value={props.backgroundColor || '#FED75A'}
-                            onChange={(e) => onChange({ backgroundColor: e.target.value })}
-                            className="w-8 h-8 rounded cursor-pointer bg-transparent border border-input"
-                        />
+                        <div className="relative w-10 h-10 rounded overflow-hidden border border-input">
+                            <input
+                                type="color"
+                                value={props.backgroundColor || '#FED75A'}
+                                onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] p-0 m-0 cursor-pointer border-none"
+                            />
+                        </div>
                         <input
                             type="text"
                             value={props.backgroundColor || '#FED75A'}
                             onChange={(e) => onChange({ backgroundColor: e.target.value })}
-                            className="flex-1 h-8 text-xs px-2 border border-input rounded bg-background"
+                            className="flex-1 h-10 text-xs px-2 border border-input rounded bg-background"
                         />
                     </div>
                 </div>

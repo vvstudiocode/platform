@@ -347,6 +347,8 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 height={block.props?.height}
                 paddingYDesktop={block.props?.paddingYDesktop}
                 paddingYMobile={block.props?.paddingYMobile}
+                // Add key to force remount when animationKey changes (for replay)
+                key={block.props?.animationKey ? `animated-text-${block.props.animationKey}` : undefined}
             />;
         default:
             return null

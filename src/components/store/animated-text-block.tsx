@@ -52,19 +52,7 @@ export function AnimatedTextBlock({
         }))
     }, [text, animationKey])
 
-    // Reset animation when animationKey changes (for replay)
-    useEffect(() => {
-        if (animationKey !== undefined) {
-            setIsVisible(false)
-            setHasAnimated(false)
-            // Small delay then trigger animation
-            const timer = setTimeout(() => {
-                setIsVisible(true)
-                setHasAnimated(true)
-            }, 50)
-            return () => clearTimeout(timer)
-        }
-    }, [animationKey])
+
 
     // Intersection Observer for triggering animation on scroll
     useEffect(() => {
@@ -146,81 +134,94 @@ export function AnimatedTextBlock({
     return (
         <div
             ref={containerRef}
-            className={`animated-text-block ${className}`}
+            className={`animated-text-container ${className}`}
             style={{
                 width: fullWidth ? '100%' : 'auto',
                 minHeight: height !== 'auto' ? height : undefined,
                 backgroundColor,
-                paddingTop: `${paddingYDesktop}px`,
-                paddingBottom: `${paddingYDesktop}px`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start',
-                paddingLeft: 'clamp(2rem, 5vw, 4rem)',
-                paddingRight: 'clamp(2rem, 5vw, 4rem)',
-                overflow: 'hidden',
-                boxSizing: 'border-box'
+                containerType: 'inline-size',
+                position: 'relative'
             }}
         >
             <style jsx>{`
                 .animated-text-line {
-                    font-size: clamp(1.5rem, ${fontSizeDesktop}vw, 10rem);
+                    font-size: clamp(1.5rem, ${fontSizeDesktop}cqw, 10rem);
                 }
-                @media (max-width: 768px) {
+                .animated-text-content {
+                    padding-left: clamp(2rem, 5cqw, 4rem);
+                    padding-right: clamp(2rem, 5cqw, 4rem);
+                    padding-top: ${paddingYDesktop}px;
+                    padding-bottom: ${paddingYDesktop}px;
+                }
+                @container (max-width: 768px) {
                     .animated-text-line {
-                        font-size: clamp(1rem, ${fontSizeMobile}vw, 6rem);
+                        font-size: clamp(1rem, ${fontSizeMobile}cqw, 6rem);
                     }
-                    .animated-text-block {
+                    .animated-text-content {
                         padding-top: ${paddingYMobile}px !important;
                         padding-bottom: ${paddingYMobile}px !important;
                     }
                 }
             `}</style>
+
             <div
+                className="animated-text-content"
                 style={{
-                    fontWeight,
-                    color: textColor,
-                    textAlign,
-                    lineHeight: 1.2,
-                    letterSpacing: '-0.02em',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start',
                     width: '100%',
-                    maxWidth: '100%'
+                    height: '100%',
+                    boxSizing: 'border-box'
                 }}
             >
-                {lines.map((line, lineIndex) => {
-                    const chars = line.split('')
-                    const lineStartIndex = charIndex
-                    charIndex += chars.length
+                <div
+                    style={{
+                        fontWeight,
+                        color: textColor,
+                        textAlign,
+                        lineHeight: 1.2,
+                        letterSpacing: '-0.02em',
+                        width: '100%',
+                        maxWidth: '100%'
+                    }}
+                >
+                    {lines.map((line, lineIndex) => {
+                        const chars = line.split('')
+                        const lineStartIndex = charIndex
+                        charIndex += chars.length
 
-                    return (
-                        <div
-                            key={lineIndex}
-                            className="animated-text-line"
-                            style={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start',
-                                marginBottom: lineIndex < lines.length - 1 ? '0.2em' : 0
-                            }}
-                        >
-                            {chars.map((char, charIdx) => {
-                                const globalIdx = lineStartIndex + charIdx
-                                return (
-                                    <span
-                                        key={charIdx}
-                                        style={{
-                                            display: 'inline-block',
-                                            whiteSpace: char === ' ' ? 'pre' : 'normal',
-                                            ...getCharStyle(globalIdx)
-                                        }}
-                                    >
-                                        {char === ' ' ? '\u00A0' : char}
-                                    </span>
-                                )
-                            })}
-                        </div>
-                    )
-                })}
+                        return (
+                            <div
+                                key={lineIndex}
+                                className="animated-text-line"
+                                style={{
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    justifyContent: textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start',
+                                    marginBottom: lineIndex < lines.length - 1 ? '0.2em' : 0
+                                }}
+                            >
+                                {chars.map((char, charIdx) => {
+                                    const globalIdx = lineStartIndex + charIdx
+                                    return (
+                                        <span
+                                            key={charIdx}
+                                            style={{
+                                                display: 'inline-block',
+                                                whiteSpace: char === ' ' ? 'pre' : 'normal',
+                                                ...getCharStyle(globalIdx)
+                                            }}
+                                        >
+                                            {char === ' ' ? '\u00A0' : char}
+                                        </span>
+                                    )
+                                })}
+                            </div>
+                        )
+                    })}
+                </div>
             </div>
         </div>
     )
