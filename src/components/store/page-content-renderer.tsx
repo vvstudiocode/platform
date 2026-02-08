@@ -8,6 +8,7 @@ import { ShowcaseSlider } from '../store/showcase-slider'
 import { TiltedScrollGallery } from '../premium/framer/TiltedScrollGallery'
 import { ParallaxHero } from '../premium/framer/ParallaxHero'
 import { AnimatedGrid } from '../premium/framer/AnimatedGrid'
+import { AnimatedTextBlock } from '../store/animated-text-block'
 import dynamic from 'next/dynamic'
 
 // Inline LoadingState
@@ -328,6 +329,24 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 buttonText={block.props?.buttonText}
                 buttonLink={block.props?.buttonLink}
                 buttonHoverColor={block.props?.buttonHoverColor}
+            />;
+        case 'animated_text':
+            return <AnimatedTextBlock
+                text={block.props?.text || 'YOUR TEXT HERE'}
+                fontSizeDesktop={block.props?.fontSizeDesktop}
+                fontSizeMobile={block.props?.fontSizeMobile}
+                fontWeight={block.props?.fontWeight}
+                textColor={block.props?.textColor}
+                backgroundColor={block.props?.backgroundColor}
+                animationType={block.props?.animationType}
+                animationDuration={block.props?.animationDuration}
+                animationDelay={block.props?.animationDelay}
+                animationKey={block.props?.animationKey}
+                textAlign={block.props?.textAlign}
+                fullWidth={block.props?.fullWidth}
+                height={block.props?.height}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
             />;
         default:
             return null

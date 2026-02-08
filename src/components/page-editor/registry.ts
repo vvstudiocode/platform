@@ -14,7 +14,8 @@ import {
     TiltedScrollGalleryEditor,
     ProductListEditor,
     ProductCategoryEditor,
-    ProductCarouselEditor
+    ProductCarouselEditor,
+    AnimatedTextEditor
 } from './editors'
 
 export interface ComponentConfig {
@@ -181,6 +182,28 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             rotateZ: -10,
             scale: 1.5,
             speed: 15
+        }
+    },
+    animated_text: {
+        editor: AnimatedTextEditor,
+        label: '動態文字',
+        icon: '✨',
+        category: 'interactive',
+        defaultProps: {
+            text: 'YOUR TEXT HERE',
+            fontSizeDesktop: 8,
+            fontSizeMobile: 10,
+            fontWeight: 900,
+            textColor: '#1C1C1C',
+            backgroundColor: '#FED75A',
+            animationType: 'split-chars',
+            animationDuration: 1,
+            animationDelay: 0.05,
+            textAlign: 'center',
+            fullWidth: true,
+            height: 'auto',
+            paddingYDesktop: 64,
+            paddingYMobile: 32
         }
     }
 }

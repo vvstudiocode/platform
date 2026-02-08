@@ -124,6 +124,10 @@ export default async function AdminLayout({
                     {hqStore?.name || '總部'} 後台
                 </Link>
                 <div className="flex items-center gap-4">
+                    <Link href="/admin/settings" className="md:hidden text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm border border-border rounded-lg px-3 py-1.5 hover:bg-muted transition-colors">
+                        <Settings className="h-4 w-4" />
+                        <span className="hidden sm:inline">設定</span>
+                    </Link>
                     <a
                         href={homeUrl}
                         target="_blank"

@@ -59,6 +59,7 @@ const componentCategories = [
         name: '文字元件',
         components: [
             { type: 'text', icon: Type, label: '文字區塊', description: '純文字內容' },
+            { type: 'animated_text', icon: Sparkles, label: '動態文字', description: '動畫效果文字' },
             { type: 'text_columns', icon: LayoutGrid, label: '文字組合', description: '多欄文字' },
             { type: 'features', icon: LayoutGrid, label: '特色區塊', description: '特色/服務' },
             { type: 'faq', icon: MessageSquare, label: 'FAQ 問答', description: '常見問答' },
