@@ -1,12 +1,25 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import { ProductListBlock, ProductCategoryBlock, ProductCarouselBlock } from './product-blocks'
-import { CircularCarousel } from './circular-carousel'
 import { ShowcaseSlider } from '../store/showcase-slider'
-import { TiltedScrollGallery } from './tilted-scroll-gallery'
+import { TiltedScrollGallery } from '../premium/framer/TiltedScrollGallery'
+
+// 動態導入 Three.js 元件，避免影響主 bundle
+const ThreeCarousel = dynamic(
+    () => import('../premium/three/ThreeCarousel'),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="w-full flex items-center justify-center" style={{ height: 'calc(100vh - 64px)' }}>
+                <div className="text-muted-foreground">載入 3D 場景中...</div>
+            </div>
+        )
+    }
+)
 
 // ... existing code ...
 
@@ -250,13 +263,14 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 aspectRatioMobile={block.props?.aspectRatioMobile}
             />
         case 'circular_carousel':
-            return <CircularCarousel
+            return <ThreeCarousel
                 images={block.props?.images || []}
                 autoRotate={block.props?.autoRotate ?? true}
-                radius={block.props?.radius ?? 300}
-                height={block.props?.height ?? 400}
-                itemWidth={block.props?.itemWidth ?? 200}
-                itemHeight={block.props?.itemHeight ?? 300}
+                radius={block.props?.radius ? block.props.radius / 100 : 5}
+                itemWidth={block.props?.itemWidth ? block.props.itemWidth / 100 : 3}
+                itemHeight={block.props?.itemHeight ? block.props.itemHeight / 100 : 2}
+                rotationSpeed={0.2}
+                backgroundColor="#000000"
             />;
         case 'showcase_slider':
             return <ShowcaseSlider

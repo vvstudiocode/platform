@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 
@@ -23,6 +23,12 @@ interface TiltedScrollGalleryProps {
     buttonHoverColor?: string
 }
 
+// 簡單的種子隨機數生成器（避免 hydration mismatch）
+function seededRandom(seed: number): number {
+    const x = Math.sin(seed) * 10000
+    return x - Math.floor(x)
+}
+
 export function TiltedScrollGallery({
     images = [],
     columns = 3,
@@ -43,15 +49,23 @@ export function TiltedScrollGallery({
 }: TiltedScrollGalleryProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const isInView = useInView(containerRef, { once: false, amount: 0.1 })
+    const [isMounted, setIsMounted] = useState(false)
 
-    // 固定隨機值（效能優化）
+    // 等待客戶端掛載後才顯示動畫（避免 hydration mismatch）
+    useEffect(() => {
+        setIsMounted(true)
+    }, [])
+
+    // 使用種子隨機數（確保 SSR 和 CSR 一致）
     const randomValues = useMemo(() => ({
-        rowOffsets: Array.from({ length: columns }, (_, i) =>
-            (i % 2 === 0 ? -1 : 1) * (20 + Math.random() * 30)
-        ),
-        itemGaps: Array.from({ length: 20 }, () =>
-            imageGap + Math.random() * 20
-        ),
+        rowOffsets: Array.from({ length: columns }, (_, i) => {
+            const value = (i % 2 === 0 ? -1 : 1) * (20 + seededRandom(i * 100 + columns) * 30)
+            return Math.round(value * 100) / 100 // 固定2位小數，避免精度問題
+        }),
+        itemGaps: Array.from({ length: 20 }, (_, i) => {
+            const value = imageGap + seededRandom(i * 50 + imageGap * 10) * 20
+            return Math.round(value * 100) / 100 // 固定2位小數，避免精度問題
+        }),
     }), [columns, imageGap])
 
     // 計算每個 Row 的圖片（使用 Shifted 策略）
