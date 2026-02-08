@@ -1,26 +1,13 @@
 'use client'
 
 import { useActionState, useState, useEffect } from 'react'
-import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Box, Sparkles } from 'lucide-react'
 import { useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-    CarouselEditor,
-    HeroEditor,
-    ImageTextEditor,
-    TextColumnsEditor,
-    TextEditor,
-    ImageGridEditor,
-    ProductListEditor,
-    ProductCategoryEditor,
-    ProductCarouselEditor,
-    CircularCarouselEditor,
-    ShowcaseSliderEditor,
-    TiltedScrollGalleryEditor,
-} from '@/components/page-editor/component-editors'
+import { getDefaultProps as getRegistryDefaultProps, getComponentEditor, componentRegistry } from '@/components/page-editor/registry'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
 import { CartProvider } from '@/lib/cart-context'
 import { StoreFooter } from '@/components/store/store-footer'
@@ -62,7 +49,6 @@ const componentCategories = [
         components: [
             { type: 'hero', icon: Image, label: 'Hero Banner', description: '大型橫幅圖片' },
             { type: 'carousel', icon: Image, label: '輪播圖', description: '圖片輪播' },
-            { type: 'circular_carousel', icon: Image, label: '3D 環狀輪播', description: '立體旋轉展示' },
             { type: 'showcase_slider', icon: Image, label: '焦點展示', description: '高質感全螢幕輪播' },
             { type: 'tilted_scroll_gallery', icon: Image, label: '傾斜滾動圖庫', description: '3D透視圖片牆' },
             { type: 'image_text', icon: LayoutGrid, label: '圖文組合', description: '圖片+文字' },
@@ -696,88 +682,22 @@ function getComponentLabel(type: string): string {
 }
 
 function getDefaultProps(type: string): Record<string, any> {
+    // 使用 registry 的預設值，如果沒有則提供本地後備值
+    const registryProps = getRegistryDefaultProps(type)
+    if (Object.keys(registryProps).length > 0) {
+        return registryProps
+    }
+    // 後備值（用於尚未加入 registry 的元件）
     switch (type) {
-        case 'hero':
-            return { title: '歡迎', subtitle: '這是副標題', backgroundUrl: '', buttonText: '了解更多', buttonUrl: '' }
-        case 'carousel':
-            return { images: [{ url: '', alt: '圖片 1', link: '' }], autoplay: true, interval: 5 }
         case 'circular_carousel':
             return {
                 images: [
                     { url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff', alt: 'Nike Red', link: '' },
                     { url: 'https://images.unsplash.com/photo-1543508282-6319a3e2621f', alt: 'Nike Blue', link: '' },
-                    { url: 'https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111', alt: 'Nike Green', link: '' },
-                    { url: 'https://images.unsplash.com/photo-1552346154-21d32810aba3', alt: 'Nike Orange', link: '' },
-                    { url: 'https://images.unsplash.com/photo-1560769629-9750c3c0ce99', alt: 'Nike Grey', link: '' }
                 ],
                 autoRotate: true,
                 radius: 300,
-                height: 400,
-                itemWidth: 200,
-                itemHeight: 300
-            }
-        case 'showcase_slider':
-            return {
-                slides: [
-                    {
-                        image: 'https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?q=80&w=3270',
-                        title: 'Elegance',
-                        subtitle: 'Premium Collection',
-                        buttonText: 'View Collection',
-                        link: ''
-                    },
-                    {
-                        image: 'https://images.unsplash.com/photo-1509319117193-51043812013d?q=80&w=3270',
-                        title: 'Sophistication',
-                        subtitle: 'New Arrivals',
-                        buttonText: 'Shop Now',
-                        link: ''
-                    }
-                ],
-                autoplay: true,
-                height: '100vh'
-            }
-        case 'image_text':
-            return { layout: 'left', imageUrl: '', title: '標題', content: '內容說明', buttonText: '', buttonUrl: '' }
-        case 'image_grid':
-            return { images: [{ url: '', alt: '圖片', link: '' }], columns: 3, gap: 16 }
-        case 'text':
-            return { content: '請輸入內容...' }
-        case 'text_columns':
-            return { columns: [{ title: '欄位一', content: '內容' }], columnCount: 3 }
-        case 'features':
-            return { title: '我們的特色', items: [{ icon: '⭐', title: '特色一', description: '說明' }] }
-        case 'faq':
-            return { title: '常見問題', items: [{ question: '問題？', answer: '答案' }] }
-        case 'product_list':
-            return { title: '精選商品', productIds: [], layout: 'grid', columns: 3 }
-        case 'product_category':
-            return { title: '商品分類', category: '', limit: 8, layout: 'grid' }
-        case 'product_carousel':
-            return { title: '熱門商品', productIds: [], autoplay: true }
-        case 'tilted_scroll_gallery':
-            return {
-                images: [
-                    { url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff', alt: 'Image 1' },
-                    { url: 'https://images.unsplash.com/photo-1543508282-6319a3e2621f', alt: 'Image 2' },
-                    { url: 'https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111', alt: 'Image 3' },
-                    { url: 'https://images.unsplash.com/photo-1552346154-21d32810aba3', alt: 'Image 4' },
-                    { url: 'https://images.unsplash.com/photo-1560769629-9750c3c0ce99', alt: 'Image 5' },
-                    { url: 'https://images.unsplash.com/photo-1579338559194-a162d19bf842', alt: 'Image 6' },
-                ],
-                columns: 3,
-                tiltAngle: -15,
-                tiltAngleY: 0,
-                scrollSpeed: 30,
-                imageSize: 150,
-                imageGap: 16,
-                borderRadius: 16,
-                backgroundColor: '#f8f8f8',
-                title: 'Discover Collections',
-                subtitle: 'Explore the top collection of items and find your favorites.',
-                buttonText: 'Start Experience',
-                buttonLink: '#',
-                buttonHoverColor: '#e11d48'
+                height: 400
             }
         default:
             return {}
@@ -785,150 +705,16 @@ function getDefaultProps(type: string): Record<string, any> {
 }
 
 function ComponentEditor({ type, props, onChange, tenantId }: { type: string; props: Record<string, any>; onChange: (props: Record<string, any>) => void; tenantId?: string }) {
-    switch (type) {
-        case 'hero':
-            return <HeroEditor props={props} onChange={onChange} />
-        case 'carousel':
-            return <CarouselEditor props={props} onChange={onChange} />
-        case 'circular_carousel':
-            return <CircularCarouselEditor props={props} onChange={onChange} />
-        case 'showcase_slider':
-            return <ShowcaseSliderEditor props={props} onChange={onChange} />
-        case 'image_text':
-            return <ImageTextEditor props={props} onChange={onChange} />
-        case 'image_grid':
-            return <ImageGridEditor props={props} onChange={onChange} />
-        case 'text':
-        case 'text':
-            return <TextEditor props={props} onChange={onChange} />
-        case 'text_columns':
-            return <TextColumnsEditor props={props} onChange={onChange} />
-        case 'features':
-            return <FeaturesEditor props={props} onChange={onChange} />
-        case 'faq':
-            return <FAQEditor props={props} onChange={onChange} />
-        case 'product_list':
-            return <ProductListEditor props={props} onChange={onChange} tenantId={tenantId} />
-        case 'product_category':
-            return <ProductCategoryEditor props={props} onChange={onChange} tenantId={tenantId} />
-        case 'product_carousel':
-            return <ProductCarouselEditor props={props} onChange={onChange} tenantId={tenantId} />
-        case 'tilted_scroll_gallery':
-            return <TiltedScrollGalleryEditor props={props} onChange={onChange} />
-        default:
-            return (
-                <div className="text-zinc-500 text-sm">
-                    此元件類型的編輯器開發中
-                </div>
-            )
-    }
-}
+    // 使用 registry 取得對應的編輯器元件
+    const Editor = getComponentEditor(type)
 
-// Features 編輯器
-function FeaturesEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
-    const items = props.items || []
-
-    const addItem = () => {
-        onChange({ items: [...items, { icon: '⭐', title: '新特色', description: '說明' }] })
-    }
-
-    const removeItem = (index: number) => {
-        onChange({ items: items.filter((_: any, i: number) => i !== index) })
-    }
-
-    const updateItem = (index: number, field: string, value: string) => {
-        const newItems = [...items]
-        newItems[index] = { ...newItems[index], [field]: value }
-        onChange({ items: newItems })
+    if (Editor) {
+        return <Editor props={props} onChange={onChange} tenantId={tenantId} />
     }
 
     return (
-        <div className="space-y-3">
-            <div>
-                <label className="block text-sm text-zinc-400 mb-1">區塊標題</label>
-                <Input placeholder="標題" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
-            </div>
-            <div className="space-y-2">
-                <label className="block text-sm text-zinc-400">特色項目</label>
-                {items.map((item: any, index: number) => (
-                    <div key={index} className="flex gap-2 items-start p-3 bg-zinc-700/50 rounded-lg">
-                        <div className="flex-1 space-y-2">
-                            <div className="grid grid-cols-2 gap-2">
-                                <Input placeholder="圖標 (emoji)" value={item.icon || ''} onChange={(e) => updateItem(index, 'icon', e.target.value)} />
-                                <Input placeholder="標題" value={item.title || ''} onChange={(e) => updateItem(index, 'title', e.target.value)} />
-                            </div>
-                            <Input placeholder="說明" value={item.description || ''} onChange={(e) => updateItem(index, 'description', e.target.value)} />
-                        </div>
-                        <button type="button" onClick={() => removeItem(index)} className="p-1 text-zinc-500 hover:text-red-400">
-                            <Trash2 className="h-4 w-4" />
-                        </button>
-                    </div>
-                ))}
-                <button
-                    type="button"
-                    onClick={addItem}
-                    className="w-full py-2 border-2 border-dashed border-zinc-600 rounded-lg text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors"
-                >
-                    + 新增特色
-                </button>
-            </div>
-        </div>
-    )
-}
-
-// FAQ 編輯器
-function FAQEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
-    const items = props.items || []
-
-    const addItem = () => {
-        onChange({ items: [...items, { question: '新問題？', answer: '請輸入答案' }] })
-    }
-
-    const removeItem = (index: number) => {
-        onChange({ items: items.filter((_: any, i: number) => i !== index) })
-    }
-
-    const updateItem = (index: number, field: string, value: string) => {
-        const newItems = [...items]
-        newItems[index] = { ...newItems[index], [field]: value }
-        onChange({ items: newItems })
-    }
-
-    return (
-        <div className="space-y-3">
-            <div>
-                <label className="block text-sm text-zinc-400 mb-1">區塊標題</label>
-                <Input placeholder="常見問題" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
-            </div>
-            <div className="space-y-2">
-                <label className="block text-sm text-zinc-400">問答項目</label>
-                {items.map((item: any, index: number) => (
-                    <div key={index} className="p-3 bg-zinc-700/50 rounded-lg space-y-2">
-                        <div className="flex gap-2 items-center">
-                            <div className="flex-1">
-                                <Input placeholder="問題" value={item.question || ''} onChange={(e) => updateItem(index, 'question', e.target.value)} />
-                            </div>
-                            <button type="button" onClick={() => removeItem(index)} className="p-1 text-zinc-500 hover:text-red-400">
-                                <Trash2 className="h-4 w-4" />
-                            </button>
-                        </div>
-                        <textarea
-                            className="w-full px-3 py-2 bg-zinc-600 border border-zinc-500 rounded-lg text-white placeholder:text-zinc-400 text-sm"
-                            rows={2}
-                            placeholder="答案"
-                            value={item.answer || ''}
-                            onChange={(e) => updateItem(index, 'answer', e.target.value)}
-                        />
-                    </div>
-                ))}
-                <button
-                    type="button"
-                    onClick={addItem}
-                    className="w-full py-2 border-2 border-dashed border-zinc-600 rounded-lg text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors"
-                >
-                    + 新增問答
-                </button>
-            </div>
+        <div className="text-zinc-500 text-sm">
+            此元件類型的編輯器開發中
         </div>
     )
 }

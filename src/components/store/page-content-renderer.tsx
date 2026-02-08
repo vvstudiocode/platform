@@ -1,24 +1,28 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import { ProductListBlock, ProductCategoryBlock, ProductCarouselBlock } from './product-blocks'
 import { ShowcaseSlider } from '../store/showcase-slider'
 import { TiltedScrollGallery } from '../premium/framer/TiltedScrollGallery'
+import { ParallaxHero } from '../premium/framer/ParallaxHero'
+import { AnimatedGrid } from '../premium/framer/AnimatedGrid'
+import dynamic from 'next/dynamic'
 
-// 動態導入 Three.js 元件，避免影響主 bundle
-const ThreeCarousel = dynamic(
-    () => import('../premium/three/ThreeCarousel'),
-    {
-        ssr: false,
-        loading: () => (
-            <div className="w-full flex items-center justify-center" style={{ height: 'calc(100vh - 64px)' }}>
-                <div className="text-muted-foreground">載入 3D 場景中...</div>
-            </div>
-        )
-    }
+// Inline LoadingState
+function LoadingState() {
+    return <div className="w-full h-96 flex items-center justify-center text-gray-400">Loading 3D Model...</div>
+}
+
+const Product360Viewer = dynamic(
+    () => import('../premium/three/Product360Viewer').then(mod => mod.Product360Viewer),
+    { ssr: false, loading: () => <LoadingState /> }
+)
+
+const ParticleBackground = dynamic(
+    () => import('../premium/three/ParticleBackground').then(mod => mod.ParticleBackground),
+    { ssr: false }
 )
 
 // ... existing code ...
@@ -262,16 +266,41 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 aspectRatioDesktop={block.props?.aspectRatioDesktop}
                 aspectRatioMobile={block.props?.aspectRatioMobile}
             />
-        case 'circular_carousel':
-            return <ThreeCarousel
-                images={block.props?.images || []}
+        case 'parallax_hero':
+            return <ParallaxHero
+                image={block.props?.image || ''}
+                title={block.props?.title || ''}
+                subtitle={block.props?.subtitle}
+                height={block.props?.height}
+            />
+
+        case 'product_360':
+            return <Product360Viewer
+                modelUrl={block.props?.modelUrl}
                 autoRotate={block.props?.autoRotate ?? true}
-                radius={block.props?.radius ? block.props.radius / 100 : 5}
-                itemWidth={block.props?.itemWidth ? block.props.itemWidth / 100 : 3}
-                itemHeight={block.props?.itemHeight ? block.props.itemHeight / 100 : 2}
-                rotationSpeed={0.2}
-                backgroundColor="#000000"
-            />;
+            />
+
+        case 'particle_background':
+            return (
+                <div className="relative w-full h-[400px]">
+                    <ParticleBackground
+                        count={block.props?.count ?? 200}
+                        color={block.props?.color ?? '#666'}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <h2 className="text-2xl font-bold text-gray-800">{block.props?.title || 'Particle Effect'}</h2>
+                    </div>
+                </div>
+            )
+
+        case 'animated_grid':
+            return <AnimatedGrid
+                items={block.props?.items || []}
+                columns={block.props?.columns ?? 3}
+            />
+
+        case 'circular_carousel':
+            return null // Removed
         case 'showcase_slider':
             return <ShowcaseSlider
                 slides={block.props?.slides || []}

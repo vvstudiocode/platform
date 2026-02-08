@@ -56,17 +56,25 @@ export function TiltedScrollGallery({
         setIsMounted(true)
     }, [])
 
+    // 手機版優化：限制最大欄數，避免過多渲染
+    const effectiveColumns = useMemo(() => {
+        if (typeof window !== 'undefined' && window.innerWidth < 768) {
+            return Math.min(columns, 3) // 手機最多 3 欄
+        }
+        return columns
+    }, [columns, isMounted])
+
     // 使用種子隨機數（確保 SSR 和 CSR 一致）
     const randomValues = useMemo(() => ({
-        rowOffsets: Array.from({ length: columns }, (_, i) => {
-            const value = (i % 2 === 0 ? -1 : 1) * (20 + seededRandom(i * 100 + columns) * 30)
-            return Math.round(value * 100) / 100 // 固定2位小數，避免精度問題
+        rowOffsets: Array.from({ length: effectiveColumns }, (_, i) => {
+            const value = (i % 2 === 0 ? -1 : 1) * (20 + seededRandom(i * 100 + effectiveColumns) * 30)
+            return Math.round(value * 100) / 100
         }),
         itemGaps: Array.from({ length: 20 }, (_, i) => {
             const value = imageGap + seededRandom(i * 50 + imageGap * 10) * 20
-            return Math.round(value * 100) / 100 // 固定2位小數，避免精度問題
+            return Math.round(value * 100) / 100
         }),
-    }), [columns, imageGap])
+    }), [effectiveColumns, imageGap])
 
     // 計算每個 Row 的圖片（使用 Shifted 策略）
     const rowImagesMap = useMemo(() => {
@@ -76,10 +84,12 @@ export function TiltedScrollGallery({
         const targetWidth = typeof window !== 'undefined' ? window.innerWidth * 2 : 3000
         const itemWidth = imageSize + imageGap
 
-        const baseRows = Array.from({ length: columns }, (_, rowIndex) => {
+        const baseRows = Array.from({ length: effectiveColumns }, (_, rowIndex) => {
             const offset = rowIndex % images.length
             return [...images.slice(offset), ...images.slice(0, offset)]
         })
+        // ... (rest of logic using effectiveColumns)
+
 
         baseRows.forEach((row, rowIndex) => {
             if (row.length === 0) {
@@ -146,7 +156,7 @@ export function TiltedScrollGallery({
                         willChange: 'transform',
                     }}
                 >
-                    {Array.from({ length: columns }).map((_, rowIndex) => {
+                    {Array.from({ length: effectiveColumns }).map((_, rowIndex) => {
                         const rowImages = rowImagesMap[rowIndex] || []
                         const duration = scrollSpeed + (rowIndex * 2)
                         const rowOffset = randomValues.rowOffsets[rowIndex]
@@ -156,7 +166,7 @@ export function TiltedScrollGallery({
                                 key={rowIndex}
                                 className="flex w-fit"
                                 initial={{ x: rowOffset }}
-                                animate={isInView ? {
+                                animate={isInView && isMounted ? {
                                     x: [rowOffset, rowOffset - 2000]
                                 } : { x: rowOffset }}
                                 transition={{
