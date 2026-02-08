@@ -45,21 +45,7 @@ export function HeroEditor({ props, onChange }: { props: Record<string, any>; on
                 onChange={onChange}
             />
 
-            <AspectRatioControls
-                aspectRatio={{
-                    desktop: props.aspectRatioDesktop || 'auto',
-                    mobile: props.aspectRatioMobile || 'auto'
-                }}
-                onChange={onChange}
-            />
 
-            <ImageControls
-                objectFit={{
-                    desktop: props.objectFitDesktop || 'cover',
-                    mobile: props.objectFitMobile || 'cover'
-                }}
-                onChange={onChange}
-            />
 
             <AnimationControls
                 animation={props.animation}
@@ -1383,13 +1369,7 @@ export function ShowcaseSliderEditor({ props, onChange }: { props: Record<string
                 + 新增投影片
             </button>
 
-            <div className="space-y-2 pt-4 border-t border-border">
-                <label className="text-sm text-muted-foreground">高度 (例如: 100vh, 600px)</label>
-                <Input
-                    value={props.height || '100vh'}
-                    onChange={(e) => onChange({ height: e.target.value })}
-                />
-            </div>
+
 
             <div className="space-y-2 pt-2">
                 <label className="block text-sm text-muted-foreground mb-1">按鈕 Hover 顏色</label>
@@ -1401,6 +1381,253 @@ export function ShowcaseSliderEditor({ props, onChange }: { props: Record<string
                         className="h-9 w-16 p-1 rounded cursor-pointer bg-background border border-input"
                     />
                     <span className="text-sm text-muted-foreground uppercase">{props.buttonHoverColor || '#e11d48'}</span>
+                </div>
+            </div>
+
+            <SpacingControls
+                paddingY={{
+                    desktop: props.paddingYDesktop ?? 0,
+                    mobile: props.paddingYMobile ?? 0
+                }}
+                onChange={onChange}
+            />
+        </div>
+    )
+}
+
+// 12. 傾斜滾動圖庫編輯器
+export function TiltedScrollGalleryEditor({ props, onChange }: { props: Record<string, any>; onChange: (props: Record<string, any>) => void }) {
+    const images = props.images || []
+
+    const addImage = () => {
+        onChange({ images: [...images, { url: '', alt: '' }] })
+    }
+
+    const removeImage = (index: number) => {
+        onChange({ images: images.filter((_: any, i: number) => i !== index) })
+    }
+
+    const updateImage = (index: number, field: string, value: string) => {
+        const updated = [...images]
+        updated[index] = { ...updated[index], [field]: value }
+        onChange({ images: updated })
+    }
+
+    return (
+        <div className="space-y-4">
+            {/* 內容設定 */}
+            <div className="space-y-4 border-b pb-4">
+                <h3 className="font-medium">內容設定</h3>
+                <div className="space-y-2">
+                    <label className="block text-sm text-muted-foreground">標題</label>
+                    <Input
+                        value={props.title || ''}
+                        onChange={(e) => onChange({ title: e.target.value })}
+                        placeholder="例如: Discover NFT Collections"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="block text-sm text-muted-foreground">副標題</label>
+                    <Input
+                        value={props.subtitle || ''}
+                        onChange={(e) => onChange({ subtitle: e.target.value })}
+                        placeholder="例如: Explore the top collection..."
+                    />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
+                        <label className="block text-sm text-muted-foreground">按鈕文字</label>
+                        <Input
+                            value={props.buttonText || ''}
+                            onChange={(e) => onChange({ buttonText: e.target.value })}
+                            placeholder="例如: Start experience"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="block text-sm text-muted-foreground">按鈕連結</label>
+                        <Input
+                            value={props.buttonLink || ''}
+                            onChange={(e) => onChange({ buttonLink: e.target.value })}
+                            placeholder="/collections"
+                        />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="block text-sm text-muted-foreground">按鈕 Hover 顏色</label>
+                    <div className="flex gap-2 items-center">
+                        <input
+                            type="color"
+                            value={props.buttonHoverColor || '#e11d48'}
+                            onChange={(e) => onChange({ buttonHoverColor: e.target.value })}
+                            className="h-9 w-16 p-1 rounded cursor-pointer bg-background border border-input"
+                        />
+                        <span className="text-sm text-muted-foreground uppercase">{props.buttonHoverColor || '#e11d48'}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* 圖片列表 */}
+            <div className="space-y-2">
+                <label className="block text-sm font-medium text-foreground">圖片列表</label>
+                {images.map((img: any, index: number) => (
+                    <div key={index} className="flex gap-2 items-start bg-muted/30 p-2 rounded-lg">
+                        <div className="flex-1 space-y-1">
+                            <ImageInput
+                                value={img.url}
+                                onChange={(value) => updateImage(index, 'url', value)}
+                                placeholder="圖片網址"
+                            />
+                            <Input
+                                placeholder="替代文字 (選填)"
+                                value={img.alt || ''}
+                                onChange={(e) => updateImage(index, 'alt', e.target.value)}
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="p-1.5 text-muted-foreground hover:text-destructive"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </button>
+                    </div>
+                ))}
+                <button
+                    type="button"
+                    onClick={addImage}
+                    className="w-full py-2 border-2 border-dashed border-input rounded-lg text-muted-foreground hover:text-foreground hover:border-accent transition-colors"
+                >
+                    + 新增圖片
+                </button>
+            </div>
+
+            {/* 欄數設定 */}
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">
+                    欄數 (Columns)
+                </label>
+                <div className="flex gap-2">
+                    {[2, 3, 4, 5, 6].map((num) => (
+                        <button
+                            key={num}
+                            type="button"
+                            onClick={() => onChange({ columns: num })}
+                            className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${(props.columns || 3) === num
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-muted/50 text-muted-foreground border-input hover:bg-muted'
+                                }`}
+                        >
+                            {num}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* 傾斜角度 X */}
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">
+                    上下傾斜 (X軸): {props.tiltAngle ?? -15}°
+                </label>
+                <input
+                    type="range"
+                    min="-30"
+                    max="15"
+                    value={props.tiltAngle ?? -15}
+                    onChange={(e) => onChange({ tiltAngle: parseInt(e.target.value) })}
+                    className="w-full accent-primary"
+                />
+            </div>
+
+            {/* 傾斜角度 Y */}
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">
+                    左右傾斜 (Y軸): {props.tiltAngleY ?? 0}°
+                </label>
+                <input
+                    type="range"
+                    min="-30"
+                    max="30"
+                    value={props.tiltAngleY ?? 0}
+                    onChange={(e) => onChange({ tiltAngleY: parseInt(e.target.value) })}
+                    className="w-full accent-primary"
+                />
+            </div>
+
+            {/* 滾動速度 */}
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">
+                    滾動速度: {props.scrollSpeed ?? 30}s
+                </label>
+                <input
+                    type="range"
+                    min="10"
+                    max="60"
+                    value={props.scrollSpeed ?? 30}
+                    onChange={(e) => onChange({ scrollSpeed: parseInt(e.target.value) })}
+                    className="w-full accent-primary"
+                />
+                <p className="text-xs text-muted-foreground">數值越大滾動越慢</p>
+            </div>
+
+            {/* 圖片大小 */}
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">
+                    圖片大小: {props.imageSize ?? 150}px
+                </label>
+                <input
+                    type="range"
+                    min="80"
+                    max="300"
+                    step="10"
+                    value={props.imageSize ?? 150}
+                    onChange={(e) => onChange({ imageSize: parseInt(e.target.value) })}
+                    className="w-full accent-primary"
+                />
+            </div>
+
+            {/* 圖片間距 */}
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">
+                    圖片間距: {props.imageGap ?? 16}px
+                </label>
+                <input
+                    type="range"
+                    min="8"
+                    max="32"
+                    step="4"
+                    value={props.imageGap ?? 16}
+                    onChange={(e) => onChange({ imageGap: parseInt(e.target.value) })}
+                    className="w-full accent-primary"
+                />
+            </div>
+
+            {/* 圓角 */}
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">
+                    圖片圓角: {props.borderRadius ?? 16}px
+                </label>
+                <input
+                    type="range"
+                    min="0"
+                    max="32"
+                    step="4"
+                    value={props.borderRadius ?? 16}
+                    onChange={(e) => onChange({ borderRadius: parseInt(e.target.value) })}
+                    className="w-full accent-primary"
+                />
+            </div>
+
+            {/* 背景顏色 */}
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">背景顏色</label>
+                <div className="flex gap-2 items-center">
+                    <input
+                        type="color"
+                        value={props.backgroundColor || '#f8f8f8'}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        className="h-9 w-16 p-1 rounded cursor-pointer bg-background border border-input"
+                    />
+                    <span className="text-sm text-muted-foreground uppercase">{props.backgroundColor || '#f8f8f8'}</span>
                 </div>
             </div>
 

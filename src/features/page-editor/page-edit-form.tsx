@@ -19,11 +19,11 @@ import {
     ProductCarouselEditor,
     CircularCarouselEditor,
     ShowcaseSliderEditor,
+    TiltedScrollGalleryEditor,
 } from '@/components/page-editor/component-editors'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
 import { CartProvider } from '@/lib/cart-context'
 import { StoreFooter } from '@/components/store/store-footer'
-import { updatePageContent } from '../actions'
 
 interface PageComponent {
     id: string
@@ -47,6 +47,8 @@ interface Props {
         content: PageComponent[]
     }
     updateAction: (prevState: any, formData: FormData) => Promise<{ error?: string }>
+    updatePageContentAction: (pageId: string, content: any[]) => Promise<{ error?: string }>
+    basePath: string // '/admin/pages' or '/app/pages'
     storeSlug?: string
     storeName?: string
     footerSettings?: any
@@ -62,6 +64,7 @@ const componentCategories = [
             { type: 'carousel', icon: Image, label: '輪播圖', description: '圖片輪播' },
             { type: 'circular_carousel', icon: Image, label: '3D 環狀輪播', description: '立體旋轉展示' },
             { type: 'showcase_slider', icon: Image, label: '焦點展示', description: '高質感全螢幕輪播' },
+            { type: 'tilted_scroll_gallery', icon: Image, label: '傾斜滾動圖庫', description: '3D透視圖片牆' },
             { type: 'image_text', icon: LayoutGrid, label: '圖文組合', description: '圖片+文字' },
             { type: 'image_grid', icon: LayoutGrid, label: '圖片組合', description: '多圖網格' },
         ]
@@ -89,7 +92,7 @@ const componentCategories = [
 const allComponentTypes = componentCategories.flatMap(cat => cat.components)
 
 
-export function PageEditForm({ page, updateAction, storeSlug, tenantId, storeName, footerSettings }: Props) {
+export function PageEditForm({ page, updateAction, updatePageContentAction, basePath, storeSlug, tenantId, storeName, footerSettings }: Props) {
     // State for settings
     const [title, setTitle] = useState(page.title)
     const [slug, setSlug] = useState(page.slug)
@@ -240,7 +243,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId, storeNam
             }
 
             // 2. Save Content
-            const contentResult = await updatePageContent(page.id, components)
+            const contentResult = await updatePageContentAction(page.id, components)
             if (contentResult?.error) {
                 throw new Error(contentResult.error)
             }
@@ -262,7 +265,7 @@ export function PageEditForm({ page, updateAction, storeSlug, tenantId, storeNam
             {/* 頂部標題列 */}
             <div className="flex items-center justify-between px-6 py-4 bg-card border-b border-border">
                 <div className="flex items-center gap-4">
-                    <Link href="/admin/pages" className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground">
+                    <Link href={basePath} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground">
                         <ArrowLeft className="h-5 w-5" />
                     </Link>
                     <h1 className="text-xl font-bold text-foreground max-w-[200px] truncate">{title}</h1>
@@ -752,6 +755,30 @@ function getDefaultProps(type: string): Record<string, any> {
             return { title: '商品分類', category: '', limit: 8, layout: 'grid' }
         case 'product_carousel':
             return { title: '熱門商品', productIds: [], autoplay: true }
+        case 'tilted_scroll_gallery':
+            return {
+                images: [
+                    { url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff', alt: 'Image 1' },
+                    { url: 'https://images.unsplash.com/photo-1543508282-6319a3e2621f', alt: 'Image 2' },
+                    { url: 'https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111', alt: 'Image 3' },
+                    { url: 'https://images.unsplash.com/photo-1552346154-21d32810aba3', alt: 'Image 4' },
+                    { url: 'https://images.unsplash.com/photo-1560769629-9750c3c0ce99', alt: 'Image 5' },
+                    { url: 'https://images.unsplash.com/photo-1579338559194-a162d19bf842', alt: 'Image 6' },
+                ],
+                columns: 3,
+                tiltAngle: -15,
+                tiltAngleY: 0,
+                scrollSpeed: 30,
+                imageSize: 150,
+                imageGap: 16,
+                borderRadius: 16,
+                backgroundColor: '#f8f8f8',
+                title: 'Discover Collections',
+                subtitle: 'Explore the top collection of items and find your favorites.',
+                buttonText: 'Start Experience',
+                buttonLink: '#',
+                buttonHoverColor: '#e11d48'
+            }
         default:
             return {}
     }
@@ -786,6 +813,8 @@ function ComponentEditor({ type, props, onChange, tenantId }: { type: string; pr
             return <ProductCategoryEditor props={props} onChange={onChange} tenantId={tenantId} />
         case 'product_carousel':
             return <ProductCarouselEditor props={props} onChange={onChange} tenantId={tenantId} />
+        case 'tilted_scroll_gallery':
+            return <TiltedScrollGalleryEditor props={props} onChange={onChange} />
         default:
             return (
                 <div className="text-zinc-500 text-sm">

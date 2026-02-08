@@ -8,11 +8,12 @@ export default async function SettingsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-white">商店設定</h1>
-                <p className="text-zinc-400 mt-1">管理商店的全域設定</p>
+                <h1 className="text-2xl font-serif font-bold text-foreground">系統設定</h1>
+                <p className="text-muted-foreground mt-1">管理總部商店的全域設定</p>
             </div>
 
             <SettingsMenu basePath="/admin/settings" />
         </div>
     )
 }
+

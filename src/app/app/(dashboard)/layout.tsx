@@ -10,8 +10,27 @@ import {
 import type { Metadata } from 'next'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
 
-export const metadata: Metadata = {
-    title: 'OMO網站平台',
+export async function generateMetadata(): Promise<Metadata> {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { title: 'OMO網站平台' }
+    }
+
+    // 取得用戶的商店名稱
+    const { data: userRole } = await supabase
+        .from('users_roles')
+        .select('tenants:tenant_id(name)')
+        .eq('user_id', user.id)
+        .in('role', ['store_owner', 'store_admin'])
+        .single()
+
+    const storeName = (userRole?.tenants as any)?.name
+
+    return {
+        title: storeName ? `${storeName} 後台` : 'OMO網站平台'
+    }
 }
 
 

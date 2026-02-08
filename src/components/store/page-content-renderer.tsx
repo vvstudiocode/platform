@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react'
 import { ProductListBlock, ProductCategoryBlock, ProductCarouselBlock } from './product-blocks'
 import { CircularCarousel } from './circular-carousel'
 import { ShowcaseSlider } from '../store/showcase-slider'
+import { TiltedScrollGallery } from './tilted-scroll-gallery'
 
 // ... existing code ...
 
@@ -83,7 +84,7 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
     // 定義哪些區塊應該是全寬的
     const isFullWidthBlock = (type: string) => {
         // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
-        return ['hero', 'showcase_slider'].includes(type)
+        return ['hero', 'showcase_slider', 'tilted_scroll_gallery'].includes(type)
     }
 
     return (
@@ -261,9 +262,28 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
             return <ShowcaseSlider
                 slides={block.props?.slides || []}
                 autoplay={block.props?.autoplay ?? true}
-                height={block.props?.height}
+                // height={block.props?.height} // Removed to enforce default 100vh-5rem
                 paddingYDesktop={block.props?.paddingYDesktop}
                 paddingYMobile={block.props?.paddingYMobile}
+                buttonHoverColor={block.props?.buttonHoverColor}
+            />;
+        case 'tilted_scroll_gallery':
+            return <TiltedScrollGallery
+                images={block.props?.images || []}
+                columns={block.props?.columns ?? 3}
+                tiltAngle={block.props?.tiltAngle ?? -15}
+                tiltAngleY={block.props?.tiltAngleY ?? 0}
+                scrollSpeed={block.props?.scrollSpeed ?? 30}
+                imageSize={block.props?.imageSize ?? 150}
+                imageGap={block.props?.imageGap ?? 16}
+                borderRadius={block.props?.borderRadius ?? 16}
+                backgroundColor={block.props?.backgroundColor ?? '#f8f8f8'}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                title={block.props?.title}
+                subtitle={block.props?.subtitle}
+                buttonText={block.props?.buttonText}
+                buttonLink={block.props?.buttonLink}
                 buttonHoverColor={block.props?.buttonHoverColor}
             />;
         default:
@@ -279,17 +299,11 @@ function HeroBlock({ block, preview, previewDevice }: { block: PageComponent; pr
     const buttonText = block.props?.buttonText
     const buttonUrl = block.props?.buttonUrl
 
-    const fitDesktop = block.props?.objectFitDesktop || 'cover'
-    const fitMobile = block.props?.objectFitMobile || 'cover'
-    const aspectRatioDesktop = block.props?.aspectRatioDesktop || 'auto'
-    const aspectRatioMobile = block.props?.aspectRatioMobile || 'auto'
+
 
     return (
         <div
-            className={`relative w-full flex flex-col justify-center items-center text-center px-8 transition-all duration-300 ${aspectRatioDesktop === 'auto' && aspectRatioMobile === 'auto' ? 'min-h-[calc(100vh-5rem)]' : ''} ${block.props && previewDevice === 'mobile' && preview
-                ? 'aspect-[var(--aspect-mobile)]'
-                : 'aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)]'
-                }`}
+            className={`relative w-full flex flex-col justify-center items-center text-center px-8 transition-all duration-300 min-h-[calc(100vh-5rem)]`}
             style={{
                 backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : undefined,
                 backgroundColor: backgroundUrl ? undefined : '#1f2937',
@@ -297,22 +311,11 @@ function HeroBlock({ block, preview, previewDevice }: { block: PageComponent; pr
                 backgroundRepeat: 'no-repeat',
                 paddingTop: previewDevice === 'mobile' ? `${block.props?.paddingYMobile ?? 32}px` : `${block.props?.paddingYDesktop ?? 64}px`,
                 paddingBottom: previewDevice === 'mobile' ? `${block.props?.paddingYMobile ?? 32}px` : `${block.props?.paddingYDesktop ?? 64}px`,
-                // Use background-size directly from variables doesn't work well in style attribute for responsive without media queries or CSS variables trick
-                // So we will use the --bg-size var approach which works with the JSX style below
-                '--bg-size-desktop': fitDesktop,
-                '--bg-size-mobile': fitMobile,
-                '--aspect-desktop': aspectRatioDesktop,
-                '--aspect-mobile': aspectRatioMobile,
             } as any}
         >
             <style jsx>{`
                 div {
-                    background-size: var(--bg-size-mobile);
-                }
-                @media (min-width: 768px) {
-                    div {
-                        background-size: var(--bg-size-desktop);
-                    }
+                    background-size: cover;
                 }
             `}</style>
             <div className="absolute inset-0 bg-black/40" />

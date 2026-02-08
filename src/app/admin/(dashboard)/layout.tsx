@@ -9,8 +9,26 @@ import {
 import type { Metadata } from 'next'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
 
-export const metadata: Metadata = {
-    title: 'OMO網站平台',
+export async function generateMetadata(): Promise<Metadata> {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { title: 'OMO網站平台' }
+    }
+
+    // 取得總部商店名稱
+    const { data: hqStore } = await supabase
+        .from('tenants')
+        .select('name')
+        .eq('managed_by', user.id)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single()
+
+    return {
+        title: hqStore?.name ? `${hqStore.name} 後台` : 'OMO網站平台'
+    }
 }
 
 export default async function AdminLayout({

@@ -1,9 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { PageList } from '@/features/pages/components/page-list'
+import { PagesPage } from '@/features/pages/pages-page'
 import { deletePage } from './actions'
 
 async function getUserStore(supabase: any, userId: string) {
@@ -27,29 +24,17 @@ export default async function AppPagesPage() {
 
     const { data: pages } = await supabase
         .from('pages')
-        .select('*')
+        .select('id, title, slug, is_homepage, published, updated_at')
         .eq('tenant_id', store.id)
         .order('is_homepage', { ascending: false })
         .order('created_at', { ascending: false })
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-serif font-bold text-foreground">頁面管理</h1>
-                <Link href="/app/pages/new">
-                    <Button className="gap-2 shadow-soft">
-                        <Plus className="h-4 w-4" />
-                        新增頁面
-                    </Button>
-                </Link>
-            </div>
-
-            <PageList
-                pages={pages || []}
-                basePath="/app/pages"
-                storeSlug={store.slug}
-                deleteAction={deletePage}
-            />
-        </div>
+        <PagesPage
+            pages={pages || []}
+            basePath="/app/pages"
+            storeSlug={store.slug}
+            deleteAction={deletePage}
+        />
     )
 }

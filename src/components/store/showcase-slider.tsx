@@ -34,7 +34,7 @@ export function ShowcaseSlider({
     slides = [],
     autoplay = true,
     interval = 5000,
-    height = "100vh", // Default to full screen
+    height = "calc(100vh - 5rem)", // Default to full screen minus nav height
     fullWidth = true,
     paddingYDesktop = 0,
     paddingYMobile = 0,
@@ -247,7 +247,7 @@ export function ShowcaseSlider({
                 })}
 
                 {/* Pagination Dots */}
-                <div className="absolute bottom-6 md:bottom-8 right-0 left-0 md:left-auto md:right-8 z-20 flex justify-center md:flex-col gap-3 md:gap-4 md:top-1/2 md:-translate-y-1/2 md:bottom-auto">
+                <div className="absolute bottom-6 md:bottom-8 right-0 left-0 md:left-auto md:right-8 z-20 hidden md:flex justify-center md:flex-col gap-3 md:gap-4 md:top-1/2 md:-translate-y-1/2 md:bottom-auto">
                     {safeSlides.map((_, index) => (
                         <button
                             key={index}
@@ -271,26 +271,9 @@ export function ShowcaseSlider({
                     ))}
                 </div>
 
-                {/* Progress Bar (Autoplay) */}
-                {autoplay && (
-                    <div className="absolute bottom-0 left-0 h-1 bg-white/20 w-full z-20">
-                        <div
-                            key={currentIndex}
-                            className="h-full transition-none"
-                            style={{
-                                width: '100%',
-                                backgroundColor: hoverColor,
-                                animation: isAnimating ? 'none' : `progress ${interval}ms linear`
-                            }}
-                        />
-                    </div>
-                )}
 
                 <style jsx global>{`
-                    @keyframes progress {
-                        from { width: 0%; }
-                        to { width: 100%; }
-                    }
+
                     .group\/btn:hover {
                         background-color: var(--hover-bg) !important;
                         color: white !important;

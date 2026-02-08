@@ -1,9 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Plus, FileText } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { PageList } from '@/features/pages/components/page-list'
+import { PagesPage } from '@/features/pages/pages-page'
 import { deletePage } from './actions'
 
 // 取得總部商店 ID
@@ -29,46 +26,33 @@ export default async function AdminPagesPage() {
 
     if (!hqStore) {
         return (
-            <div className="space-y-6">
-                <h1 className="text-2xl font-serif font-bold text-foreground">頁面管理</h1>
-                <div className="bg-card rounded-xl border border-border p-12 text-center shadow-soft">
-                    <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <FileText className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <p className="text-muted-foreground mb-6">尚未建立總部商店</p>
-                    <Link href="/admin/stores/new">
-                        <Button className="shadow-soft">建立總部商店</Button>
-                    </Link>
-                </div>
-            </div>
+            <PagesPage
+                pages={[]}
+                basePath="/admin/pages"
+                storeSlug=""
+                deleteAction={deletePage}
+                emptyState={{
+                    message: '尚未建立總部商店',
+                    actionLabel: '建立總部商店',
+                    actionHref: '/admin/stores/new'
+                }}
+            />
         )
     }
 
     const { data: pages } = await supabase
         .from('pages')
-        .select('*')
+        .select('id, title, slug, is_homepage, published, updated_at')
         .eq('tenant_id', hqStore.id)
         .order('is_homepage', { ascending: false })
         .order('created_at', { ascending: false })
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-serif font-bold text-foreground">頁面管理</h1>
-                <Link href="/admin/pages/new">
-                    <Button className="gap-2 shadow-soft">
-                        <Plus className="h-4 w-4" />
-                        新增頁面
-                    </Button>
-                </Link>
-            </div>
-
-            <PageList
-                pages={pages || []}
-                basePath="/admin/pages"
-                storeSlug={hqStore.slug}
-                deleteAction={deletePage}
-            />
-        </div>
+        <PagesPage
+            pages={pages || []}
+            basePath="/admin/pages"
+            storeSlug={hqStore.slug}
+            deleteAction={deletePage}
+        />
     )
 }

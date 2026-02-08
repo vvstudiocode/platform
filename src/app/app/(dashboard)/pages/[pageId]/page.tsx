@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { cookies } from 'next/headers'
-import { PageEditForm } from './page-edit-form'
-import { updatePage } from '../actions'
+import { PageEditForm } from '@/features/page-editor/page-edit-form'
+import { updatePage, updatePageContent } from '../actions'
 
 interface Props {
     params: Promise<{ pageId: string }>
@@ -63,6 +63,8 @@ export default async function EditPagePage({ params }: Props) {
                 content: (page.content as any[]) || [],
             }}
             updateAction={boundUpdatePage}
+            updatePageContentAction={updatePageContent}
+            basePath="/app/pages"
             storeSlug={storeSlug}
             storeName={storeName}
             footerSettings={footerSettings}
@@ -70,4 +72,3 @@ export default async function EditPagePage({ params }: Props) {
         />
     )
 }
-

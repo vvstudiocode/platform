@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -23,6 +23,8 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
     const [isPending, startTransition] = useTransition()
     const [bindingCard, setBindingCard] = useState(false)
     const [error, setError] = useState('')
+    // Guard to prevent multiple confirm dialogs
+    const isProcessingRef = useRef(false)
 
     const currentPlan = plans.find(p => p.id === tenant.plan_id) || plans[0]
 
@@ -45,16 +47,23 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
     }
 
     const handleUpgrade = (planId: string) => {
+        // Prevent multiple calls while processing
+        if (isPending || isProcessingRef.current) return
+
         setError('')
 
         // Case: Has Card -> Warn about charge
         if (tenant.ecpay_card_id && planId !== 'free') {
             const plan = plans.find(p => p.id === planId)
-            if (!confirm(`確定要變更為 ${plan?.name} 嗎？\n系統將立即使用綁定的信用卡扣款 NT$ ${plan?.price_monthly}。`)) {
-                return
-            }
+            isProcessingRef.current = true
+            const confirmed = window.confirm(`確定要變更為 ${plan?.name} 嗎？\n系統將立即使用綁定的信用卡扣款 NT$ ${plan?.price_monthly}。`)
+            isProcessingRef.current = false
+            if (!confirmed) return
         } else {
-            if (!confirm('確定要變更方案嗎？')) return
+            isProcessingRef.current = true
+            const confirmed = window.confirm('確定要變更方案嗎？')
+            isProcessingRef.current = false
+            if (!confirmed) return
         }
 
         startTransition(async () => {
@@ -64,7 +73,7 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
             } else if (res?.requiresBinding && res?.ecpayParams && res?.ecpayUrl) {
                 submitEcpayForm(res.ecpayParams, res.ecpayUrl)
             } else if (res?.success) {
-                alert('方案已成功變更！')
+                window.alert('方案已成功變更！')
             }
         })
     }
@@ -89,7 +98,14 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
     }
 
     const handleUnbindCard = async () => {
-        if (!confirm('確定要移除信用卡嗎？\n移除後將無法自動續約，可能導致服務中斷。')) return
+        // Prevent multiple calls while processing
+        if (isPending || isProcessingRef.current) return
+
+        isProcessingRef.current = true
+        const confirmed = window.confirm('確定要移除信用卡嗎？\n移除後將無法自動續約，可能導致服務中斷。')
+        isProcessingRef.current = false
+        if (!confirmed) return
+
         setError('')
         startTransition(async () => {
             await unbindCreditCard(tenant.id, tenant.isHQ)
