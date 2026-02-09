@@ -116,7 +116,7 @@ export async function updateOrder(storeId: string | null, orderId: string, data:
         customerName, customerPhone, customerEmail,
         shippingFee, storeName, storeCode, storeAddress,
         notes, total, subtotal, items: newItems,
-        discountType, discountValue
+        discountType, discountValue, created_at // New field
     } = data
 
     const updatePayload = {
@@ -134,7 +134,8 @@ export async function updateOrder(storeId: string | null, orderId: string, data:
         total_amount: total, // Sync both
         notes: notes,
         discount_type: discountType,
-        discount_value: discountValue
+        discount_value: discountValue,
+        created_at: created_at // Allow updating order date
     }
 
     const { error } = await supabase

@@ -66,6 +66,7 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger, s
     const [storeCode, setStoreCode] = useState('') // For 711
     const [items, setItems] = useState<OrderItem[]>([])
     const [notes, setNotes] = useState('')
+    const [orderDate, setOrderDate] = useState('') // ISO string for input
 
     // New Fields
     const [shippingFee, setShippingFee] = useState<number>(100)
@@ -95,6 +96,23 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger, s
             // Set Discount
             setDiscountType(order.discount_type || 'fixed')
             setDiscountValue(order.discount_value || 0)
+
+            setDiscountValue(order.discount_value || 0)
+
+            // Set Order Date
+            if (order.created_at) {
+                // Formatting for datetime-local: YYYY-MM-DDTHH:mm
+                const date = new Date(order.created_at)
+                // Adjust to local time string for input
+                // Or simply: 
+                const iso = date.toISOString() // UTC
+                // Creating a simplified format for input value
+                // Helper function needed?
+                // Let's use a simple approach:
+                const offset = date.getTimezoneOffset() * 60000
+                const localISOTime = (new Date(date.getTime() - offset)).toISOString().slice(0, 16)
+                setOrderDate(localISOTime)
+            }
 
             // Map items
             // Assumption: order.items is an array of objects matching OrderItem somewhat
@@ -143,14 +161,14 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger, s
     const addItem = () => {
         // Show feedback if no products available
         if (products.length === 0) {
-            alert('尚無可用商品，請先在商品管理中新增商品')
+            console.error('尚無可用商品,請先在商品管理中新增商品')
             return
         }
-        const product = products[0]
+        // Add blank item to let user choose the product
         setItems([...items, {
-            productId: product.id,
-            name: product.name,
-            price: product.price,
+            productId: '',
+            name: '請選擇商品',
+            price: 0,
             quantity: 1
         }])
     }
@@ -181,7 +199,8 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger, s
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (items.length === 0) {
-            alert('請至少加入一項商品')
+            // Use console.error instead of alert for better UX
+            console.error('請至少加入一項商品')
             return
         }
 
@@ -209,7 +228,8 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger, s
                 total,
                 discountType,
                 discountValue,
-                notes
+                notes,
+                created_at: orderDate ? new Date(orderDate).toISOString() : new Date().toISOString()
             }
 
             if (isEdit) {
@@ -239,7 +259,8 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger, s
             router.refresh()
             if (!isEdit) resetForm()
         } catch (error: any) {
-            alert(error.message)
+            console.error('訂單建立/更新失敗:', error.message)
+            // Show error in a less intrusive way
         } finally {
             setLoading(false)
         }
@@ -261,6 +282,12 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger, s
         setIsManualShipping(false)
         setDiscountType('fixed')
         setDiscountValue(0)
+
+        // Reset to current time
+        const now = new Date()
+        const offset = now.getTimezoneOffset() * 60000
+        const localISOTime = (new Date(now.getTime() - offset)).toISOString().slice(0, 16)
+        setOrderDate(localISOTime)
     }
 
     // Prepare options for Combobox
@@ -279,7 +306,7 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger, s
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto scrollbar-hide">
                 <DialogHeader>
                     <DialogTitle>{isEdit ? '編輯訂單' : '建立新訂單'}</DialogTitle>
                     <DialogDescription>
@@ -464,9 +491,20 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger, s
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label>備註</Label>
-                        <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="訂單備註" />
+                    {/* Order Details & Date */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>訂單日期</Label>
+                            <Input
+                                type="datetime-local"
+                                value={orderDate}
+                                onChange={e => setOrderDate(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>備註</Label>
+                            <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="訂單備註" />
+                        </div>
                     </div>
 
                     <DialogFooter>
@@ -478,6 +516,6 @@ export function OrderFormModal({ storeId, storeSlug, products, order, trigger, s
                     </DialogFooter>
                 </form>
             </DialogContent>
-        </Dialog>
+        </Dialog >
     )
 }

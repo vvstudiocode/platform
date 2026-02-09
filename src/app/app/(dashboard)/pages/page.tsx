@@ -27,7 +27,7 @@ export default async function AppPagesPage() {
         .select('id, title, slug, is_homepage, published, updated_at')
         .eq('tenant_id', store.id)
         .order('is_homepage', { ascending: false })
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: true })
 
     return (
         <PagesPage

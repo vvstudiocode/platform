@@ -52,7 +52,7 @@ export default async function AdminOrdersPage({
                 images: (p.images as unknown as string[]) || []
             })) || []}
             storeId={tenant.id}
-            storeSlug="hq"
+            storeSlug={tenant.slug}
             isHQ={true}
             settings={tenant.settings || {}}
             statusFilter={statusFilter}

@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
             total: bodyTotal,
             discountType,
             discountValue,
+            created_at, // New field
         } = body
 
         // 取得商店
@@ -142,6 +143,7 @@ export async function POST(request: NextRequest) {
                 notes: notes || null,
                 discount_type: discountType || null, // New field
                 discount_value: discountValue || null, // New field
+                created_at: created_at || undefined, // New field (optional, defaults to now() in DB usually, but we overwrite)
             })
             .select()
             .single()

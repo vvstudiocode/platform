@@ -89,24 +89,27 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
         if (hasChildren) {
             return (
                 <div
-                    className="relative"
+                    className="relative flex items-center h-full"
                     onMouseEnter={() => setIsOpen(true)}
                     onMouseLeave={() => setIsOpen(false)}
                 >
                     {/* Parent item: Link + Toggle */}
-                    <div className={`flex items-center ${isLevel0 ? '' : 'hover:bg-muted/50'}`}>
+                    <div className={`flex items-center h-full ${isLevel0 ? '' : 'w-full justify-between hover:bg-muted/50 rounded-sm'}`}>
                         <Link
                             href={getNavItemPath(item)}
-                            className={`flex-1 font-medium transition-colors
-                                ${isLevel0 ? 'text-muted-foreground hover:text-foreground py-2' : 'px-4 py-2 text-sm text-muted-foreground hover:text-foreground'}
+                            className={`font-medium transition-colors flex items-center
+                                ${isLevel0
+                                    ? 'text-muted-foreground hover:text-foreground h-full px-1'
+                                    : 'px-4 py-2 text-sm text-muted-foreground hover:text-foreground flex-1'
+                                }
                             `}
                         >
                             {item.title}
                         </Link>
                         <button
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsOpen(!isOpen) }}
-                            className={`p-1 text-muted-foreground hover:text-foreground transition-colors
-                                ${isLevel0 ? '' : 'pr-3'}
+                            className={`p-1 text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center
+                                ${isLevel0 ? 'h-full flex' : 'pr-2'}
                             `}
                             aria-label="展開子選單"
                         >
@@ -114,13 +117,13 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                         </button>
                     </div>
 
-                    {/* Dropdown Menu */}
+                    {/* Dropdown Menu - Increased safe area with padding instead of margin */}
                     {isOpen && (
                         <div className={`
-                            absolute z-50 bg-popover border border-border shadow-lg rounded-md overflow-visible min-w-[200px]
-                            ${isLevel0 ? 'top-full left-0 mt-1' : 'left-full top-0 -mt-1'}
+                            absolute z-[999] bg-transparent
+                            ${isLevel0 ? 'top-[calc(100%-5px)] pt-4 left-0' : 'left-[95%] -top-1 pl-4'}
                         `}>
-                            <div className="py-1">
+                            <div className="bg-popover border border-border shadow-lg rounded-md overflow-visible min-w-[200px] py-1">
                                 {item.children.map((child: any) => (
                                     <DesktopNavItem key={child.slug || child.id} item={child} level={level + 1} />
                                 ))}
