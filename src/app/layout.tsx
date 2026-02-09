@@ -13,7 +13,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Sharon Admin",
+  title: "OMO 網站平台",
   description: "Premium E-commerce Platform",
 };
 

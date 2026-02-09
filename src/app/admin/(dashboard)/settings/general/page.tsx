@@ -1,4 +1,5 @@
 import { getCurrentTenant } from '@/lib/tenant'
+import { createClient } from '@/lib/supabase/server'
 import { GeneralSettingsForm } from '@/features/settings/components/general-settings-form'
 import { updateGeneralSettings } from './actions'
 
@@ -6,6 +7,22 @@ export default async function GeneralSettingsPage() {
     const tenant = await getCurrentTenant('admin')
 
     if (!tenant) {
+        return (
+            <div className="p-8 text-center text-muted-foreground">
+                找不到相關的商店設定
+            </div>
+        )
+    }
+
+    // 獲取完整的 tenant 資料（包含 description, logo_url, footer_settings）
+    const supabase = await createClient()
+    const { data: fullTenant } = await supabase
+        .from('tenants')
+        .select('id, name, slug, description, logo_url, settings, footer_settings')
+        .eq('id', tenant.id)
+        .single()
+
+    if (!fullTenant) {
         return (
             <div className="p-8 text-center text-muted-foreground">
                 找不到相關的商店設定
@@ -21,9 +38,10 @@ export default async function GeneralSettingsPage() {
             </div>
 
             <GeneralSettingsForm
-                tenant={tenant}
+                tenant={fullTenant}
                 updateAction={updateGeneralSettings}
             />
         </div>
     )
 }
+

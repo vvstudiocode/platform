@@ -95,12 +95,12 @@ export default async function middleware(req: NextRequest) {
     // ECPay requires unsafe-eval and specific domains
     const csp = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://payment-stage.ecpay.com.tw https://gpayment-stage.ecpay.com.tw https://applepay.cdn-apple.com https://googletagmanager.com https://tagmanager.google.com https://connect.facebook.net https://www.clarity.ms https://scripts.clarity.ms",
+        "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://payment-stage.ecpay.com.tw https://gpayment-stage.ecpay.com.tw https://payment.ecpay.com.tw https://gpayment.ecpay.com.tw https://applepay.cdn-apple.com https://googletagmanager.com https://tagmanager.google.com https://connect.facebook.net https://www.clarity.ms https://scripts.clarity.ms",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "img-src 'self' blob: data: https://* http://*",
         "font-src 'self' data: https://fonts.gstatic.com",
         "connect-src 'self' https://* http://*", // Allow connecting to ECPay APIs
-        "frame-src 'self' https://payment-stage.ecpay.com.tw https://gpayment-stage.ecpay.com.tw",
+        "frame-src 'self' https://payment-stage.ecpay.com.tw https://gpayment-stage.ecpay.com.tw https://payment.ecpay.com.tw https://gpayment.ecpay.com.tw",
     ].join('; ')
 
     response.headers.set('Content-Security-Policy', csp)

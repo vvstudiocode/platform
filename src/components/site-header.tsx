@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, ShoppingCart, ClipboardList } from 'lucide-react'
+import { Menu, X, ShoppingCart, ClipboardList, ChevronDown } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
 import { CartPopover } from '@/components/store/cart-popover'
 import { OrderLookupPopover } from '@/components/store/order-lookup-popover'
 
 interface NavItem {
+    id?: string
     title: string
     slug: string
     is_homepage: boolean
@@ -34,9 +35,6 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
         setMounted(true)
     }, [])
 
-    // Helper to get link path for a nav item
-    // If item is_homepage, link to root (basePath or '/')
-    // Otherwise, link to the slug path
     const isStorePath = basePath.includes('/store')
     const pagePrefix = (isStorePath || basePath === '') ? '' : '/p'
 
@@ -47,32 +45,157 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
         return `${basePath}${pagePrefix}/${item.slug}`
     }
 
-    // Logo always links to homepage (root path)
     const homePath = basePath || '/'
 
-    // Build recursive tree for navigation
-    const navTree = navItems.reduce<any[]>((acc, item: any) => {
-        if (!item.parent_id) {
-            acc.push({ ...item, children: [] })
-        }
-        return acc
-    }, [])
+    // Recursive Tree Builder
+    const buildNavTree = (items: NavItem[]): any[] => {
+        const itemMap = new Map<string, any>()
+        const roots: any[] = []
 
-    // Populate children
-    navItems.forEach((item: any) => {
-        if (item.parent_id) {
-            const parent = navTree.find((p: any) => p.id === item.parent_id)
-            if (parent) {
-                parent.children.push(item)
+        items.forEach(item => {
+            // @ts-ignore
+            itemMap.set(item.id || item.slug, { ...item, children: [] })
+        })
+
+        items.forEach(item => {
+            // @ts-ignore
+            const node = itemMap.get(item.id || item.slug)
+            if (item.parent_id && itemMap.has(item.parent_id)) {
+                const parent = itemMap.get(item.parent_id)
+                parent.children.push(node)
+            } else {
+                roots.push(node)
             }
-        }
-    })
+        })
 
-    // Sort
-    navTree.sort((a, b) => a.position - b.position)
-    navTree.forEach(node => {
-        node.children.sort((a: any, b: any) => a.position - b.position)
-    })
+        const sortNodes = (nodes: any[]) => {
+            nodes.sort((a, b) => a.position - b.position)
+            nodes.forEach(node => {
+                if (node.children) sortNodes(node.children)
+            })
+        }
+        sortNodes(roots)
+        return roots
+    }
+
+    const navTree = buildNavTree(navItems)
+
+    // Inner Recursive Nav Item (Desktop) - supports 3+ levels
+    const DesktopNavItem = ({ item, level = 0 }: { item: any, level?: number }) => {
+        const [isOpen, setIsOpen] = useState(false)
+        const hasChildren = item.children && item.children.length > 0
+        const isLevel0 = level === 0
+
+        if (hasChildren) {
+            return (
+                <div
+                    className="relative"
+                    onMouseEnter={() => setIsOpen(true)}
+                    onMouseLeave={() => setIsOpen(false)}
+                >
+                    {/* Parent item: Link + Toggle */}
+                    <div className={`flex items-center ${isLevel0 ? '' : 'hover:bg-muted/50'}`}>
+                        <Link
+                            href={getNavItemPath(item)}
+                            className={`flex-1 font-medium transition-colors
+                                ${isLevel0 ? 'text-muted-foreground hover:text-foreground py-2' : 'px-4 py-2 text-sm text-muted-foreground hover:text-foreground'}
+                            `}
+                        >
+                            {item.title}
+                        </Link>
+                        <button
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsOpen(!isOpen) }}
+                            className={`p-1 text-muted-foreground hover:text-foreground transition-colors
+                                ${isLevel0 ? '' : 'pr-3'}
+                            `}
+                            aria-label="展開子選單"
+                        >
+                            <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''} ${!isLevel0 ? '-rotate-90' : ''}`} />
+                        </button>
+                    </div>
+
+                    {/* Dropdown Menu */}
+                    {isOpen && (
+                        <div className={`
+                            absolute z-50 bg-popover border border-border shadow-lg rounded-md overflow-visible min-w-[200px]
+                            ${isLevel0 ? 'top-full left-0 mt-1' : 'left-full top-0 -mt-1'}
+                        `}>
+                            <div className="py-1">
+                                {item.children.map((child: any) => (
+                                    <DesktopNavItem key={child.slug || child.id} item={child} level={level + 1} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )
+        }
+
+        // Leaf node: just a link
+        return (
+            <Link
+                href={getNavItemPath(item)}
+                className={`block transition-colors font-medium
+                    ${isLevel0 ? 'text-muted-foreground hover:text-foreground py-2' : 'px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50'}
+                `}
+            >
+                {item.title}
+            </Link>
+        )
+    }
+
+    // Mobile Nav Item - supports 3+ levels with accordion
+    const MobileNavItem = ({ item, depth = 0 }: { item: any, depth?: number }) => {
+        const [isOpen, setIsOpen] = useState(false)
+        const hasChildren = item.children && item.children.length > 0
+
+        if (hasChildren) {
+            return (
+                <div className={depth === 0 ? "border-b border-border/50 last:border-0" : ""}>
+                    {/* Parent: Link + Toggle */}
+                    <div className="flex items-center justify-between">
+                        <Link
+                            href={getNavItemPath(item)}
+                            className={`flex-1 py-3 font-medium transition-colors
+                                ${depth === 0 ? 'text-lg text-foreground' : 'text-base text-muted-foreground hover:text-foreground'}
+                            `}
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            {item.title}
+                        </Link>
+                        <button
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="p-2 text-muted-foreground hover:text-foreground"
+                            aria-label="展開子選單"
+                        >
+                            <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                    </div>
+                    {isOpen && (
+                        <div className="pl-4 pb-2 space-y-1 border-l-2 border-border/50 ml-2">
+                            {item.children.map((child: any) => (
+                                <MobileNavItem key={child.slug || child.id} item={child} depth={depth + 1} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )
+        }
+
+        // Leaf node
+        return (
+            <Link
+                href={getNavItemPath(item)}
+                className={`block py-2 transition-colors rounded-md
+                    ${depth === 0 ? 'text-lg font-medium text-foreground py-4 border-b border-border/50' : 'text-base text-muted-foreground hover:text-foreground hover:bg-muted/50 px-2'}
+                `}
+                onClick={() => setIsMenuOpen(false)}
+            >
+                {item.title}
+            </Link>
+        )
+    }
+
 
     return (
         <>
@@ -89,31 +212,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex gap-8">
                         {navTree.map((item) => (
-                            <div key={item.slug} className="relative group">
-                                <Link
-                                    href={getNavItemPath(item)}
-                                    className="text-muted-foreground hover:text-foreground transition-colors py-2 inline-flex items-center gap-1 font-medium"
-                                >
-                                    {item.title}
-                                </Link>
-
-                                {/* Dropdown */}
-                                {item.children && item.children.length > 0 && (
-                                    <div className="absolute top-full left-0 mt-0 w-48 bg-popover border border-border shadow-soft rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50">
-                                        <div className="py-1">
-                                            {item.children.map((child: any) => (
-                                                <Link
-                                                    key={child.slug}
-                                                    href={getNavItemPath(child)}
-                                                    className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 bg-popover"
-                                                >
-                                                    {child.title}
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            <DesktopNavItem key={item.slug} item={item} />
                         ))}
                     </nav>
 
@@ -167,29 +266,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                 >
                     <nav className="flex flex-col px-6 py-4 space-y-1">
                         {navTree.map((item) => (
-                            <div key={item.slug} className="group">
-                                <Link
-                                    href={getNavItemPath(item)}
-                                    className="block py-4 text-lg font-medium text-foreground hover:text-accent border-b border-border group-last:border-0 transition-colors"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    {item.title}
-                                </Link>
-                                {item.children && item.children.length > 0 && (
-                                    <div className="pl-4 space-y-1 bg-muted/30 rounded-lg mb-2">
-                                        {item.children.map((child: any) => (
-                                            <Link
-                                                key={child.slug}
-                                                href={getNavItemPath(child)}
-                                                className="block py-3 text-base text-muted-foreground hover:text-foreground hover:bg-muted/50 px-2 rounded-md transition-colors"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                {child.title}
-                                            </Link>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                            <MobileNavItem key={item.slug} item={item} />
                         ))}
 
                         {/* Order Lookup (Mobile) */}

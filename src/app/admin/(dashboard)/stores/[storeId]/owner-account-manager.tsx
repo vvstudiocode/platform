@@ -50,8 +50,8 @@ export function OwnerAccountManager({ storeId, hasOwner }: Props) {
             <div className="space-y-4">
                 {message && (
                     <div className={`flex items-center gap-2 p-3 rounded-lg ${message.type === 'success'
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-red-50 text-red-700 border border-red-200'
                         }`}>
                         {message.type === 'success' ? <Check className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
                         {message.text}
@@ -60,7 +60,7 @@ export function OwnerAccountManager({ storeId, hasOwner }: Props) {
 
                 {hasOwner ? (
                     <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-emerald-400">
+                        <div className="flex items-center gap-2 text-emerald-600">
                             <Check className="h-4 w-4" />
                             <span>已建立擁有者帳號</span>
                         </div>
@@ -73,7 +73,7 @@ export function OwnerAccountManager({ storeId, hasOwner }: Props) {
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-zinc-400">
+                        <div className="flex items-center gap-2 text-muted-foreground">
                             <AlertCircle className="h-4 w-4" />
                             <span>尚未建立擁有者帳號</span>
                         </div>
@@ -108,7 +108,7 @@ export function OwnerAccountManager({ storeId, hasOwner }: Props) {
                 </div>
 
                 {message?.type === 'error' && (
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30">
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 text-red-700 border border-red-200">
                         <AlertCircle className="h-4 w-4" />
                         {message.text}
                     </div>
@@ -136,11 +136,11 @@ export function OwnerAccountManager({ storeId, hasOwner }: Props) {
                         新密碼
                     </Label>
                     <Input id="new_password" name="new_password" type="password" required minLength={6} />
-                    <p className="text-xs text-zinc-500">至少 6 個字元</p>
+                    <p className="text-xs text-muted-foreground">至少 6 個字元</p>
                 </div>
 
                 {message?.type === 'error' && (
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30">
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 text-red-700 border border-red-200">
                         <AlertCircle className="h-4 w-4" />
                         {message.text}
                     </div>
@@ -161,3 +161,4 @@ export function OwnerAccountManager({ storeId, hasOwner }: Props) {
 
     return null
 }
+

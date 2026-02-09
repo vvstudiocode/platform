@@ -206,9 +206,17 @@ export function NavigationManager({ navItems, availablePages, addAction, removeA
 
             const newItems = [...items]
             const item = { ...newItems[index] }
-            const newDepth = Math.min(1, Math.max(0, (item.depth || 0) + delta))
+            // Change max depth from 1 to 2 for 3 levels (0, 1, 2)
+            const newDepth = Math.min(2, Math.max(0, (item.depth || 0) + delta))
 
             if (index === 0 && newDepth > 0) return items
+
+            // Prevent indenting if previous item is not at least equal depth or 1 level deeper (parent)
+            // Logic: An item at depth D can follow an item at depth >= D-1
+            const prevItem = newItems[index - 1]
+            if (newDepth > 0 && (!prevItem || (prevItem.depth || 0) < newDepth - 1)) {
+                return items
+            }
 
             item.depth = newDepth
             newItems[index] = item
@@ -218,14 +226,18 @@ export function NavigationManager({ navItems, availablePages, addAction, removeA
 
     const saveOrder = async () => {
         setSaving(true)
-        let lastRootId: string | null = null
+        const lastIds = new Map<number, string>() // Map depth to last seen ID
+
         const payload = items.map((item, index) => {
+            const depth = item.depth || 0
+            lastIds.set(depth, item.id)
+
+            // Parent is the last item at depth-1
             let parentId: string | null = null
-            if (item.depth === 1) {
-                parentId = lastRootId
-            } else {
-                lastRootId = item.id
+            if (depth > 0) {
+                parentId = lastIds.get(depth - 1) || null
             }
+
             return {
                 id: item.id,
                 position: index,
@@ -367,11 +379,11 @@ export function NavigationManager({ navItems, availablePages, addAction, removeA
                                                 <div className="w-px bg-border my-1"></div>
                                                 <button
                                                     onClick={() => updateDepth(item.id, 1)}
-                                                    className={`p-1.5 rounded-sm transition-colors ${item.depth === 1
+                                                    className={`p-1.5 rounded-sm transition-colors ${item.depth === 2
                                                         ? 'text-muted-foreground/30 cursor-not-allowed'
                                                         : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                                                         }`}
-                                                    disabled={item.depth === 1}
+                                                    disabled={item.depth === 2}
                                                     title="增加縮排"
                                                 >
                                                     &gt;

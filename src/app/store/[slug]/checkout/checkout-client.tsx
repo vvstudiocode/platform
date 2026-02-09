@@ -164,6 +164,7 @@ export function CheckoutClient({ store }: Props) {
                         throw new Error(ecpayData.error || '綠界支付初始化失敗')
                     }
 
+                    console.log('ECPay Params Debug:', ecpayData.params) // Debug Log
                     // Auto Submit Form
                     const form = document.createElement('form')
                     form.method = 'POST'

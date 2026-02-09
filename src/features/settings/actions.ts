@@ -7,40 +7,40 @@ import { z } from 'zod'
 
 const settingsSchema = z.object({
     name: z.string().min(1, '商店名稱不能為空'),
-    description: z.string().optional(),
-    logo_url: z.string().url('Logo 網址格式錯誤').optional().or(z.literal('')),
-    primary_color: z.string().regex(/^#([0-9a-f]{3}){1,2}$/i, '顏色格式錯誤').optional().or(z.literal('')),
-    support_email: z.string().email('Email 格式錯誤').optional().or(z.literal('')),
+    description: z.string().nullish(),
+    logo_url: z.string().url('Logo 網址格式錯誤').nullish().or(z.literal('')),
+    primary_color: z.string().regex(/^#([0-9a-f]{3}){1,2}$/i, '顏色格式錯誤').nullish().or(z.literal('')),
+    support_email: z.string().email('Email 格式錯誤').nullish().or(z.literal('')),
 
     // Payment/Bank
-    bank_name: z.string().optional(),
-    bank_code: z.string().optional(),
-    bank_account: z.string().optional(),
-    payment_message: z.string().optional(),
+    bank_name: z.string().nullish(),
+    bank_code: z.string().nullish(),
+    bank_account: z.string().nullish(),
+    payment_message: z.string().nullish(),
 
     // Shipping
-    shipping_pickup_fee: z.coerce.number().optional(),
-    shipping_711_fee: z.coerce.number().optional(),
-    shipping_home_fee: z.coerce.number().optional(),
-    shipping_pickup_name: z.string().optional(),
-    shipping_711_name: z.string().optional(),
-    shipping_home_name: z.string().optional(),
+    shipping_pickup_fee: z.coerce.number().nullish(),
+    shipping_711_fee: z.coerce.number().nullish(),
+    shipping_home_fee: z.coerce.number().nullish(),
+    shipping_pickup_name: z.string().nullish(),
+    shipping_711_name: z.string().nullish(),
+    shipping_home_name: z.string().nullish(),
 
     // Payment Methods
-    payment_credit_card: z.boolean().optional(),
-    payment_bank_transfer: z.boolean().optional(),
+    payment_credit_card: z.boolean().nullish(),
+    payment_bank_transfer: z.boolean().nullish(),
 
     // Footer
-    footer_line: z.string().optional(),
-    footer_facebook: z.string().optional(),
-    footer_instagram: z.string().optional(),
-    footer_threads: z.string().optional(),
-    footer_youtube: z.string().optional(),
-    footer_email: z.string().optional(),
-    footer_phone: z.string().optional(),
-    footer_address: z.string().optional(),
-    footer_about: z.string().optional(),
-    footer_copyright: z.string().optional()
+    footer_line: z.string().nullish(),
+    footer_facebook: z.string().nullish(),
+    footer_instagram: z.string().nullish(),
+    footer_threads: z.string().nullish(),
+    footer_youtube: z.string().nullish(),
+    footer_email: z.string().nullish(),
+    footer_phone: z.string().nullish(),
+    footer_address: z.string().nullish(),
+    footer_about: z.string().nullish(),
+    footer_copyright: z.string().nullish()
 })
 
 export type State = {
@@ -58,6 +58,7 @@ export async function updateGeneralSettings(
     // 權限驗證
     const hasAccess = await verifyTenantAccess(tenantId)
     if (!hasAccess) return { error: 'Unauthorized' }
+
 
     const rawData = {
         name: formData.get('name'),
@@ -93,6 +94,7 @@ export async function updateGeneralSettings(
         footer_copyright: formData.get('footer_copyright')
     }
 
+
     const validated = settingsSchema.safeParse(rawData)
 
     if (!validated.success) {
@@ -126,8 +128,9 @@ export async function updateGeneralSettings(
         shipping_pickup_fee, shipping_711_fee, shipping_home_fee,
         shipping_pickup_name, shipping_711_name, shipping_home_name,
         payment_methods: {
-            credit_card: payment_credit_card,
-            bank_transfer: payment_bank_transfer
+            // Ensure these are explicitly booleans, even if Zod or FormData is weird
+            credit_card: Boolean(payment_credit_card),
+            bank_transfer: Boolean(payment_bank_transfer)
         }
     }
 
@@ -160,8 +163,10 @@ export async function updateGeneralSettings(
         .eq('id', tenantId)
 
     if (error) {
+        console.log('[[DEBUG PAYMENT]] Database error:', error)
         return { error: '更新失敗: ' + error.message }
     }
 
+    console.log('[[DEBUG PAYMENT]] Save successful!')
     return { success: true }
 }

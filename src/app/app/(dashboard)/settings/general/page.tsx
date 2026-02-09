@@ -1,4 +1,5 @@
 import { getCurrentTenant } from '@/lib/tenant'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -9,7 +10,17 @@ export default async function AppGeneralSettingsPage() {
     const tenant = await getCurrentTenant('app')
     if (!tenant) redirect('/app/login')
 
-    const boundUpdateSettings = updateStoreSettings.bind(null, tenant.id)
+    // 獲取完整的 tenant 資料（包含 description, logo_url, footer_settings）
+    const supabase = await createClient()
+    const { data: fullTenant } = await supabase
+        .from('tenants')
+        .select('id, name, slug, description, logo_url, settings, footer_settings')
+        .eq('id', tenant.id)
+        .single()
+
+    if (!fullTenant) redirect('/app/login')
+
+    const boundUpdateSettings = updateStoreSettings.bind(null, fullTenant.id)
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
@@ -21,9 +32,10 @@ export default async function AppGeneralSettingsPage() {
             </div>
 
             <GeneralSettingsForm
-                tenant={tenant}
+                tenant={fullTenant}
                 updateAction={boundUpdateSettings}
             />
         </div>
     )
 }
+

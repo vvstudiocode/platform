@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Menu, X, ShoppingCart, ClipboardList } from 'lucide-react'
+import { Menu, X, ShoppingCart, ClipboardList, ChevronDown } from 'lucide-react'
 import { OrderLookupModal } from './order-lookup-modal'
 
 interface NavItem {
     name: string
     href: string
+    children?: NavItem[]
 }
 
 interface Props {
@@ -88,16 +89,68 @@ export function ResponsiveNav({ storeName, storeSlug, navigation, logo }: Props)
                         {/* Desktop Navigation */}
                         <div className="hidden md:flex items-center gap-6">
                             {navigation.map((item) => (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className={`font-medium transition-colors ${isTransparent
-                                        ? 'text-white hover:text-white/80 drop-shadow-md'
-                                        : 'text-gray-700 hover:text-gray-900'
-                                        }`}
-                                >
-                                    {item.name}
-                                </Link>
+                                <div key={item.href} className="relative group">
+                                    {item.children && item.children.length > 0 ? (
+                                        <>
+                                            <button className={`flex items-center gap-1 font-medium transition-colors ${isTransparent
+                                                ? 'text-white hover:text-white/80 drop-shadow-md'
+                                                : 'text-gray-700 hover:text-gray-900'
+                                                }`}>
+                                                {item.name}
+                                                <ChevronDown className="h-4 w-4" />
+                                            </button>
+
+                                            {/* Level 1 Dropdown */}
+                                            <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 min-w-[200px]">
+                                                <div className="bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden py-1">
+                                                    {item.children.map(child => (
+                                                        <div key={child.href} className="relative group/sub">
+                                                            {child.children && child.children.length > 0 ? (
+                                                                <>
+                                                                    <div className="px-4 py-2 hover:bg-gray-50 flex items-center justify-between cursor-pointer text-gray-700">
+                                                                        <span>{child.name}</span>
+                                                                        <ChevronDown className="h-3 w-3 -rotate-90 text-gray-400" />
+                                                                    </div>
+                                                                    {/* Level 2 Dropdown (Right side) */}
+                                                                    <div className="absolute left-full top-0 ml-0.5 opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-200 min-w-[200px]">
+                                                                        <div className="bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden py-1">
+                                                                            {child.children.map(grandchild => (
+                                                                                <Link
+                                                                                    key={grandchild.href}
+                                                                                    href={grandchild.href}
+                                                                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                                                                >
+                                                                                    {grandchild.name}
+                                                                                </Link>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <Link
+                                                                    href={child.href}
+                                                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                                                >
+                                                                    {child.name}
+                                                                </Link>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <Link
+                                            href={item.href}
+                                            className={`font-medium transition-colors ${isTransparent
+                                                ? 'text-white hover:text-white/80 drop-shadow-md'
+                                                : 'text-gray-700 hover:text-gray-900'
+                                                }`}
+                                        >
+                                            {item.name}
+                                        </Link>
+                                    )}
+                                </div>
                             ))}
 
                             {/* Order Lookup Button */}
@@ -142,18 +195,61 @@ export function ResponsiveNav({ storeName, storeSlug, navigation, logo }: Props)
 
                 {/* Mobile Menu */}
                 {mobileMenuOpen && (
-                    <div className="md:hidden border-t bg-white">
+                    <div className="md:hidden border-t bg-white max-h-[80vh] overflow-y-auto">
                         <div className="px-4 py-3 space-y-1">
                             {navigation.map((item) => (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    {item.name}
-                                </Link>
+                                <div key={item.href}>
+                                    {item.children && item.children.length > 0 ? (
+                                        <div className="space-y-1">
+                                            <div className="px-3 py-2 text-gray-900 font-bold bg-gray-50 rounded-lg">
+                                                {item.name}
+                                            </div>
+                                            <div className="pl-4 space-y-1 border-l-2 border-gray-100 ml-3">
+                                                {item.children.map(child => (
+                                                    <div key={child.href}>
+                                                        {child.children && child.children.length > 0 ? (
+                                                            <div className="space-y-1">
+                                                                <div className="px-3 py-2 text-gray-800 font-medium">
+                                                                    {child.name}
+                                                                </div>
+                                                                <div className="pl-4 space-y-1 border-l-2 border-gray-100 ml-3">
+                                                                    {child.children.map(grandchild => (
+                                                                        <Link
+                                                                            key={grandchild.href}
+                                                                            href={grandchild.href}
+                                                                            className="block px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg"
+                                                                            onClick={() => setMobileMenuOpen(false)}
+                                                                        >
+                                                                            {grandchild.name}
+                                                                        </Link>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <Link
+                                                                href={child.href}
+                                                                className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+                                                                onClick={() => setMobileMenuOpen(false)}
+                                                            >
+                                                                {child.name}
+                                                            </Link>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <Link
+                                            href={item.href}
+                                            className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            {item.name}
+                                        </Link>
+                                    )}
+                                </div>
                             ))}
+                            <div className="h-px bg-gray-100 my-2"></div>
                             <button
                                 onClick={() => {
                                     setMobileMenuOpen(false)
