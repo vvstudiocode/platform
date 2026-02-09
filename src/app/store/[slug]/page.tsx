@@ -74,7 +74,7 @@ export default async function StorefrontPage({ params }: Props) {
     // 取得導覽項目 (Fetch Nav Items unconditionally)
     const { data: navItemsRaw } = await supabase
         .from('nav_items')
-        .select('id, title, page_id, parent_id, position, pages(slug)')
+        .select('id, title, page_id, parent_id, position, pages(slug, is_homepage)')
         .eq('tenant_id', store.id)
         .order('position', { ascending: true })
 
@@ -131,7 +131,7 @@ export default async function StorefrontPage({ params }: Props) {
     const clientNavItems = navItems.map((item: any) => ({
         title: item.title,
         slug: item.pages?.slug || '',
-        is_homepage: false,
+        is_homepage: item.pages?.is_homepage || false,
         parent_id: item.parent_id,
         position: item.position
     }))

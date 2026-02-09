@@ -119,7 +119,7 @@ export function CheckoutClient({ store }: Props) {
                     customerEmail,
                     customerLineId,
                     shippingMethod,
-                    paymentMethod: shippingMethod === 'credit_card' ? 'credit_card' : 'bank_transfer', // Simplification
+                    paymentMethod,
                     storeName: shippingMethod === '711' ? storeName : undefined,
                     storeCode: shippingMethod === '711' ? storeCode : undefined,
                     storeAddress: shippingMethod === 'home' ? storeAddress : undefined,
@@ -152,32 +152,36 @@ export function CheckoutClient({ store }: Props) {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            orderId: data.orderNumber, // Use Order Number as Trade No
+                            orderId: data.orderId, // UUID from response
                             amount: total,
-                            items: items
+                            items: items,
+                            tenantId: store.id
                         })
                     })
                     const ecpayData = await ecpayRes.json()
-                    if (ecpayData.success) {
-                        // Auto Submit Form
-                        const form = document.createElement('form')
-                        form.method = 'POST'
-                        form.action = ecpayData.paymentUrl
 
-                        for (const [key, val] of Object.entries(ecpayData.params)) {
-                            const input = document.createElement('input')
-                            input.type = 'hidden'
-                            input.name = key
-                            input.value = val as string
-                            form.appendChild(input)
-                        }
-                        document.body.appendChild(form)
-                        form.submit()
-                        return // Stop here, redirecting
+                    if (!ecpayData.success) {
+                        throw new Error(ecpayData.error || '綠界支付初始化失敗')
                     }
-                } catch (e) {
+
+                    // Auto Submit Form
+                    const form = document.createElement('form')
+                    form.method = 'POST'
+                    form.action = ecpayData.paymentUrl
+
+                    for (const [key, val] of Object.entries(ecpayData.params)) {
+                        const input = document.createElement('input')
+                        input.type = 'hidden'
+                        input.name = key
+                        input.value = val as string
+                        form.appendChild(input)
+                    }
+                    document.body.appendChild(form)
+                    form.submit()
+                    return // Stop here, redirecting
+                } catch (e: any) {
                     console.error('ECPay Init Failed', e)
-                    setError('前往付款失敗，請稍後再試')
+                    setError(e.message || '前往付款失敗，請稍後再試')
                     setLoading(false)
                     return
                 }

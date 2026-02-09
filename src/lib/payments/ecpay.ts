@@ -1,16 +1,34 @@
 import crypto from 'crypto'
 import { PaymentAdapter } from './types'
 
+export interface ECPayCredentials {
+    merchantId: string
+    hashKey: string
+    hashIV: string
+}
+
 export class ECPayAdapter implements PaymentAdapter {
     merchantId: string
     hashKey: string
     hashIV: string
     apiUrl: string
 
-    constructor() {
-        this.merchantId = process.env.ECPAY_MERCHANT_ID?.trim() || ''
-        this.hashKey = process.env.ECPAY_HASH_KEY?.trim() || ''
-        this.hashIV = process.env.ECPAY_HASH_IV?.trim() || ''
+    /**
+     * Create ECPay adapter
+     * @param credentials Optional tenant-specific credentials. If not provided, uses env vars (for platform billing).
+     */
+    constructor(credentials?: ECPayCredentials) {
+        if (credentials) {
+            // Per-tenant credentials (for store checkout)
+            this.merchantId = credentials.merchantId
+            this.hashKey = credentials.hashKey
+            this.hashIV = credentials.hashIV
+        } else {
+            // Global env credentials (for platform subscription billing)
+            this.merchantId = process.env.ECPAY_MERCHANT_ID?.trim() || ''
+            this.hashKey = process.env.ECPAY_HASH_KEY?.trim() || ''
+            this.hashIV = process.env.ECPAY_HASH_IV?.trim() || ''
+        }
         this.apiUrl = (process.env.ECPAY_API_URL || 'https://payment-stage.ecpay.com.tw').trim()
     }
 

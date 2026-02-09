@@ -34,13 +34,21 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
         setMounted(true)
     }, [])
 
-    // 首頁連結：如果有設定首頁則連到該頁面，否則連到基本路徑
-    // 如果是商店頁面 (basePath 包含 /store)，路徑不需要加 /p/ (因為路徑是 /store/[slug]/[pageSlug])
-    // 如果是總部頁面 (basePath 為空)，路徑需要加 /p/ (因為路徑是 /p/[slug])
+    // Helper to get link path for a nav item
+    // If item is_homepage, link to root (basePath or '/')
+    // Otherwise, link to the slug path
     const isStorePath = basePath.includes('/store')
     const pagePrefix = (isStorePath || basePath === '') ? '' : '/p'
 
-    const homePath = homeSlug ? `${basePath}${pagePrefix}/${homeSlug}` : (basePath || '/')
+    const getNavItemPath = (item: NavItem) => {
+        if (item.is_homepage) {
+            return basePath || '/'
+        }
+        return `${basePath}${pagePrefix}/${item.slug}`
+    }
+
+    // Logo always links to homepage (root path)
+    const homePath = basePath || '/'
 
     // Build recursive tree for navigation
     const navTree = navItems.reduce<any[]>((acc, item: any) => {
@@ -83,7 +91,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                         {navTree.map((item) => (
                             <div key={item.slug} className="relative group">
                                 <Link
-                                    href={`${basePath}${pagePrefix}/${item.slug}`}
+                                    href={getNavItemPath(item)}
                                     className="text-muted-foreground hover:text-foreground transition-colors py-2 inline-flex items-center gap-1 font-medium"
                                 >
                                     {item.title}
@@ -96,7 +104,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                                             {item.children.map((child: any) => (
                                                 <Link
                                                     key={child.slug}
-                                                    href={`${basePath}${pagePrefix}/${child.slug}`}
+                                                    href={getNavItemPath(child)}
                                                     className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 bg-popover"
                                                 >
                                                     {child.title}
@@ -161,7 +169,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                         {navTree.map((item) => (
                             <div key={item.slug} className="group">
                                 <Link
-                                    href={`${basePath}${pagePrefix}/${item.slug}`}
+                                    href={getNavItemPath(item)}
                                     className="block py-4 text-lg font-medium text-foreground hover:text-accent border-b border-border group-last:border-0 transition-colors"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
@@ -172,7 +180,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                                         {item.children.map((child: any) => (
                                             <Link
                                                 key={child.slug}
-                                                href={`${basePath}${pagePrefix}/${child.slug}`}
+                                                href={getNavItemPath(child)}
                                                 className="block py-3 text-base text-muted-foreground hover:text-foreground hover:bg-muted/50 px-2 rounded-md transition-colors"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >

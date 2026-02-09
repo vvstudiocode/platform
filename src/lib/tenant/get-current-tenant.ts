@@ -37,7 +37,7 @@ async function getHQTenant(supabase: any, userId: string): Promise<TenantContext
             )
         `)
         .eq('user_id', userId)
-        .in('role', ['store_owner', 'store_admin'])
+        .in('role', ['store_owner', 'store_admin', 'super_admin'])
         .maybeSingle()
 
     if (userRole?.tenants) {
@@ -65,7 +65,9 @@ async function getHQTenant(supabase: any, userId: string): Promise<TenantContext
             storage_usage_mb, subscription_status
         `)
         .eq('is_hq', true)
-        .single()
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle()
 
     if (hqTenant) {
         return {

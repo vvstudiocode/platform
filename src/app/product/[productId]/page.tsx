@@ -1,22 +1,23 @@
+
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { ProductDetail } from '@/components/store/product-detail'
 
 interface Props {
-    params: Promise<{ slug: string; productId: string }>
+    params: Promise<{ productId: string }>
 }
 
 // 動態生成 SEO Metadata
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const { slug, productId } = await params
+    const { productId } = await params
     const supabase = await createClient()
 
-    // 取得商店
+    // 取得 HQ 商店 (omo)
     const { data: store } = await supabase
         .from('tenants')
         .select('id, name')
-        .eq('slug', slug)
+        .eq('slug', 'omo')
         .single()
 
     if (!store) return { title: '商店不存在' }
@@ -45,21 +46,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductDetailPage({ params }: Props) {
-    const { slug, productId } = await params
+    const { productId } = await params
     const supabase = await createClient()
 
-    // 取得商店
+    // 1. 取得 HQ 商店
     const { data: store } = await supabase
         .from('tenants')
         .select('id, name, slug')
-        .eq('slug', slug)
+        .eq('slug', 'omo')
         .single()
 
     if (!store) {
         notFound()
     }
 
-    // 取得商品
+    // 2. 取得商品
     const { data: product } = await supabase
         .from('products')
         .select('*, variants:product_variants(*)')
@@ -72,14 +73,14 @@ export default async function ProductDetailPage({ params }: Props) {
         notFound()
     }
 
-    // 取得導覽項目
+    // 3. 取得導覽項目
     const { data: navItems } = await supabase
         .from('nav_items')
         .select('id, title, page_id, parent_id, position, pages(slug, is_homepage)')
         .eq('tenant_id', store.id)
         .order('position', { ascending: true })
 
-    // 取得首頁 slug
+    // 4. 取得首頁 slug
     const { data: homepage } = await supabase
         .from('pages')
         .select('slug')

@@ -268,7 +268,11 @@ export function PageEditForm({ page, updateAction, updatePageContentAction, base
                     </button>
                     {storeSlug && published && (
                         <Link
-                            href={isHomepage ? `/store/${storeSlug}` : `/store/${storeSlug}/${slug}`}
+                            href={
+                                isHomepage
+                                    ? (storeSlug === 'omo' ? '/' : `/store/${storeSlug}`)
+                                    : (storeSlug === 'omo' ? `/${slug}` : `/store/${storeSlug}/${slug}`)
+                            }
                             target="_blank"
                             className="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
                         >
@@ -321,9 +325,11 @@ export function PageEditForm({ page, updateAction, updatePageContentAction, base
                                         <Label htmlFor="slug" className="text-xs text-muted-foreground">頁面網址</Label>
                                         <Input
                                             id="slug"
-                                            value={slug}
+                                            value={isHomepage ? '' : slug}
                                             onChange={(e) => setSlug(e.target.value)}
-                                            className="h-8 text-sm bg-muted/50 border-border text-foreground"
+                                            disabled={isHomepage}
+                                            className="h-8 text-sm bg-muted/50 border-border text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                                            placeholder={isHomepage ? "首頁不需設定網址" : ""}
                                         />
                                     </div>
                                     <div>
@@ -390,6 +396,9 @@ export function PageEditForm({ page, updateAction, updatePageContentAction, base
                                                 className="rounded border-input accent-primary"
                                             />
                                             設為首頁
+                                            {isHomepage && (
+                                                <span className="text-xs text-muted-foreground ml-1">(網址將忽略 slug)</span>
+                                            )}
                                         </label>
                                         <label className="flex items-center gap-2 text-foreground cursor-pointer hover:opacity-80">
                                             <input

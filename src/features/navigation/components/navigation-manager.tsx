@@ -243,10 +243,29 @@ export function NavigationManager({ navItems, availablePages, addAction, removeA
         const page = availablePages.find(p => p.id === selectedPageId)
         if (page) {
             try {
-                // Optimistic UI update could be added here, but waiting for server actions is safer for IDs
-                await addAction(page.id, page.title)
-                // Reload to fetch fresh data is simplest for now, or we can return the new item from action
-                window.location.reload()
+                const result = await addAction(page.id, page.title)
+                if (result.success) {
+                    // Smooth update: add to local state with a temporary ID
+                    // The real ID will come on next server fetch
+                    const tempId = `temp-${Date.now()}`
+                    const newItem: NavItem = {
+                        id: tempId,
+                        title: page.title,
+                        position: items.length,
+                        page_id: page.id,
+                        parent_id: null,
+                        pages: { title: page.title, slug: page.slug },
+                        depth: 0
+                    }
+                    setLocalNavItems(prev => [...prev, newItem])
+                    setSelectedPageId('') // Reset selection
+                    // Use router.refresh() for soft reload of server data
+                    if (typeof window !== 'undefined') {
+                        window.history.replaceState({}, '', window.location.pathname)
+                    }
+                } else if (result.error) {
+                    console.error("Failed to add item:", result.error)
+                }
             } catch (error) {
                 console.error("Failed to add item", error)
             }

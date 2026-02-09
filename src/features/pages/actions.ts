@@ -8,7 +8,7 @@ import { z } from 'zod'
 
 const pageSchema = z.object({
     title: z.string().min(1, '請輸入頁面標題'),
-    slug: z.string().min(1, '請輸入頁面網址').regex(/^[a-z0-9-]+$/, '只能使用小寫英文、數字和連字符'),
+    slug: z.string().regex(/^[a-z0-9-]*$/, '只能使用小寫英文、數字和連字符'),
     seo_title: z.string().nullish().transform(v => v || undefined),
     seo_description: z.string().nullish().transform(v => v || undefined),
     seo_keywords: z.string().nullish().transform(v => v || undefined),
@@ -17,6 +17,14 @@ const pageSchema = z.object({
     published: z.coerce.boolean().default(false),
     show_in_nav: z.coerce.boolean().default(false),
     nav_order: z.coerce.number().default(0),
+}).superRefine((data, ctx) => {
+    if (!data.is_homepage && !data.slug) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "請輸入頁面網址",
+            path: ["slug"]
+        })
+    }
 })
 
 export async function createPage(
@@ -48,8 +56,14 @@ export async function createPage(
         return { error: validated.error.issues[0].message }
     }
 
+    // 如果是首頁，強制清除 slug
+    const pageData = { ...validated.data }
+    if (pageData.is_homepage) {
+        pageData.slug = ''
+    }
+
     // 如果設為首頁，先取消其他首頁
-    if (validated.data.is_homepage) {
+    if (pageData.is_homepage) {
         await supabase
             .from('pages')
             .update({ is_homepage: false })
@@ -60,7 +74,7 @@ export async function createPage(
         .from('pages')
         .insert({
             tenant_id: tenantId,
-            ...validated.data,
+            ...pageData,
             content: [],
         })
         .select()
@@ -87,7 +101,7 @@ export async function createPage(
 
         await supabase.from('nav_items').insert({
             tenant_id: tenantId,
-            title: validated.data.title,
+            title: pageData.title,
             page_id: data.id,
             position: nextPos,
             parent_id: null
@@ -127,8 +141,14 @@ export async function updatePage(
         return { error: validated.error.issues[0].message }
     }
 
+    // 如果是首頁，強制清除 slug
+    const pageData = { ...validated.data }
+    if (pageData.is_homepage) {
+        pageData.slug = ''
+    }
+
     // 如果設為首頁，先取消該商店的其他首頁
-    if (validated.data.is_homepage) {
+    if (pageData.is_homepage) {
         await supabase
             .from('pages')
             .update({ is_homepage: false })
@@ -138,7 +158,7 @@ export async function updatePage(
 
     const { error } = await supabase
         .from('pages')
-        .update(validated.data)
+        .update(pageData)
         .eq('id', pageId)
         .eq('tenant_id', tenantId)
 

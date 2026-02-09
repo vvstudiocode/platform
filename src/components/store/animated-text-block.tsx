@@ -43,13 +43,23 @@ export function AnimatedTextBlock({
     const [isVisible, setIsVisible] = useState(false)
     const [hasAnimated, setHasAnimated] = useState(false)
 
-    // Generate stable random values for split-chars animation
+    // Seeded pseudo-random function for consistent SSR/client values
+    const seededRandom = (seed: number) => {
+        const x = Math.sin(seed * 9999) * 10000
+        return x - Math.floor(x)
+    }
+
+    // Generate stable random values for split-chars animation using seeded random
     const randomValues = useMemo(() => {
-        return text.split('').map(() => ({
-            direction: Math.random() > 0.5 ? -1 : 1,
-            offset: 50 + Math.random() * 50,
-            rotation: (Math.random() - 0.5) * 30
-        }))
+        return text.split('').map((_, index) => {
+            const seed = index + (animationKey || 0)
+            // Round values to avoid hydration mismatch due to floating point precision
+            const direction = seededRandom(seed) > 0.5 ? -1 : 1
+            const offset = parseFloat((50 + seededRandom(seed + 1) * 50).toFixed(4))
+            const rotation = parseFloat(((seededRandom(seed + 2) - 0.5) * 30).toFixed(4))
+
+            return { direction, offset, rotation }
+        })
     }, [text, animationKey])
 
 

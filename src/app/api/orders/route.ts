@@ -164,6 +164,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             orderNumber,
+            orderId: order.id,
             total: finalTotal,
         })
     } catch (error) {

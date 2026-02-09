@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { SiteHeader } from '@/components/site-header'
 import { ResponsiveNav } from '@/components/store/responsive-nav'
 import { StoreFooter } from '@/components/store/store-footer'
+import { ProductCard } from '@/components/store/product-blocks'
 
 interface Props {
     store: {
@@ -65,42 +66,13 @@ export function StorefrontClient({ store, products, navItems = [] }: Props) {
                 <h2 className="text-2xl font-bold text-gray-900 mb-8">所有商品</h2>
 
                 {products && products.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {products.map((product) => (
-                            <Link
+                            <ProductCard
                                 key={product.id}
-                                href={store.slug === 'omo' ? `/product/${product.id}` : `/store/${store.slug}/product/${product.id}`}
-                                className="group"
-                            >
-                                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-3">
-                                    {product.image_url ? (
-                                        <img
-                                            src={product.image_url}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                            無圖片
-                                        </div>
-                                    )}
-                                </div>
-                                <h3 className="font-medium text-gray-900 group-hover:text-rose-500 transition-colors">
-                                    {product.name}
-                                </h3>
-                                {product.brand && (
-                                    <p className="text-sm text-gray-500">{product.brand}</p>
-                                )}
-                                <p className="mt-1 font-bold text-gray-900">
-                                    NT$ {Number(product.price).toLocaleString()}
-                                </p>
-                                {product.stock <= 5 && product.stock > 0 && (
-                                    <p className="text-xs text-amber-600 mt-1">僅剩 {product.stock} 件</p>
-                                )}
-                                {product.stock === 0 && (
-                                    <p className="text-xs text-red-500 mt-1">已售完</p>
-                                )}
-                            </Link>
+                                product={product}
+                                storeSlug={store.slug}
+                            />
                         ))}
                     </div>
                 ) : (

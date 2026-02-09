@@ -4,7 +4,7 @@ import { NavigationManager } from '@/features/navigation/components/navigation-m
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { addNavItem, removeNavItem, updateNavOrder } from '@/app/app/(dashboard)/navigation/actions'
+import { addNavItem, removeNavItem, updateNavOrder } from './actions'
 
 // 取得總部商店的 Tenant ID
 async function getHQStoreId(supabase: any, user: any) {

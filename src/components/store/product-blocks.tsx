@@ -23,8 +23,8 @@ const MD_GRID_COLS: Record<number, string> = {
     4: 'md:grid-cols-4'
 }
 
-// 商品卡片元件（共用）
-function ProductCard({ product, storeSlug, fitDesktop = 'cover', fitMobile = 'cover', aspectRatioDesktop = '1/1', aspectRatioMobile = '1/1' }: { product: any; storeSlug: string; fitDesktop?: string; fitMobile?: string; aspectRatioDesktop?: string; aspectRatioMobile?: string }) {
+// 商品卡片元件（共用）- 匯出供其他頁面使用
+export function ProductCard({ product, storeSlug, fitDesktop = 'cover', fitMobile = 'cover', aspectRatioDesktop = '1/1', aspectRatioMobile = '1/1' }: { product: any; storeSlug: string; fitDesktop?: string; fitMobile?: string; aspectRatioDesktop?: string; aspectRatioMobile?: string }) {
     const { addItem } = useCart()
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [quantity, setQuantity] = useState(1)
@@ -195,7 +195,7 @@ function ProductCard({ product, storeSlug, fitDesktop = 'cover', fitMobile = 'co
 
                     <div className="p-6 space-y-6">
                         <div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-1">{product.name}</h3>
+                            <DialogTitle className="text-xl font-bold text-gray-900 mb-1">{product.name}</DialogTitle>
                             <p className="text-lg font-bold text-rose-600">NT$ {Number(currentPrice).toLocaleString()}</p>
                         </div>
 

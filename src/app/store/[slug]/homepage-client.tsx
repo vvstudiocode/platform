@@ -28,7 +28,7 @@ interface Props {
         slug?: string
         parent_id?: string | null
         position: number
-        pages?: { slug: string } | null
+        pages?: { slug: string; is_homepage: boolean } | null
     }>
     homeSlug?: string
 }
@@ -46,7 +46,7 @@ export function HomePageClient({ store, page, navItems, homeSlug }: Props) {
         id: item.id,
         title: item.title,
         slug: item.pages?.slug || '',
-        is_homepage: false,
+        is_homepage: item.pages?.is_homepage || false,
         parent_id: item.parent_id,
         position: item.position
     }))

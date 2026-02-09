@@ -129,7 +129,7 @@ export async function createStore(prevState: { error: string }, formData: FormDa
             .insert({
                 tenant_id: tenant.id,
                 title: '首頁',
-                slug: 'home',
+                slug: '',
                 is_homepage: true,
                 published: true,
                 show_in_nav: true,

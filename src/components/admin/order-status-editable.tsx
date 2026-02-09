@@ -13,6 +13,9 @@ import { updateOrderStatus } from '@/app/admin/(dashboard)/orders/actions'
 interface Props {
     orderId: string
     currentStatus: string
+    storeId?: string
+    isHQ?: boolean
+    onUpdate?: () => void
 }
 
 const statusConfig: Record<string, { icon: any; label: string; color: string; badge: string }> = {
@@ -33,7 +36,7 @@ const statusOptions = [
     { value: 'cancelled', label: '已取消' },
 ]
 
-export function OrderStatusEditable({ orderId, currentStatus }: Props) {
+export function OrderStatusEditable({ orderId, currentStatus, storeId, isHQ, onUpdate }: Props) {
     const [loading, setLoading] = useState(false)
     const [status, setStatus] = useState(currentStatus)
     const router = useRouter()
@@ -59,6 +62,7 @@ export function OrderStatusEditable({ orderId, currentStatus }: Props) {
                 // alert(res.error) // Disable alert to avoid "crash" feel
                 setStatus(oldStatus)
             } else {
+                if (onUpdate) onUpdate()
                 router.refresh()
             }
         } catch (error) {

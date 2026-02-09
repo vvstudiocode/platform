@@ -318,9 +318,11 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
                                         <Label htmlFor="slug" className="text-xs text-zinc-400">頁面網址</Label>
                                         <Input
                                             id="slug"
-                                            value={slug}
+                                            value={isHomepage ? '' : slug}
                                             onChange={(e) => setSlug(e.target.value)}
-                                            className="h-8 text-sm bg-zinc-800 border-zinc-700 text-white"
+                                            disabled={isHomepage}
+                                            className="h-8 text-sm bg-zinc-800 border-zinc-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                            placeholder={isHomepage ? "首頁不需設定網址" : ""}
                                         />
                                     </div>
 
@@ -388,6 +390,9 @@ export function StorePageEditForm({ storeId, storeName, storeSlug, page, updateA
                                                 className="rounded bg-zinc-800 border-zinc-600 accent-rose-500"
                                             />
                                             設為首頁
+                                            {isHomepage && (
+                                                <span className="text-xs text-zinc-500 ml-1">(網址將忽略 slug)</span>
+                                            )}
                                         </label>
                                         <label className="flex items-center gap-2 text-zinc-300 cursor-pointer hover:text-white">
                                             <input

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Settings, Database, CreditCard, Globe } from 'lucide-react'
+import { Settings, Database, CreditCard, Globe, Wallet } from 'lucide-react'
 
 interface Props {
     basePath: string // '/admin/settings' or '/app/settings'
@@ -26,6 +26,12 @@ export function SettingsMenu({ basePath }: Props) {
             title: '分類管理',
             description: '管理商品分類結構',
             href: `${basePath}/categories`
+        },
+        {
+            icon: Wallet,
+            title: '收款設定',
+            description: '設定綠界 ECPay 金流串接',
+            href: `${basePath}/payment`
         },
         {
             icon: CreditCard,

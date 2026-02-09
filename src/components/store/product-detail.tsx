@@ -36,11 +36,12 @@ interface Props {
         is_homepage: boolean
         parent_id?: string | null
         position: number
+        pages?: { slug: string; is_homepage: boolean } // Handling joined data structure
     }>
     homeSlug?: string
 }
 
-export function ProductDetailClient({ store, product, navItems, homeSlug }: Props) {
+export function ProductDetail({ store, product, navItems, homeSlug }: Props) {
     const { addItem, getItemCount, setStoreSlug, isCartOpen, setIsCartOpen } = useCart()
     const [quantity, setQuantity] = useState(1)
     const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
@@ -143,7 +144,7 @@ export function ProductDetailClient({ store, product, navItems, homeSlug }: Prop
                                     <button
                                         key={idx}
                                         onClick={() => setSelectedImage(idx)}
-                                        className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedImage === idx ? 'border-zinc-900 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'
+                                        className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedImage === idx ? 'border-zinc-900 opacity-100' : 'border-zinc-200 opacity-60 hover:opacity-100'
                                             }`}
                                     >
                                         <img src={img} alt="" className="w-full h-full object-cover" />

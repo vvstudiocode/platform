@@ -121,7 +121,7 @@ export function OrderTable({ orders, products, storeId, isHQ, settings }: Props)
                             <th className="px-6 py-4 text-xs font-serif font-semibold text-muted-foreground w-[180px]">客戶</th>
                             <th className="px-6 py-4 text-xs font-serif font-semibold text-muted-foreground">內容</th>
                             <th className="px-6 py-4 text-xs font-serif font-semibold text-muted-foreground w-[120px]">總金額</th>
-                            <th className="px-6 py-4 text-xs font-serif font-semibold text-muted-foreground w-[120px]">狀態</th>
+                            <th className="px-6 py-4 text-xs font-serif font-semibold text-muted-foreground w-[140px]">狀態</th>
                             <th className="px-6 py-4 text-xs font-serif font-semibold text-muted-foreground text-right w-[100px]">操作</th>
                         </tr>
                     </thead>
@@ -207,9 +207,13 @@ export function OrderTable({ orders, products, storeId, isHQ, settings }: Props)
                                         </td>
                                         <td className="px-6 py-4 align-top" onClick={(e) => e.stopPropagation()}>
                                             <div className="inline-flex">
-                                                <Badge className={`${config.badge} border shadow-sm font-normal px-2.5 py-0.5`}>
-                                                    {config.label}
-                                                </Badge>
+                                                <OrderStatusEditable
+                                                    orderId={order.id}
+                                                    currentStatus={order.status}
+                                                    storeId={storeId}
+                                                    isHQ={isHQ}
+                                                    onUpdate={() => router.refresh()}
+                                                />
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right align-top">
