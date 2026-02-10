@@ -6,9 +6,27 @@ import { createClient } from '@/lib/supabase/server'
 import { verifyTenantAccess } from '@/lib/tenant'
 import { z } from 'zod'
 
+const RESERVED_SLUGS = [
+    'admin', 'app', 'api', 'store',
+    'product', 'products',
+    'cart', 'checkout',
+    'login', 'register', 'auth',
+    'settings', 'home',
+    'search',
+    'collection', 'collections',
+    'category', 'categories',
+    'blog', 'account',
+    'order', 'orders',
+    'public', 'static'
+]
+
 const pageSchema = z.object({
     title: z.string().min(1, '請輸入頁面標題'),
-    slug: z.string().regex(/^[a-z0-9-]*$/, '只能使用小寫英文、數字和連字符'),
+    slug: z.string()
+        .regex(/^[a-z0-9-]*$/, '只能使用小寫英文、數字和連字符')
+        .refine(slug => !RESERVED_SLUGS.includes(slug.toLowerCase()), {
+            message: "此網址為系統保留字，請使用其他名稱"
+        }),
     seo_title: z.string().nullish().transform(v => v || undefined),
     seo_description: z.string().nullish().transform(v => v || undefined),
     seo_keywords: z.string().nullish().transform(v => v || undefined),
