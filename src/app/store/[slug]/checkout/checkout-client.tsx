@@ -27,6 +27,7 @@ interface Props {
             shipping_pickup_name?: string
             shipping_711_name?: string
             shipping_home_name?: string
+            free_shipping_threshold?: number
             payment_methods?: {
                 credit_card?: boolean
                 bank_transfer?: boolean
