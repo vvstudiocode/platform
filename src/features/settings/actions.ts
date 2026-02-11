@@ -25,6 +25,7 @@ const settingsSchema = z.object({
     shipping_pickup_name: z.string().nullish(),
     shipping_711_name: z.string().nullish(),
     shipping_home_name: z.string().nullish(),
+    free_shipping_threshold: z.coerce.number().min(0).nullish(),
 
     // Payment Methods
     payment_credit_card: z.boolean().nullish(),
@@ -78,6 +79,7 @@ export async function updateGeneralSettings(
         shipping_pickup_name: formData.get('shipping_pickup_name'),
         shipping_711_name: formData.get('shipping_711_name'),
         shipping_home_name: formData.get('shipping_home_name'),
+        free_shipping_threshold: formData.get('free_shipping_threshold'),
 
         payment_credit_card: formData.get('payment_credit_card') === 'on',
         payment_bank_transfer: formData.get('payment_bank_transfer') === 'on',
@@ -106,6 +108,7 @@ export async function updateGeneralSettings(
         bank_name, bank_code, bank_account, payment_message,
         shipping_pickup_fee, shipping_711_fee, shipping_home_fee,
         shipping_pickup_name, shipping_711_name, shipping_home_name,
+        free_shipping_threshold,
         payment_credit_card, payment_bank_transfer,
         footer_line, footer_facebook, footer_instagram, footer_threads,
         footer_youtube, footer_email, footer_phone, footer_address,
@@ -127,6 +130,7 @@ export async function updateGeneralSettings(
         bank_name, bank_code, bank_account, payment_message,
         shipping_pickup_fee, shipping_711_fee, shipping_home_fee,
         shipping_pickup_name, shipping_711_name, shipping_home_name,
+        free_shipping_threshold,
         payment_methods: {
             // Ensure these are explicitly booleans, even if Zod or FormData is weird
             credit_card: Boolean(payment_credit_card),

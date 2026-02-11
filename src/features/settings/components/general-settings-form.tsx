@@ -34,11 +34,9 @@ function CollapsibleSection({ title, children, defaultOpen = false }: { title: s
                 <h2 className="text-lg font-semibold text-foreground">{title}</h2>
                 {isOpen ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
             </button>
-            {isOpen && (
-                <div className="p-6 border-t border-border animate-in slide-in-from-top-2 duration-200">
-                    {children}
-                </div>
-            )}
+            <div className={`p-6 border-t border-border animate-in slide-in-from-top-2 duration-200 ${isOpen ? '' : 'hidden'}`}>
+                {children}
+            </div>
         </div>
     )
 }
@@ -286,6 +284,22 @@ export function GeneralSettingsForm({ tenant, updateAction }: Props) {
                                 defaultValue={settings.shipping_home_name || '宅配到府'}
                                 placeholder="預設：宅配到府"
                                 className="bg-background"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-border">
+                        <Label htmlFor="free_shipping_threshold">滿額免運門檻</Label>
+                        <p className="text-xs text-muted-foreground mb-2">當訂單金額達到此設定值時，運費將自動減免為 0。設定為 0 代表不啟用。</p>
+                        <div className="relative max-w-xs">
+                            <span className="absolute left-3 top-2.5 text-muted-foreground">NT$</span>
+                            <Input
+                                id="free_shipping_threshold"
+                                name="free_shipping_threshold"
+                                type="number"
+                                min="0"
+                                defaultValue={settings.free_shipping_threshold || 0}
+                                className="pl-10 bg-background"
                             />
                         </div>
                     </div>

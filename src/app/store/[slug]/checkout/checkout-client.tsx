@@ -92,6 +92,13 @@ export function CheckoutClient({ store }: Props) {
         home: settings.shipping_home_fee ?? 100,
     }
 
+    // Dynamic Shipping Options with Fee Display logic if needed
+    // Currently CheckoutShipping component likely renders these options.
+    // If we want to show $0 in the selection list, we might need to modify how we pass data or how CheckoutShipping renders.
+    // However, the requested feature is "checkout calculates free shipping".
+    // The previous edit handles the calculation and total.
+    // Let's verify components/CheckoutShipping.tsx next.
+
     const shippingOptions = [
         { id: 'pickup', label: settings.shipping_pickup_name || '面交取貨', description: '約定時間地點面交' },
         { id: '711', label: settings.shipping_711_name || '7-11 店到店', description: '寄送至指定 7-11 門市' },
@@ -100,7 +107,14 @@ export function CheckoutClient({ store }: Props) {
 
     const subtotal = getCartTotal()
     const shippingFee = shippingFees[shippingMethod] || 0
-    const total = subtotal + shippingFee
+
+    // Free Shipping Logic
+    const freeShippingThreshold = settings.free_shipping_threshold || 0
+    // 如果免運，折扣金額等於運費金額（全額折抵）
+    const isFreeShipping = freeShippingThreshold > 0 && subtotal >= freeShippingThreshold
+    const shippingDiscount = isFreeShipping ? shippingFee : 0
+
+    const total = subtotal + shippingFee - shippingDiscount
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -330,6 +344,7 @@ export function CheckoutClient({ store }: Props) {
                     <CheckoutSummary
                         subtotal={subtotal}
                         shippingFee={shippingFee}
+                        shippingDiscount={shippingDiscount}
                         total={total}
                     />
 

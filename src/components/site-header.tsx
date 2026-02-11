@@ -121,7 +121,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                     {isOpen && (
                         <div className={`
                             absolute z-[999] bg-transparent
-                            ${isLevel0 ? 'top-[calc(100%-5px)] pt-4 left-0' : 'left-[95%] -top-1 pl-4'}
+                            ${isLevel0 ? 'top-full pt-0 left-0' : 'left-[95%] -top-1 pl-4'}
                         `}>
                             <div className="bg-popover border border-border shadow-lg rounded-md overflow-visible min-w-[200px] py-1">
                                 {item.children.map((child: any) => (
@@ -138,8 +138,8 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
         return (
             <Link
                 href={getNavItemPath(item)}
-                className={`block transition-colors font-medium
-                    ${isLevel0 ? 'text-muted-foreground hover:text-foreground py-2' : 'px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50'}
+                className={`transition-colors font-medium
+                    ${isLevel0 ? 'flex items-center h-full text-muted-foreground hover:text-foreground px-1' : 'block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50'}
                 `}
             >
                 {item.title}
@@ -203,7 +203,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
     return (
         <>
             <header className="border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+                <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
                     {/* Logo / Store Name */}
                     <Link href={homePath} className="flex items-center gap-2">
                         {logoUrl && (
@@ -213,7 +213,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden md:flex gap-8">
+                    <nav className="hidden md:flex gap-8 h-full">
                         {navTree.map((item) => (
                             <DesktopNavItem key={item.slug} item={item} />
                         ))}

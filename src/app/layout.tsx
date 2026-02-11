@@ -14,7 +14,7 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "OMO 網站平台",
-  description: "Premium E-commerce Platform",
+  description: "打造您的專屬品牌電商，提供一站式新零售解決方案。",
 };
 
 export default function RootLayout({
