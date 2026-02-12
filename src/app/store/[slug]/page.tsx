@@ -83,7 +83,7 @@ export default async function StorefrontPage({ params }: Props) {
     // 檢查是否有設定首頁 (Use limit(1) for safety)
     const { data: homepages } = await supabase
         .from('pages')
-        .select('*')
+        .select('*, background_color')
         .eq('tenant_id', store.id)
         .eq('is_homepage', true)
         .eq('published', true)
@@ -111,6 +111,7 @@ export default async function StorefrontPage({ params }: Props) {
                 page={{
                     title: homepage.title,
                     content: (homepage.content as any[]) || [],
+                    background_color: homepage.background_color || undefined,
                 }}
                 navItems={navItems as any}
                 homeSlug={homepage.slug}

@@ -20,6 +20,7 @@ interface Props {
     page: {
         title: string
         content: any[]
+        background_color?: string
     }
     navItems: Array<{
         id: string
@@ -52,7 +53,10 @@ export function HomePageClient({ store, page, navItems, homeSlug }: Props) {
     }))
 
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div
+            className="min-h-screen flex flex-col"
+            style={{ backgroundColor: page.background_color || '#ffffff' }}
+        >
             {/* 響應式導覽列 */}
             <SiteHeader
                 storeName={store.name}
@@ -65,7 +69,12 @@ export function HomePageClient({ store, page, navItems, homeSlug }: Props) {
 
             {/* 頁面內容 */}
             <main className="flex-1">
-                <PageContentRenderer content={page.content} storeSlug={store.slug} tenantId={store.id} />
+                <PageContentRenderer
+                    content={page.content}
+                    storeSlug={store.slug}
+                    tenantId={store.id}
+                    backgroundColor={page.background_color}
+                />
             </main>
 
             {/* 商店頁尾 */}

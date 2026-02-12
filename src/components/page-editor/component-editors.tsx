@@ -14,7 +14,9 @@ export {
     TiltedScrollGalleryEditor,
     ProductListEditor,
     ProductCategoryEditor,
-    ProductCarouselEditor
+    ProductCarouselEditor,
+    MarqueeEditor,
+    ImageMarqueeEditor
 } from './editors'
 
 // 保留 AlignmentButtons 的匯出以維持向後相容

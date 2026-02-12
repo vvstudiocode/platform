@@ -15,7 +15,9 @@ import {
     ProductListEditor,
     ProductCategoryEditor,
     ProductCarouselEditor,
-    AnimatedTextEditor
+    AnimatedTextEditor,
+    MarqueeEditor,
+    ImageMarqueeEditor
 } from './editors'
 
 export interface ComponentConfig {
@@ -204,6 +206,36 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             height: 'auto',
             paddingYDesktop: 64,
             paddingYMobile: 32
+        }
+    },
+    marquee: {
+        editor: MarqueeEditor,
+        label: '跑馬燈',
+        icon: '📢',
+        category: 'interactive',
+        defaultProps: {
+            text: 'WELCOME TO OUR STORE',
+            speed: 30,
+            direction: 'left',
+            pauseOnHover: true,
+            backgroundColor: '#000000',
+            textColor: '#FFFFFF',
+            fontSize: 16
+        }
+    },
+    image_marquee: {
+        editor: ImageMarqueeEditor,
+        label: '圖片跑馬燈',
+        icon: '🖼️',
+        category: 'interactive',
+        defaultProps: {
+            images: [],
+            speed: 30,
+            direction: 'left',
+            pauseOnHover: true,
+            backgroundColor: '#ffffff',
+            imageHeight: 100,
+            imageGap: 32
         }
     }
 }

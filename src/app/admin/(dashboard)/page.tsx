@@ -26,7 +26,7 @@ export default async function AdminDashboardPage({
     // 取得管理的商店
     const { data: managedStores, count: storeCount } = await supabase
         .from('tenants')
-        .select('id, name, slug, created_at')
+        .select('id, name, slug, created_at', { count: 'exact' })
         .eq('managed_by', user?.id || '')
         .order('created_at', { ascending: false })
 

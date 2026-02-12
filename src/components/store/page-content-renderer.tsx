@@ -9,6 +9,8 @@ import { TiltedScrollGallery } from '../premium/framer/TiltedScrollGallery'
 import { ParallaxHero } from '../premium/framer/ParallaxHero'
 import { AnimatedGrid } from '../premium/framer/AnimatedGrid'
 import { AnimatedTextBlock } from '../store/animated-text-block'
+import { MarqueeBlock } from '../store/marquee-block'
+import { ImageMarqueeBlock } from '../store/image-marquee-block'
 import dynamic from 'next/dynamic'
 
 // Inline LoadingState
@@ -102,7 +104,7 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
     // 定義哪些區塊應該是全寬的
     const isFullWidthBlock = (type: string) => {
         // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
-        return ['hero', 'showcase_slider', 'tilted_scroll_gallery'].includes(type)
+        return ['hero', 'showcase_slider', 'tilted_scroll_gallery', 'marquee', 'image_marquee'].includes(type)
     }
 
     return (
@@ -349,6 +351,26 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 paddingYMobile={block.props?.paddingYMobile}
                 // Add key to force remount when animationKey changes (for replay)
                 key={block.props?.animationKey ? `animated-text-${block.props.animationKey}` : undefined}
+            />;
+        case 'marquee':
+            return <MarqueeBlock
+                text={block.props?.text}
+                speed={block.props?.speed}
+                direction={block.props?.direction}
+                pauseOnHover={block.props?.pauseOnHover}
+                backgroundColor={block.props?.backgroundColor}
+                textColor={block.props?.textColor}
+                fontSize={block.props?.fontSize}
+            />;
+        case 'image_marquee':
+            return <ImageMarqueeBlock
+                images={block.props?.images}
+                speed={block.props?.speed}
+                direction={block.props?.direction}
+                pauseOnHover={block.props?.pauseOnHover}
+                backgroundColor={block.props?.backgroundColor}
+                imageHeight={block.props?.imageHeight}
+                imageGap={block.props?.imageGap}
             />;
         default:
             return null

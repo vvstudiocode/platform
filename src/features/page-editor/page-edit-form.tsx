@@ -8,6 +8,18 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { getDefaultProps as getRegistryDefaultProps, getComponentEditor, componentRegistry } from '@/components/page-editor/registry'
+import { ImageMarqueeEditor } from '@/components/page-editor/editors/ImageMarqueeEditor' // Direct import if registry is not updated or to be safe? 
+// Wait, PageEditForm uses `getComponentEditor(type)`. 
+// I should update `src/components/page-editor/registry.ts` instead of importing here?
+// Step 298 line 725: `const Editor = getComponentEditor(type)`.
+// So I should UPDATE REGISTRY.TS.
+// Does StorePageEditForm use registry?
+// Step 299 lines 9-20: It imports editors directly!
+// So StorePageEditForm and PageEditForm use DIFFERENT patterns!
+// PageEditForm uses REGISTRY.
+// StorePageEditForm uses DIRECT IMPORTS (as seen in my previous edits).
+// So for PageEditForm, I must update `src/components/page-editor/registry.ts`.
+// I should check `src/components/page-editor/registry.ts`.
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
 import { CartProvider } from '@/lib/cart-context'
 import { StoreFooter } from '@/components/store/store-footer'
@@ -71,6 +83,13 @@ const componentCategories = [
             { type: 'product_list', icon: LayoutGrid, label: '商品列表', description: '精選商品' },
             { type: 'product_category', icon: LayoutGrid, label: '商品分類', description: '分類商品' },
             { type: 'product_carousel', icon: LayoutGrid, label: '商品輪播', description: '商品輪播' },
+        ]
+    },
+    {
+        name: '互動元件',
+        components: [
+            { type: 'marquee', icon: Type, label: '跑馬燈', description: '滾動文字公告' },
+            { type: 'image_marquee', icon: Image, label: '圖片跑馬燈', description: '滾動圖片展示' },
         ]
     },
 ]

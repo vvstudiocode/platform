@@ -15,7 +15,9 @@ import {
     ImageGridEditor,
     ProductListEditor,
     ProductCategoryEditor,
-    ProductCarouselEditor
+    ProductCarouselEditor,
+    MarqueeEditor,
+    ImageMarqueeEditor
 } from '@/components/page-editor/component-editors'
 import { SpacingControls, ImageControls, AspectRatioControls } from '@/components/page-editor/responsive-controls'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
@@ -72,6 +74,13 @@ const componentCategories = [
             { type: 'product_list', icon: LayoutGrid, label: '商品列表', description: '精選商品' },
             { type: 'product_category', icon: LayoutGrid, label: '商品分類', description: '分類商品' },
             { type: 'product_carousel', icon: LayoutGrid, label: '商品輪播', description: '商品輪播' },
+        ]
+    },
+    {
+        name: '互動元件',
+        components: [
+            { type: 'marquee', icon: Type, label: '跑馬燈', description: '滾動文字公告' },
+            { type: 'image_marquee', icon: Image, label: '圖片跑馬燈', description: '滾動圖片展示' },
         ]
     },
 ]
@@ -671,6 +680,26 @@ function getDefaultProps(type: string): Record<string, any> {
             return { title: '商品分類', category: '', limit: 8, layout: 'grid' }
         case 'product_carousel':
             return { title: '熱門商品', productIds: [], autoplay: true }
+        case 'marquee':
+            return {
+                text: 'WELCOME TO OUR STORE',
+                speed: 30,
+                direction: 'left',
+                pauseOnHover: true,
+                backgroundColor: '#000000',
+                textColor: '#FFFFFF',
+                fontSize: 16
+            }
+        case 'image_marquee':
+            return {
+                images: [],
+                speed: 30,
+                direction: 'left',
+                pauseOnHover: true,
+                backgroundColor: '#ffffff',
+                imageHeight: 100,
+                imageGap: 32
+            }
         default:
             return {}
     }
@@ -700,6 +729,10 @@ function ComponentEditor({ type, props, onChange, tenantId }: { type: string; pr
             return <ProductCategoryEditor props={props} onChange={onChange} tenantId={tenantId} />
         case 'product_carousel':
             return <ProductCarouselEditor props={props} onChange={onChange} tenantId={tenantId} />
+        case 'marquee':
+            return <MarqueeEditor props={props} onChange={onChange} />
+        case 'image_marquee':
+            return <ImageMarqueeEditor props={props} onChange={onChange} tenantId={tenantId} />
         default:
             return (
                 <div className="text-zinc-500 text-sm">
