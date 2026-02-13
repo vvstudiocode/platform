@@ -11,7 +11,8 @@ import {
     FeaturesEditor,
     FAQEditor,
     ShowcaseSliderEditor,
-    TiltedScrollGalleryEditor,
+
+    ParallaxScrollGalleryEditor,
     ProductListEditor,
     ProductCategoryEditor,
     ProductCarouselEditor,
@@ -170,20 +171,25 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             buttonHoverColor: '#e11d48'
         }
     },
-    tilted_scroll_gallery: {
-        editor: TiltedScrollGalleryEditor,
-        label: '傾斜滾動圖庫',
-        icon: '📷',
+
+    parallax_scroll_gallery: {
+        editor: ParallaxScrollGalleryEditor,
+        label: '視差滾動圖庫',
+        icon: '🪜',
         category: 'interactive',
         defaultProps: {
-            title: '',
+            title: 'Our Portfolio',
             subtitle: '',
             images: [],
             columns: 3,
-            rotateX: 20,
-            rotateZ: -10,
-            scale: 1.5,
-            speed: 15
+            rotateX: 0,
+            rotateY: 0,
+            rotateZ: 0,
+            scale: 1.0,
+            verticalSpacing: 20,
+            horizontalSpacing: 20,
+            parallaxStrength: 1.0,
+            borderRadius: 16
         }
     },
     animated_text: {

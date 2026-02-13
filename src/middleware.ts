@@ -109,5 +109,60 @@ export default async function middleware(req: NextRequest) {
     // This will refresh the token and set Set-Cookie headers on 'response'
     await updateSession(req, response)
 
+    // === Security Hardening ===
+
+    // 1. Security Headers
+    const headers = response.headers
+    headers.set('X-DNS-Prefetch-Control', 'on')
+    headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
+    headers.set('X-Frame-Options', 'SAMEORIGIN') // Allow iframing on same domain (needed for some editor features?)
+    headers.set('X-Content-Type-Options', 'nosniff')
+    headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+
+    // 2. Simple Rate Limiting (In-Memory, Per-Instance)
+    // Note: In serverless, this is not a perfect global rate limiter, but helps against single-instance floods.
+    const ip = (req as any).ip || req.headers.get('x-forwarded-for') || '127.0.0.1'
+    if (!checkRateLimit(ip)) {
+        return new NextResponse('Too Many Requests', { status: 429 })
+    }
+
     return response
 }
+
+// === Rate Limit Logic ===
+const RATE_LIMIT_WINDOW_MS = 60 * 1000 // 1 Minute
+const RATE_LIMIT_MAX_REQUESTS = 100 // 100 requests per minute per IP
+
+const rateLimitMap = new Map<string, { count: number, resetTime: number }>()
+
+function checkRateLimit(ip: string): boolean {
+    const now = Date.now()
+    const record = rateLimitMap.get(ip)
+
+    if (!record) {
+        rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS })
+        return true
+    }
+
+    if (now > record.resetTime) {
+        rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS })
+        return true
+    }
+
+    if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
+        return false
+    }
+
+    record.count++
+    return true
+}
+
+// Clean up old entries periodically to prevent memory leak
+setInterval(() => {
+    const now = Date.now()
+    for (const [ip, record] of rateLimitMap.entries()) {
+        if (now > record.resetTime) {
+            rateLimitMap.delete(ip)
+        }
+    }
+}, RATE_LIMIT_WINDOW_MS * 5) // Run every 5 minutes

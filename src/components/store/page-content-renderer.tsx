@@ -5,12 +5,13 @@ import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import { ProductListBlock, ProductCategoryBlock, ProductCarouselBlock } from './product-blocks'
 import { ShowcaseSlider } from '../store/showcase-slider'
-import { TiltedScrollGallery } from '../premium/framer/TiltedScrollGallery'
+
 import { ParallaxHero } from '../premium/framer/ParallaxHero'
 import { AnimatedGrid } from '../premium/framer/AnimatedGrid'
 import { AnimatedTextBlock } from '../store/animated-text-block'
 import { MarqueeBlock } from '../store/marquee-block'
 import { ImageMarqueeBlock } from '../store/image-marquee-block'
+import { ParallaxScrollGallery } from '../premium/framer/ParallaxScrollGallery'
 import dynamic from 'next/dynamic'
 
 // Inline LoadingState
@@ -104,7 +105,7 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
     // 定義哪些區塊應該是全寬的
     const isFullWidthBlock = (type: string) => {
         // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
-        return ['hero', 'showcase_slider', 'tilted_scroll_gallery', 'marquee', 'image_marquee'].includes(type)
+        return ['hero', 'showcase_slider', 'marquee', 'image_marquee'].includes(type)
     }
 
     return (
@@ -313,17 +314,20 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 paddingYMobile={block.props?.paddingYMobile}
                 buttonHoverColor={block.props?.buttonHoverColor}
             />;
-        case 'tilted_scroll_gallery':
-            return <TiltedScrollGallery
+
+        case 'parallax_scroll_gallery':
+            return <ParallaxScrollGallery
                 images={block.props?.images || []}
                 columns={block.props?.columns ?? 3}
-                tiltAngle={block.props?.tiltAngle ?? -15}
-                tiltAngleY={block.props?.tiltAngleY ?? 0}
-                scrollSpeed={block.props?.scrollSpeed ?? 30}
-                imageSize={block.props?.imageSize ?? 150}
-                imageGap={block.props?.imageGap ?? 16}
+                rotateX={block.props?.rotateX ?? 0}
+                rotateY={block.props?.rotateY ?? 0}
+                rotateZ={block.props?.rotateZ ?? 0}
+                scale={block.props?.scale ?? 1.0}
+                verticalSpacing={block.props?.verticalSpacing ?? 20}
+                horizontalSpacing={block.props?.horizontalSpacing ?? 20}
+                parallaxStrength={block.props?.parallaxStrength ?? 1.0}
                 borderRadius={block.props?.borderRadius ?? 16}
-                backgroundColor={block.props?.backgroundColor ?? '#f8f8f8'}
+                backgroundColor={block.props?.backgroundColor ?? '#ffffff'}
                 paddingYDesktop={block.props?.paddingYDesktop}
                 paddingYMobile={block.props?.paddingYMobile}
                 title={block.props?.title}

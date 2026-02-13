@@ -62,7 +62,7 @@ const componentCategories = [
             { type: 'hero', icon: Image, label: 'Hero Banner', description: '大型橫幅圖片' },
             { type: 'carousel', icon: Image, label: '輪播圖', description: '圖片輪播' },
             { type: 'showcase_slider', icon: Image, label: '焦點展示', description: '高質感全螢幕輪播' },
-            { type: 'tilted_scroll_gallery', icon: Image, label: '傾斜滾動圖庫', description: '3D透視圖片牆' },
+
             { type: 'image_text', icon: LayoutGrid, label: '圖文組合', description: '圖片+文字' },
             { type: 'image_grid', icon: LayoutGrid, label: '圖片組合', description: '多圖網格' },
         ]

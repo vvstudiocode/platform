@@ -1,14 +1,13 @@
-
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EditorProps } from "../shared/types"
 import { SpacingControls } from "../responsive-controls"
+import { ImageInput } from "../image-input" // Import ImageInput
+import { useListEditor } from "../shared/useListEditor" // Import useListEditor
 import { Button } from "@/components/ui/button"
 import { Plus, Trash2, Image as ImageIcon, GripVertical } from "lucide-react"
-import { ImageUpload } from "@/components/ui/image-upload"
 import { useState } from "react"
-import { uploadImage } from "@/lib/upload-utils"
 import {
     DndContext,
     closestCenter,
@@ -19,7 +18,6 @@ import {
     DragEndEvent
 } from '@dnd-kit/core'
 import {
-    arrayMove,
     SortableContext,
     sortableKeyboardCoordinates,
     verticalListSortingStrategy,
@@ -43,20 +41,13 @@ function SortableImageItem({
     onRemove: (index: number) => void
     onUpdate: (index: number, key: string, value: string) => void
 }) {
-    // Generate a unique ID for the sortable item based on index or content
-    // Better to use index as stable ID if list changes? No, use unique ID if possible.
-    // For now, simpler to use `id - ${ index } ` but DND prefers stable IDs.
-    // Since we don't have IDs on images, we might use URL+Index or just index strictly controlled.
-    // Using index as ID with sortable usually requires `items` prop in SortableContext to match.
-    // Let's use `img.url` as key if unique, otherwise fallback.
-    // Actually, simple index-based sorting logic:
     const {
         attributes,
         listeners,
         setNodeRef,
         transform,
         transition,
-    } = useSortable({ id: img.url || `img - ${index} ` })
+    } = useSortable({ id: img.url || `img-${index}` })
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -67,38 +58,42 @@ function SortableImageItem({
         <div
             ref={setNodeRef}
             style={style}
-            className="flex gap-3 bg-muted/40 p-3 rounded-lg border border-border group relative items-start"
+            className="flex gap-2 items-start bg-muted/30 p-2 rounded-lg relative group"
         >
             <div
                 {...attributes}
                 {...listeners}
-                className="mt-2 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+                className="mt-3 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
             >
                 <GripVertical className="h-4 w-4" />
             </div>
 
-            <div className="w-16 h-16 bg-muted rounded-md overflow-hidden flex-shrink-0 border border-border">
-                <img src={img.url} alt="" className="w-full h-full object-cover" />
-            </div>
-            <div className="flex-1 space-y-2 min-w-0">
+            <div className="flex-1 space-y-1">
+                <ImageInput
+                    value={img.url}
+                    onChange={(value) => onUpdate(index, 'url', value)}
+                    placeholder="圖片網址"
+                />
                 <Input
+                    placeholder="替代文字 (選填)"
                     value={img.alt || ''}
                     onChange={(e) => onUpdate(index, 'alt', e.target.value)}
-                    placeholder="圖片描述 (Alt)"
-                    className="h-7 text-xs"
+                    className="h-8 text-sm"
                 />
                 <Input
+                    placeholder="連結網址 (選填)"
                     value={img.link || ''}
                     onChange={(e) => onUpdate(index, 'link', e.target.value)}
-                    placeholder="連結網址 (選填)"
-                    className="h-7 text-xs"
+                    className="h-8 text-sm"
                 />
             </div>
+
             <button
+                type="button"
                 onClick={() => onRemove(index)}
-                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-10"
+                className="p-1.5 text-muted-foreground hover:text-destructive mt-1"
             >
-                <Trash2 className="h-3 w-3" />
+                <Trash2 className="h-4 w-4" />
             </button>
         </div>
     )
@@ -106,7 +101,6 @@ function SortableImageItem({
 
 export function ImageMarqueeEditor({ props, onChange, tenantId }: Props) {
     const {
-        images = [],
         speed = 30,
         direction = "left",
         pauseOnHover = true,
@@ -117,7 +111,12 @@ export function ImageMarqueeEditor({ props, onChange, tenantId }: Props) {
         paddingYMobile = 32
     } = props || {}
 
-    const [uploadKey, setUploadKey] = useState(0)
+    // Use useListEditor for image management
+    const { add, remove, update, move, items: images } = useListEditor(
+        props.images || [],
+        'images',
+        onChange
+    )
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -133,57 +132,16 @@ export function ImageMarqueeEditor({ props, onChange, tenantId }: Props) {
         })
     }
 
-    const handleImageAdd = (url: string) => {
-        const newImages = [...images, { url, alt: '', link: '' }]
-        handleChange('images', newImages)
-        setUploadKey(prev => prev + 1)
-    }
-
-    const handleUpload = async (formData: FormData) => {
-        try {
-            const file = formData.get('file') as File
-            if (!file) {
-                return { error: 'No file selected' }
-            }
-
-            // Use the client-side upload utility which handles RLS correctly
-            const url = await uploadImage(file, {
-                bucket: 'product-images',
-                folder: 'content'
-            })
-
-            if (url) {
-                handleImageAdd(url)
-                return { url }
-            }
-            return { error: 'Upload failed' }
-        } catch (e: any) {
-            return { error: e.message || 'Upload failed' }
-        }
-    }
-
-    const handleImageRemove = (index: number) => {
-        const newImages = [...images]
-        newImages.splice(index, 1)
-        handleChange('images', newImages)
-    }
-
-    const handleImageUpdate = (index: number, key: string, value: string) => {
-        const newImages = [...images]
-        newImages[index] = { ...newImages[index], [key]: value }
-        handleChange('images', newImages)
-    }
-
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event
 
         if (over && active.id !== over.id) {
-            const oldIndex = images.findIndex((img: any) => (img.url || `img - ${images.indexOf(img)} `) === active.id)
-            const newIndex = images.findIndex((img: any) => (img.url || `img - ${images.indexOf(img)} `) === over.id)
+            const oldIndex = images.findIndex((img: any) => (img.url || `img-${images.indexOf(img)}`) === active.id)
+            const newIndex = images.findIndex((img: any) => (img.url || `img-${images.indexOf(img)}`) === over.id)
 
             if (oldIndex !== -1 && newIndex !== -1) {
-                const newImages = arrayMove(images, oldIndex, newIndex)
-                handleChange('images', newImages)
+                // Use move from useListEditor
+                move(oldIndex, newIndex)
             }
         }
     }
@@ -193,19 +151,9 @@ export function ImageMarqueeEditor({ props, onChange, tenantId }: Props) {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <Label>圖片列表</Label>
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                            ({images.length}/6)
-                        </span>
-                        {images.length < 6 ? (
-                            <ImageUpload
-                                key={uploadKey}
-                                onUpload={handleUpload}
-                            />
-                        ) : (
-                            <span className="text-xs text-amber-500 font-medium">包含重複效果，只需上傳6張</span>
-                        )}
-                    </div>
+                    <span className="text-xs text-muted-foreground">
+                        ({images.length}/6)
+                    </span>
                 </div>
 
                 <DndContext
@@ -214,28 +162,43 @@ export function ImageMarqueeEditor({ props, onChange, tenantId }: Props) {
                     onDragEnd={handleDragEnd}
                 >
                     <SortableContext
-                        items={images.map((img: any, idx: number) => img.url || `img - ${idx} `)}
+                        items={images.map((img: any, idx: number) => img.url || `img-${idx}`)}
                         strategy={verticalListSortingStrategy}
                     >
-                        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                             {images.map((img: any, index: number) => (
                                 <SortableImageItem
-                                    key={img.url || `img - ${index} `}
+                                    key={img.url || `img-${index}`}
                                     img={img}
                                     index={index}
-                                    onRemove={handleImageRemove}
-                                    onUpdate={handleImageUpdate}
+                                    onRemove={remove}
+                                    onUpdate={update}
                                 />
                             ))}
                             {images.length === 0 && (
                                 <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-lg border border-dashed border-border text-sm">
                                     <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                    尚無圖片，請點擊上方按鈕新增
+                                    尚無圖片，請點擊下方按鈕新增
                                 </div>
                             )}
                         </div>
                     </SortableContext>
                 </DndContext>
+
+                {images.length < 6 ? (
+                    <button
+                        type="button"
+                        onClick={() => add({ url: '', alt: '', link: '' })}
+                        className="w-full py-2 border-2 border-dashed border-input rounded-lg text-muted-foreground hover:text-foreground hover:border-accent transition-colors flex items-center justify-center gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        新增圖片
+                    </button>
+                ) : (
+                    <div className="text-center text-xs text-amber-500 font-medium py-2">
+                        已達圖片上限 (6張)
+                    </div>
+                )}
             </div>
 
             <SpacingControls

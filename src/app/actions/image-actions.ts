@@ -8,6 +8,12 @@ export async function deleteImage(url: string) {
     try {
         const supabase = await createClient()
 
+        // 驗證用戶是否已登入
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+            return { error: 'Unauthorized' }
+        }
+
         // Extract path from URL
         // Expected format: .../storage/v1/object/public/[bucket]/[path]
         const urlObj = new URL(url)
@@ -20,6 +26,13 @@ export async function deleteImage(url: string) {
         const filePath = rest.join('/')
 
         if (!bucket || !filePath) return
+
+        // 嘗試從路徑中獲取 Tenant ID
+        const folderName = filePath.split('/')[0]
+
+        // 如果是舊的 'content/' 檔案，或者不是 UUID 格式的資料夾
+        // RLS 策略會阻止刪除 (除非是 Super Admin)
+        // 這是預期的行為：防止用戶刪除舊的、未歸戶的檔案
 
         const { error } = await supabase.storage
             .from(bucket)

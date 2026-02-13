@@ -11,7 +11,8 @@ export {
     FeaturesEditor,
     FAQEditor,
     ShowcaseSliderEditor,
-    TiltedScrollGalleryEditor,
+
+    ParallaxScrollGalleryEditor,
     ProductListEditor,
     ProductCategoryEditor,
     ProductCarouselEditor,

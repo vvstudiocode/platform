@@ -45,21 +45,38 @@ export function Marquee({
     const contentRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        const updateWidths = () => {
+        const calculateWidths = () => {
             if (containerRef.current && contentRef.current) {
                 setContainerWidth(containerRef.current.offsetWidth)
                 setContentWidth(contentRef.current.offsetWidth)
             }
         }
 
-        updateWidths()
-        window.addEventListener("resize", updateWidths)
-        return () => window.removeEventListener("resize", updateWidths)
+        calculateWidths()
+
+        const resizeObserver = new ResizeObserver(() => {
+            calculateWidths()
+        })
+
+        if (containerRef.current) {
+            resizeObserver.observe(containerRef.current)
+        }
+        if (contentRef.current) {
+            resizeObserver.observe(contentRef.current)
+        }
+
+        window.addEventListener("resize", calculateWidths)
+
+        return () => {
+            window.removeEventListener("resize", calculateWidths)
+            resizeObserver.disconnect()
+        }
     }, [children])
 
     // Calculate how many copies we need to fill the screen plus a buffer
     // We need enough copies to ensure that when the first copy scrolls out, the next one is ready
-    const copies = contentWidth > 0 ? Math.ceil(containerWidth / contentWidth) + 1 : 2
+    // Add extra buffer copies to ensure no gaps during loading/resizing
+    const copies = contentWidth > 0 ? Math.ceil(containerWidth / contentWidth) + 2 : 2
 
     // Create an array of indices for rendering copies
     const iterations = Array.from({ length: Math.max(copies, 2) }, (_, i) => i)

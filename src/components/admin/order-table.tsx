@@ -224,8 +224,8 @@ export function OrderTable({ orders, products, storeId, isHQ, settings }: Props)
                                     </tr>
                                     {isExpanded && (
                                         <tr className="bg-muted/30">
-                                            <td colSpan={6} className="px-6 pb-6 pt-0 border-b border-border">
-                                                <div className="pl-0 md:pl-0 grid grid-cols-1 md:grid-cols-2 gap-8 py-6 border-t border-border/50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                            <td colSpan={6} className="px-0 md:px-6 pb-6 pt-0 border-b border-border sticky left-0 md:static bg-muted/30 md:bg-transparent">
+                                                <div className="w-screen md:w-auto max-w-[100vw] md:max-w-none px-6 md:px-0 grid grid-cols-1 md:grid-cols-2 gap-8 py-6 border-t border-border/50 animate-in fade-in slide-in-from-top-2 duration-200">
                                                     {/* Left Column: Order Items */}
                                                     <div>
                                                         <h4 className="text-sm font-serif font-medium text-foreground mb-4 flex items-center gap-2">

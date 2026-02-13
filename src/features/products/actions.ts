@@ -61,10 +61,8 @@ async function handleImageProcessing(supabase: any, tenantId: string, formData: 
     const deletedImagesJson = formData.get('deleted_images') as string
     if (deletedImagesJson) {
         try {
-            const supabaseAdmin = createAdminClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                process.env.SUPABASE_SERVICE_ROLE_KEY!
-            )
+            // Using the authenticated client (supabase) instead of Admin Client
+            // RLS policies will ensure users can only delete their own files
 
             const deletedUrls: string[] = JSON.parse(deletedImagesJson)
 
@@ -77,20 +75,21 @@ async function handleImageProcessing(supabase: any, tenantId: string, formData: 
                     const path = decodeURIComponent(rawPath)
 
                     if (bucket && path) {
-                        const folderPath = path.substring(0, path.lastIndexOf('/'))
-                        const fileName = path.split('/').pop()
-
-                        const { data: files } = await supabaseAdmin.storage.from(bucket).list(folderPath, {
-                            search: fileName
+                        // Check if file exists to update usage
+                        const { data: files } = await supabase.storage.from(bucket).list(path.substring(0, path.lastIndexOf('/')), {
+                            search: path.split('/').pop()
                         })
 
-                        const fileMeta = files?.find((f: any) => f.name === fileName)
+                        const fileMeta = files?.find((f: any) => f.name === path.split('/').pop())
                         if (fileMeta && fileMeta.metadata?.size) {
                             const sizeMb = fileMeta.metadata.size / (1024 * 1024)
                             currentUsage = Math.max(0, currentUsage - sizeMb)
                         }
 
-                        await supabaseAdmin.storage.from(bucket).remove([path])
+                        const { error: deleteError } = await supabase.storage.from(bucket).remove([path])
+                        if (deleteError) {
+                            console.error('Failed to delete image:', path, deleteError)
+                        }
                     }
                 }
             }
@@ -120,10 +119,14 @@ async function handleImageProcessing(supabase: any, tenantId: string, formData: 
                 }
 
                 const timestamp = Date.now()
+                // Use random string for uniqueness
                 const randomStr = Math.random().toString(36).substring(2, 9)
                 const extension = file.name.split('.').pop()
                 const fileName = `${timestamp}_${randomStr}.${extension}`
-                const filePath = `content/${fileName}`
+
+                // IMPORTANT: Use tenantId as folder for isolation
+                // New Path: [tenantId]/[fileName]
+                const filePath = `${tenantId}/${fileName}`
 
                 const { data, error } = await supabase.storage
                     .from('product-images')

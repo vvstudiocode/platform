@@ -23,15 +23,29 @@ export async function verifyTenantAccess(tenantId: string): Promise<boolean> {
 
     if (userRole) return true
 
-    // 策略 2: 檢查是否為 HQ tenant（Super Admin）
+    // 策略 2: 檢查是否為 Super Admin (針對 HQ Tenant)
+    // 只有 Super Admin 才能操作 HQ Tenant
     const { data: hqTenant } = await supabase
         .from('tenants')
-        .select('id')
+        .select('id, is_hq')
         .eq('id', tenantId)
         .eq('is_hq', true)
-        .single()
+        .maybeSingle()
 
-    if (hqTenant) return true
+    if (hqTenant) {
+        // 如果目標是 HQ Tenant，必須確認用戶是 Super Admin
+        const { data: superAdminRole } = await supabase
+            .from('users_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .eq('role', 'super_admin')
+            .maybeSingle()
+
+        if (superAdminRole) return true
+
+        // 如果是 HQ 但不是 Super Admin，直接拒絕
+        return false
+    }
 
     // 策略 3: 檢查 managed_by
     const { data: managedTenant } = await supabase
