@@ -318,206 +318,208 @@ export function PageEditForm({ page, updateAction, updatePageContentAction, base
             <div className="flex-1 flex overflow-hidden">
                 {/* 左側 - 元件列表編輯 */}
                 <div className="w-full md:w-96 bg-card md:border-r border-border flex flex-col">
-                    {/* 頁面設定 - 可收合 */}
-                    <div className="border-b border-border">
-                        <button
-                            type="button"
-                            onClick={() => setSettingsCollapsed(!settingsCollapsed)}
-                            className="w-full flex items-center justify-between p-4 text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors"
-                        >
-                            <span>頁面設定</span>
-                            <ChevronRight className={`h-4 w-4 transition-transform ${settingsCollapsed ? '' : 'rotate-90'}`} />
-                        </button>
-                        {!settingsCollapsed && (
-                            <div className="px-4 pb-4">
-                                <div className="space-y-3">
-                                    <div>
-                                        <Label htmlFor="title" className="text-xs text-muted-foreground">頁面標題</Label>
-                                        <Input
-                                            id="title"
-                                            value={title}
-                                            onChange={(e) => setTitle(e.target.value)}
-                                            className="h-8 text-sm bg-muted/50 border-border text-foreground"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="slug" className="text-xs text-muted-foreground">頁面網址</Label>
-                                        <Input
-                                            id="slug"
-                                            value={isHomepage ? '' : slug}
-                                            onChange={(e) => setSlug(e.target.value)}
-                                            disabled={isHomepage}
-                                            className="h-8 text-sm bg-muted/50 border-border text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                                            placeholder={isHomepage ? "首頁不需設定網址" : ""}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label className="text-xs text-muted-foreground">背景顏色</Label>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <input
-                                                type="color"
-                                                value={backgroundColor}
-                                                onChange={(e) => setBackgroundColor(e.target.value)}
-                                                className="w-8 h-8 rounded cursor-pointer bg-transparent border border-input"
-                                            />
+                    <div className="flex-1 overflow-y-auto scrollbar-hide">
+                        {/* 頁面設定 - 可收合 */}
+                        <div className="border-b border-border">
+                            <button
+                                type="button"
+                                onClick={() => setSettingsCollapsed(!settingsCollapsed)}
+                                className="w-full flex items-center justify-between p-4 text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors"
+                            >
+                                <span>頁面設定</span>
+                                <ChevronRight className={`h-4 w-4 transition-transform ${settingsCollapsed ? '' : 'rotate-90'}`} />
+                            </button>
+                            {!settingsCollapsed && (
+                                <div className="px-4 pb-4">
+                                    <div className="space-y-3">
+                                        <div>
+                                            <Label htmlFor="title" className="text-xs text-muted-foreground">頁面標題</Label>
                                             <Input
-                                                value={backgroundColor}
-                                                onChange={(e) => setBackgroundColor(e.target.value)}
-                                                className="h-8 text-sm flex-1 bg-muted/50 border-border text-foreground"
-                                                placeholder="#ffffff"
+                                                id="title"
+                                                value={title}
+                                                onChange={(e) => setTitle(e.target.value)}
+                                                className="h-8 text-sm bg-muted/50 border-border text-foreground"
                                             />
                                         </div>
-                                    </div>
-
-                                    {/* SEO Settings */}
-                                    <div className="pt-2 border-t border-border">
-                                        <h3 className="text-xs font-semibold text-muted-foreground mb-2">SEO 設定</h3>
-                                        <div className="space-y-3">
-                                            <div>
-                                                <Label htmlFor="seo_title" className="text-xs text-muted-foreground">SEO 標題 (Title)</Label>
-                                                <Input
-                                                    id="seo_title"
-                                                    value={seoTitle}
-                                                    onChange={(e) => setSeoTitle(e.target.value)}
-                                                    className="h-8 text-sm bg-muted/50 border-border text-foreground placeholder:text-muted-foreground"
-                                                    placeholder="預設使用頁面標題"
+                                        <div>
+                                            <Label htmlFor="slug" className="text-xs text-muted-foreground">頁面網址</Label>
+                                            <Input
+                                                id="slug"
+                                                value={isHomepage ? '' : slug}
+                                                onChange={(e) => setSlug(e.target.value)}
+                                                disabled={isHomepage}
+                                                className="h-8 text-sm bg-muted/50 border-border text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                                                placeholder={isHomepage ? "首頁不需設定網址" : ""}
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label className="text-xs text-muted-foreground">背景顏色</Label>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <input
+                                                    type="color"
+                                                    value={backgroundColor}
+                                                    onChange={(e) => setBackgroundColor(e.target.value)}
+                                                    className="w-8 h-8 rounded cursor-pointer bg-transparent border border-input"
                                                 />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="seo_description" className="text-xs text-muted-foreground">SEO 描述 (Description)</Label>
-                                                <textarea
-                                                    id="seo_description"
-                                                    value={seoDescription}
-                                                    onChange={(e) => setSeoDescription(e.target.value)}
-                                                    className="w-full flex min-h-[60px] rounded-md border border-border bg-muted/50 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                                    placeholder="簡短描述此頁面內容..."
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="seo_keywords" className="text-xs text-muted-foreground">SEO 關鍵字 (Keywords)</Label>
                                                 <Input
-                                                    id="seo_keywords"
-                                                    value={seoKeywords}
-                                                    onChange={(e) => setSeoKeywords(e.target.value)}
-                                                    className="h-8 text-sm bg-muted/50 border-border text-foreground placeholder:text-muted-foreground"
-                                                    placeholder="例如: 產品, 服務, 優惠"
+                                                    value={backgroundColor}
+                                                    onChange={(e) => setBackgroundColor(e.target.value)}
+                                                    className="h-8 text-sm flex-1 bg-muted/50 border-border text-foreground"
+                                                    placeholder="#ffffff"
                                                 />
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div className="flex items-center gap-4 text-sm mt-4">
-                                        <label className="flex items-center gap-2 text-foreground cursor-pointer hover:opacity-80">
-                                            <input
-                                                type="checkbox"
-                                                checked={isHomepage}
-                                                onChange={(e) => setIsHomepage(e.target.checked)}
-                                                className="rounded border-input accent-primary"
-                                            />
-                                            設為首頁
-                                            {isHomepage && (
-                                                <span className="text-xs text-muted-foreground ml-1">(網址將忽略 slug)</span>
-                                            )}
-                                        </label>
-                                        <label className="flex items-center gap-2 text-foreground cursor-pointer hover:opacity-80">
-                                            <input
-                                                type="checkbox"
-                                                checked={published}
-                                                onChange={(e) => setPublished(e.target.checked)}
-                                                className="rounded border-input accent-primary"
-                                            />
-                                            發布
-                                        </label>
+                                        {/* SEO Settings */}
+                                        <div className="pt-2 border-t border-border">
+                                            <h3 className="text-xs font-semibold text-muted-foreground mb-2">SEO 設定</h3>
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <Label htmlFor="seo_title" className="text-xs text-muted-foreground">SEO 標題 (Title)</Label>
+                                                    <Input
+                                                        id="seo_title"
+                                                        value={seoTitle}
+                                                        onChange={(e) => setSeoTitle(e.target.value)}
+                                                        className="h-8 text-sm bg-muted/50 border-border text-foreground placeholder:text-muted-foreground"
+                                                        placeholder="預設使用頁面標題"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="seo_description" className="text-xs text-muted-foreground">SEO 描述 (Description)</Label>
+                                                    <textarea
+                                                        id="seo_description"
+                                                        value={seoDescription}
+                                                        onChange={(e) => setSeoDescription(e.target.value)}
+                                                        className="w-full flex min-h-[60px] rounded-md border border-border bg-muted/50 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                                        placeholder="簡短描述此頁面內容..."
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="seo_keywords" className="text-xs text-muted-foreground">SEO 關鍵字 (Keywords)</Label>
+                                                    <Input
+                                                        id="seo_keywords"
+                                                        value={seoKeywords}
+                                                        onChange={(e) => setSeoKeywords(e.target.value)}
+                                                        className="h-8 text-sm bg-muted/50 border-border text-foreground placeholder:text-muted-foreground"
+                                                        placeholder="例如: 產品, 服務, 優惠"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-4 text-sm mt-4">
+                                            <label className="flex items-center gap-2 text-foreground cursor-pointer hover:opacity-80">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isHomepage}
+                                                    onChange={(e) => setIsHomepage(e.target.checked)}
+                                                    className="rounded border-input accent-primary"
+                                                />
+                                                設為首頁
+                                                {isHomepage && (
+                                                    <span className="text-xs text-muted-foreground ml-1">(網址將忽略 slug)</span>
+                                                )}
+                                            </label>
+                                            <label className="flex items-center gap-2 text-foreground cursor-pointer hover:opacity-80">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={published}
+                                                    onChange={(e) => setPublished(e.target.checked)}
+                                                    className="rounded border-input accent-primary"
+                                                />
+                                                發布
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* 元件列表 */}
-                    <div className="flex-1 overflow-y-auto scrollbar-hide" ref={componentListRef}>
-                        <div className="p-4 space-y-3 pb-20">
-                            <h2 className="text-sm font-semibold text-foreground mb-2">頁面元件</h2>
-
-                            {components.length === 0 ? (
-                                <div className="text-center py-12 text-muted-foreground text-sm">
-                                    點擊下方按鈕新增元件
-                                </div>
-                            ) : (
-                                components.map((component, index) => (
-                                    <div
-                                        key={component.id}
-                                        id={`component-${component.id}`}
-                                        draggable
-                                        onDragStart={() => handleDragStart(index)}
-                                        onDragOver={(e) => handleDragOver(e, index)}
-                                        onDragEnd={handleDragEnd}
-                                        className={`bg-card rounded-lg border-2 transition-all ${selectedComponentId === component.id
-                                            ? 'border-primary ring-1 ring-primary'
-                                            : 'border-border hover:border-primary/50'
-                                            }`}
-                                    >
-                                        <div
-                                            className="flex items-center justify-between p-3 cursor-pointer"
-                                            onClick={() => toggleComponent(component.id)}
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-                                                <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${selectedComponentId === component.id ? 'rotate-90' : ''}`} />
-                                                <span className="font-medium text-sm text-foreground">{getComponentLabel(component.type)}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => { e.stopPropagation(); moveComponent(index, index - 1) }}
-                                                    disabled={index === 0}
-                                                    className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                                                >
-                                                    <ChevronUp className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => { e.stopPropagation(); moveComponent(index, index + 1) }}
-                                                    disabled={index === components.length - 1}
-                                                    className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                                                >
-                                                    <ChevronDown className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => { e.stopPropagation(); removeComponent(component.id) }}
-                                                    className="p-1 text-muted-foreground hover:text-destructive"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        {selectedComponentId === component.id && (
-                                            <div
-                                                className="p-3 border-t border-border cursor-auto bg-muted/30"
-                                                draggable={true}
-                                                onDragStart={(e) => {
-                                                    e.preventDefault()
-                                                    e.stopPropagation()
-                                                }}
-                                                onPointerDown={(e) => e.stopPropagation()}
-                                            >
-                                                <ComponentEditor
-                                                    type={component.type}
-                                                    props={component.props}
-                                                    onChange={(props) => updateComponent(component.id, props)}
-                                                    tenantId={tenantId}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                ))
                             )}
+                        </div>
+
+                        {/* 元件列表 */}
+                        <div className="" ref={componentListRef}>
+                            <div className="p-4 space-y-3 pb-4">
+                                <h2 className="text-sm font-semibold text-foreground mb-2">頁面元件</h2>
+
+                                {components.length === 0 ? (
+                                    <div className="text-center py-12 text-muted-foreground text-sm">
+                                        點擊下方按鈕新增元件
+                                    </div>
+                                ) : (
+                                    components.map((component, index) => (
+                                        <div
+                                            key={component.id}
+                                            id={`component-${component.id}`}
+                                            draggable
+                                            onDragStart={() => handleDragStart(index)}
+                                            onDragOver={(e) => handleDragOver(e, index)}
+                                            onDragEnd={handleDragEnd}
+                                            className={`bg-card rounded-lg border-2 transition-all ${selectedComponentId === component.id
+                                                ? 'border-primary ring-1 ring-primary'
+                                                : 'border-border hover:border-primary/50'
+                                                }`}
+                                        >
+                                            <div
+                                                className="flex items-center justify-between p-3 cursor-pointer"
+                                                onClick={() => toggleComponent(component.id)}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+                                                    <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${selectedComponentId === component.id ? 'rotate-90' : ''}`} />
+                                                    <span className="font-medium text-sm text-foreground">{getComponentLabel(component.type)}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => { e.stopPropagation(); moveComponent(index, index - 1) }}
+                                                        disabled={index === 0}
+                                                        className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                                                    >
+                                                        <ChevronUp className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => { e.stopPropagation(); moveComponent(index, index + 1) }}
+                                                        disabled={index === components.length - 1}
+                                                        className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                                                    >
+                                                        <ChevronDown className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => { e.stopPropagation(); removeComponent(component.id) }}
+                                                        className="p-1 text-muted-foreground hover:text-destructive"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {selectedComponentId === component.id && (
+                                                <div
+                                                    className="p-3 border-t border-border cursor-auto bg-muted/30"
+                                                    draggable={true}
+                                                    onDragStart={(e) => {
+                                                        e.preventDefault()
+                                                        e.stopPropagation()
+                                                    }}
+                                                    onPointerDown={(e) => e.stopPropagation()}
+                                                >
+                                                    <ComponentEditor
+                                                        type={component.type}
+                                                        props={component.props}
+                                                        onChange={(props) => updateComponent(component.id, props)}
+                                                        tenantId={tenantId}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
                     </div>
 
                     {/* 新增按鈕 - 固定在底部 */}
-                    <div className="sticky bottom-0 p-4 bg-card border-t border-border z-10">
+                    <div className="p-4 bg-card border-t border-border z-10">
                         <Button onClick={() => setShowAddModal(true)} className="w-full">
                             <Plus className="h-4 w-4 mr-2" />
                             新增元件

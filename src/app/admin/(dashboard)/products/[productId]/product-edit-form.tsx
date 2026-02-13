@@ -1,10 +1,11 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useState, useEffect } from 'react'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Combobox } from '@/components/ui/combobox'
 import { Label } from '@/components/ui/label'
 import { ProductImagesInput, ImageItem } from '@/components/admin/product-images-input'
 import { ProductVariantsEditor, ProductOption, ProductVariant } from '@/components/admin/product-variants-editor'
@@ -50,6 +51,27 @@ export function ProductEditForm({ product, updateAction }: Props) {
 
     const [options, setOptions] = useState<ProductOption[]>(product.options || [])
     const [variants, setVariants] = useState<ProductVariant[]>(product.variants || [])
+
+    // Attributes State
+    const [brands, setBrands] = useState<{ id: string, name: string }[]>([])
+    const [categories, setCategories] = useState<{ id: string, name: string }[]>([])
+
+    useEffect(() => {
+        // Fetch brands and categories
+        fetch('/api/products/attributes')
+            .then(res => res.json())
+            .then(data => {
+                if (data.brands) {
+                    const uniqueBrands = Array.from(new Map(data.brands.map((b: any) => [b.name, b])).values()) as { id: string, name: string }[]
+                    setBrands(uniqueBrands)
+                }
+                if (data.categories) {
+                    const uniqueCategories = Array.from(new Map(data.categories.map((c: any) => [c.name, c])).values()) as { id: string, name: string }[]
+                    setCategories(uniqueCategories)
+                }
+            })
+            .catch(err => console.error('Failed to fetch attributes', err))
+    }, [])
 
     const [price, setPrice] = useState(product.price)
     const [stock, setStock] = useState(product.stock)
@@ -97,24 +119,24 @@ export function ProductEditForm({ product, updateAction }: Props) {
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center gap-4">
-                <Link href="/admin/products" className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white">
+                <Link href="/admin/products" className="p-2 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground">
                     <ArrowLeft className="h-5 w-5" />
                 </Link>
-                <h1 className="text-2xl font-bold text-white">編輯商品</h1>
+                <h1 className="text-2xl font-bold text-foreground">編輯商品</h1>
             </div>
 
             {state.error && (
-                <div className="bg-red-500/20 border border-red-500 text-red-400 rounded-lg p-4">
+                <div className="bg-destructive/10 border border-destructive/50 text-destructive rounded-lg p-4">
                     {state.error}
                 </div>
             )}
 
             <form action={handleSubmit} className="space-y-6">
 
-                <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 space-y-6">
+                <div className="bg-card rounded-xl border border-border p-6 space-y-6 shadow-sm">
                     {/* 基本資訊 */}
                     <div className="space-y-4">
-                        <h2 className="text-lg font-semibold text-white">基本資訊</h2>
+                        <h2 className="text-lg font-semibold text-foreground">基本資訊</h2>
 
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="sm:col-span-2">
@@ -123,11 +145,25 @@ export function ProductEditForm({ product, updateAction }: Props) {
                             </div>
                             <div>
                                 <Label htmlFor="brand">品牌</Label>
-                                <Input id="brand" name="brand" defaultValue={product.brand || ''} />
+                                <Combobox
+                                    name="brand"
+                                    options={brands.map(b => ({ value: b.name, label: b.name }))}
+                                    defaultValue={product.brand || ''}
+                                    placeholder="選擇或輸入品牌"
+                                    searchPlaceholder="搜尋品牌..."
+                                    allowCustom
+                                />
                             </div>
                             <div>
                                 <Label htmlFor="category">分類</Label>
-                                <Input id="category" name="category" defaultValue={product.category || ''} />
+                                <Combobox
+                                    name="category"
+                                    options={categories.map(c => ({ value: c.name, label: c.name }))}
+                                    defaultValue={product.category || ''}
+                                    placeholder="選擇或輸入分類"
+                                    searchPlaceholder="搜尋分類..."
+                                    allowCustom
+                                />
                             </div>
                             <div className="sm:col-span-2">
                                 <Label htmlFor="description">商品描述</Label>
@@ -136,15 +172,15 @@ export function ProductEditForm({ product, updateAction }: Props) {
                                     name="description"
                                     rows={4}
                                     defaultValue={product.description || ''}
-                                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                                 />
                             </div>
                         </div>
                     </div>
 
                     {/* 圖片管理 */}
-                    <div className="space-y-4 border-t border-zinc-800 pt-6">
-                        <h2 className="text-lg font-semibold text-white">商品圖片</h2>
+                    <div className="space-y-4 border-t border-border pt-6">
+                        <h2 className="text-lg font-semibold text-foreground">商品圖片</h2>
                         <ProductImagesInput
                             items={images}
                             onChange={handleImagesChange}
@@ -153,8 +189,8 @@ export function ProductEditForm({ product, updateAction }: Props) {
                     </div>
 
                     {/* 價格與庫存 */}
-                    <div className="space-y-4 border-t border-zinc-800 pt-6">
-                        <h2 className="text-lg font-semibold text-white">價格與庫存</h2>
+                    <div className="space-y-4 border-t border-border pt-6">
+                        <h2 className="text-lg font-semibold text-foreground">價格與庫存</h2>
 
                         <div className="grid gap-4 sm:grid-cols-3">
                             <div>
@@ -202,7 +238,7 @@ export function ProductEditForm({ product, updateAction }: Props) {
                     </div>
 
                     {/* 規格設定 */}
-                    <div className="space-y-4 border-t border-zinc-800 pt-6">
+                    <div className="space-y-4 border-t border-border pt-6">
                         <ProductVariantsEditor
                             initialOptions={options}
                             initialVariants={variants}
@@ -217,8 +253,8 @@ export function ProductEditForm({ product, updateAction }: Props) {
                     </div>
 
                     {/* 狀態 */}
-                    <div className="space-y-4 border-t border-zinc-800 pt-6">
-                        <h2 className="text-lg font-semibold text-white">狀態</h2>
+                    <div className="space-y-4 border-t border-border pt-6">
+                        <h2 className="text-lg font-semibold text-foreground">狀態</h2>
 
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div>
@@ -227,7 +263,7 @@ export function ProductEditForm({ product, updateAction }: Props) {
                                     id="status"
                                     name="status"
                                     defaultValue={product.status}
-                                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 bg-background border border-input rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                                 >
                                     <option value="draft">草稿</option>
                                     <option value="active">上架</option>
@@ -238,7 +274,7 @@ export function ProductEditForm({ product, updateAction }: Props) {
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800">
+                <div className="flex justify-end gap-3 pt-4 border-t border-border">
                     <Link href="/admin/products">
                         <Button type="button" variant="outline">取消</Button>
                     </Link>

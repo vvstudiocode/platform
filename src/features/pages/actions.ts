@@ -27,9 +27,9 @@ const pageSchema = z.object({
         .refine(slug => !RESERVED_SLUGS.includes(slug.toLowerCase()), {
             message: "此網址為系統保留字，請使用其他名稱"
         }),
-    seo_title: z.string().nullish().transform(v => v || undefined),
-    seo_description: z.string().nullish().transform(v => v || undefined),
-    seo_keywords: z.string().nullish().transform(v => v || undefined),
+    seo_title: z.string().nullish().transform(v => v || null),
+    seo_description: z.string().nullish().transform(v => v || null),
+    seo_keywords: z.string().nullish().transform(v => v || null),
     background_color: z.string().nullish().transform(v => v || undefined),
     is_homepage: z.coerce.boolean().default(false),
     published: z.coerce.boolean().default(false),
@@ -158,6 +158,14 @@ export async function updatePage(
     if (!validated.success) {
         return { error: validated.error.issues[0].message }
     }
+
+    // DEBUG: Check if SEO fields are present
+    console.log('[DEBUG] updatePage validated data:', {
+        id: pageId,
+        seo_title: validated.data.seo_title,
+        seo_description: validated.data.seo_description,
+        is_homepage: validated.data.is_homepage
+    })
 
     // 如果是首頁，強制清除 slug
     const pageData = { ...validated.data }

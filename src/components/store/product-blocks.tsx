@@ -143,7 +143,7 @@ export function ProductCard({ product, storeSlug, fitDesktop = 'cover', fitMobil
                 {/* Info Area */}
                 <div className="p-4 space-y-2">
                     <Link href={productLink}>
-                        <h3 className="font-semibold text-gray-900 group-hover:text-rose-600 transition-colors line-clamp-2">
+                        <h3 className="font-semibold text-gray-900 transition-colors line-clamp-2">
                             {product.name}
                         </h3>
                     </Link>

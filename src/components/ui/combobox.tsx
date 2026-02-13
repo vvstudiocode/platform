@@ -99,19 +99,19 @@ export function Combobox({
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0 z-[9999] bg-popover border-border text-popover-foreground">
-                    <Command className="bg-popover text-popover-foreground">
+                <PopoverContent className="w-[400px] p-0 z-[9999] bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-popover-foreground shadow-xl">
+                    <Command className="bg-transparent">
                         <CommandInput
                             placeholder={searchPlaceholder}
                             value={search}
                             onValueChange={setSearch}
-                            className="text-foreground placeholder:text-muted-foreground"
+                            className="text-zinc-900 dark:text-zinc-50 placeholder:text-zinc-500"
                         />
                         <CommandList>
-                            <CommandEmpty className="py-2 text-sm text-center text-muted-foreground">
+                            <CommandEmpty className="py-2 text-sm text-center text-zinc-500">
                                 {allowCustom && search ? (
                                     <div
-                                        className="px-2 py-1 cursor-pointer hover:bg-accent text-accent-foreground flex items-center justify-center gap-1"
+                                        className="px-2 py-1 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-50 flex items-center justify-center gap-1"
                                         onClick={handleCustom}
                                     >
                                         <Check className="h-3 w-3 opacity-0" />
@@ -121,13 +121,13 @@ export function Combobox({
                                     emptyText
                                 )}
                             </CommandEmpty>
-                            <CommandGroup heading="選項" className="text-muted-foreground">
+                            <CommandGroup heading="選項" className="text-zinc-500">
                                 {options.map((option) => (
                                     <CommandItem
                                         key={option.value}
                                         value={option.label}
-                                        onSelect={() => handleSelect(option.value)} // Use value not label
-                                        className="text-foreground aria-selected:bg-accent aria-selected:text-accent-foreground cursor-pointer"
+                                        onSelect={() => handleSelect(option.value)}
+                                        className="text-zinc-900 dark:text-zinc-200 aria-selected:bg-zinc-100 dark:aria-selected:bg-zinc-800 aria-selected:text-zinc-900 dark:aria-selected:text-white cursor-pointer data-[disabled]:opacity-50 pointer-events-auto"
                                     >
                                         <Check
                                             className={cn(

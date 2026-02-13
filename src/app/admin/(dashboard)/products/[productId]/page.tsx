@@ -12,11 +12,21 @@ export default async function EditProductPage({ params }: Props) {
     const supabase = await createClient()
     const { data: user } = await supabase.auth.getUser()
 
+    const { data: tenant } = await supabase
+        .from('tenants')
+        .select('id')
+        .or(`managed_by.eq.${user?.user?.id || ''},is_hq.eq.true`)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single()
+
+    if (!tenant) notFound()
+
     const { data: product } = await supabase
         .from('products')
         .select('*')
         .eq('id', productId)
-        .eq('managed_by', user?.user?.id || '')
+        .eq('tenant_id', tenant.id)
         .single()
 
     if (!product) {

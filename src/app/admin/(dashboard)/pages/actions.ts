@@ -16,7 +16,7 @@ export async function updatePage(pageId: string, prevState: any, formData: FormD
     const tenant = await getCurrentTenant('admin')
     if (!tenant) return { error: '請先登入' }
 
-    const result = await sharedPages.updatePage(tenant.id, pageId, false, prevState, formData)
+    const result = await sharedPages.updatePage(tenant.id, pageId, true, prevState, formData)
 
     if (result.success) {
         // 獲取頁面資訊進行 revalidate

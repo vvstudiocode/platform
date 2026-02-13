@@ -19,6 +19,7 @@ export async function verifyTenantAccess(tenantId: string): Promise<boolean> {
         .eq('user_id', user.id)
         .eq('tenant_id', tenantId)
         .in('role', ['store_owner', 'store_admin'])
+        .limit(1)
         .maybeSingle()
 
     if (userRole) return true
@@ -39,6 +40,7 @@ export async function verifyTenantAccess(tenantId: string): Promise<boolean> {
             .select('role')
             .eq('user_id', user.id)
             .eq('role', 'super_admin')
+            .limit(1)
             .maybeSingle()
 
         if (superAdminRole) return true

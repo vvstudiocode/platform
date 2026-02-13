@@ -112,8 +112,16 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
         fetch('/api/products/attributes')
             .then(res => res.json())
             .then(data => {
-                if (data.brands) setBrands(data.brands)
-                if (data.categories) setCategories(data.categories)
+                if (data.brands) {
+                    // Deduplicate brands just in case
+                    const uniqueBrands = Array.from(new Map(data.brands.map((b: any) => [b.name, b])).values()) as { id: string, name: string }[]
+                    setBrands(uniqueBrands)
+                }
+                if (data.categories) {
+                    // Deduplicate categories
+                    const uniqueCategories = Array.from(new Map(data.categories.map((c: any) => [c.name, c])).values()) as { id: string, name: string }[]
+                    setCategories(uniqueCategories)
+                }
             })
             .catch(err => console.error('Failed to fetch attributes', err))
     }, [])
@@ -121,16 +129,16 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
     return (
         <div className="max-w-2xl mx-auto space-y-6">
             <div className="flex items-center gap-4">
-                <Link href="/app/products" className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white">
+                <Link href="/app/products" className="p-2 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground">
                     <ArrowLeft className="h-5 w-5" />
                 </Link>
-                <h1 className="text-2xl font-bold text-white">
+                <h1 className="text-2xl font-bold text-foreground">
                     {storeSlug ? (
                         <a
                             href={productUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:underline underline-offset-4 decoration-zinc-500"
+                            className="hover:underline underline-offset-4 decoration-muted-foreground"
                         >
                             {product.name}
                         </a>
@@ -141,15 +149,15 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
             </div>
 
             {state.error && (
-                <div className="bg-red-500/20 border border-red-500 text-red-400 rounded-lg p-4">
+                <div className="bg-destructive/10 border border-destructive/50 text-destructive rounded-lg p-4">
                     {state.error}
                 </div>
             )}
 
-            <form action={handleSubmit} className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 space-y-6">
+            <form action={handleSubmit} className="bg-card rounded-xl border border-border p-6 space-y-6 shadow-sm">
 
                 <div className="space-y-4">
-                    <h2 className="text-lg font-semibold text-white">基本資訊</h2>
+                    <h2 className="text-lg font-semibold text-foreground">基本資訊</h2>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="sm:col-span-2">
                             <Label htmlFor="name">商品名稱 *</Label>
@@ -184,14 +192,14 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
                                 name="description"
                                 rows={4}
                                 defaultValue={product.description || ''}
-                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                                className="w-full px-3 py-2 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                             />
                         </div>
                     </div>
                 </div>
 
-                <div className="space-y-4 border-t border-zinc-800 pt-6">
-                    <h2 className="text-lg font-semibold text-white">商品圖片</h2>
+                <div className="space-y-4 border-t border-border pt-6">
+                    <h2 className="text-lg font-semibold text-foreground">商品圖片</h2>
                     <ProductImagesInput
                         items={images}
                         onChange={handleImagesChange}
@@ -199,8 +207,8 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
                     />
                 </div>
 
-                <div className="space-y-4 border-t border-zinc-800 pt-6">
-                    <h2 className="text-lg font-semibold text-white">價格與庫存</h2>
+                <div className="space-y-4 border-t border-border pt-6">
+                    <h2 className="text-lg font-semibold text-foreground">價格與庫存</h2>
                     <div className="grid gap-4 sm:grid-cols-3">
                         <div>
                             <Label htmlFor="price">售價 (NTD) *</Label>
@@ -234,7 +242,7 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
                 </div>
 
                 {/* 規格設定 */}
-                <div className="space-y-4 border-t border-zinc-800 pt-6">
+                <div className="space-y-4 border-t border-border pt-6">
                     <ProductVariantsEditor
                         initialOptions={options}
                         initialVariants={variants}
@@ -248,8 +256,8 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
                     />
                 </div>
 
-                <div className="space-y-4 border-t border-zinc-800 pt-6">
-                    <h2 className="text-lg font-semibold text-white">狀態</h2>
+                <div className="space-y-4 border-t border-border pt-6">
+                    <h2 className="text-lg font-semibold text-foreground">狀態</h2>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div>
                             <Label htmlFor="status">狀態</Label>
@@ -257,7 +265,7 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
                                 id="status"
                                 name="status"
                                 defaultValue={product.status}
-                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                                className="w-full px-3 py-2 bg-background border border-input rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                             >
                                 <option value="draft">草稿</option>
                                 <option value="active">上架</option>
@@ -267,8 +275,8 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
                     </div>
                 </div>
 
-                <div className="space-y-4 border-t border-zinc-800 pt-6">
-                    <h2 className="text-lg font-semibold text-white">SEO 設定</h2>
+                <div className="space-y-4 border-t border-border pt-6">
+                    <h2 className="text-lg font-semibold text-foreground">SEO 設定</h2>
                     <div className="space-y-4">
                         <div>
                             <Label htmlFor="seo_title">SEO 標題</Label>
@@ -277,7 +285,7 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
                                 name="seo_title"
                                 defaultValue={product.seo_title || ''}
                                 placeholder="搜尋引擎顯示的標題"
-                                className="bg-zinc-800 border-zinc-700 text-white"
+                                className="bg-background border-input text-foreground"
                             />
                         </div>
                         <div>
@@ -287,7 +295,7 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
                                 name="seo_description"
                                 defaultValue={product.seo_description || ''}
                                 rows={3}
-                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                                 placeholder="搜尋引擎顯示的描述"
                             />
                         </div>
@@ -298,17 +306,17 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
                                 name="seo_keywords"
                                 defaultValue={product.seo_keywords || ''}
                                 placeholder="例如：美妝, 護膚"
-                                className="bg-zinc-800 border-zinc-700 text-white"
+                                className="bg-background border-input text-foreground"
                             />
                         </div>
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800">
+                <div className="flex justify-end gap-3 pt-4 border-t border-border">
                     <Link href="/app/products">
-                        <Button type="button" variant="outline" className="border-zinc-700 text-zinc-300 hover:text-white">取消</Button>
+                        <Button type="button" variant="outline" className="border-border text-muted-foreground hover:text-foreground">取消</Button>
                     </Link>
-                    <Button type="submit" disabled={pending} className="bg-white text-black hover:bg-zinc-200">
+                    <Button type="submit" disabled={pending} className="bg-primary text-primary-foreground hover:bg-primary/90">
                         {pending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                         儲存變更
                     </Button>
