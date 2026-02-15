@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Menu, X, ShoppingCart, ClipboardList, ChevronDown } from 'lucide-react'
+import { Menu, X, ShoppingCart, ClipboardList, ChevronDown, User } from 'lucide-react'
 import { OrderLookupModal } from './order-lookup-modal'
+import { CustomerAuthModal } from './customer-auth-modal'
 
 interface NavItem {
     name: string
@@ -14,16 +15,18 @@ interface NavItem {
 interface Props {
     storeName: string
     storeSlug: string
+    storeId: string
     navigation: NavItem[]
     logo?: string
 }
 
-export function ResponsiveNav({ storeName, storeSlug, navigation, logo }: Props) {
+export function ResponsiveNav({ storeName, storeSlug, storeId, navigation, logo }: Props) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [isScrolled, setIsScrolled] = useState(false)
     const [isVisible, setIsVisible] = useState(true)
     const [isHovered, setIsHovered] = useState(false)
     const [showOrderLookup, setShowOrderLookup] = useState(false)
+    const [showAuthModal, setShowAuthModal] = useState(false)
     const lastScrollY = useRef(0)
 
     useEffect(() => {
@@ -153,6 +156,17 @@ export function ResponsiveNav({ storeName, storeSlug, navigation, logo }: Props)
                                 </div>
                             ))}
 
+                            {/* Auth Button */}
+                            <button
+                                onClick={() => setShowAuthModal(true)}
+                                className={`flex items-center gap-1 font-medium transition-colors ${isTransparent
+                                    ? 'text-white hover:text-white/80 drop-shadow-md'
+                                    : 'text-gray-700 hover:text-gray-900'
+                                    }`}
+                            >
+                                <User className="h-5 w-5" />
+                            </button>
+
                             {/* Order Lookup Button */}
                             <button
                                 onClick={() => setShowOrderLookup(true)}
@@ -162,7 +176,7 @@ export function ResponsiveNav({ storeName, storeSlug, navigation, logo }: Props)
                                     }`}
                             >
                                 <ClipboardList className="h-5 w-5" />
-                                <span className="text-sm">訂單查詢</span>
+                                {/* <span className="text-sm">訂單查詢</span> */}
                             </button>
 
                             <Link
@@ -253,6 +267,16 @@ export function ResponsiveNav({ storeName, storeSlug, navigation, logo }: Props)
                             <button
                                 onClick={() => {
                                     setMobileMenuOpen(false)
+                                    setShowAuthModal(true)
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium text-left"
+                            >
+                                <User className="h-5 w-5" />
+                                會員登入/註冊
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setMobileMenuOpen(false)
                                     setShowOrderLookup(true)
                                 }}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium text-left"
@@ -278,6 +302,15 @@ export function ResponsiveNav({ storeName, storeSlug, navigation, logo }: Props)
                 onClose={() => setShowOrderLookup(false)}
                 storeSlug={storeSlug}
             />
+
+            {showAuthModal && (
+                <CustomerAuthModal
+                    isOpen={showAuthModal}
+                    onClose={() => setShowAuthModal(false)}
+                    storeId={storeId}
+                    storeName={storeName}
+                />
+            )}
         </>
     )
 }

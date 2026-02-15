@@ -49,6 +49,8 @@ export function StorePageClient({ store, page, navItems, homeSlug }: Props) {
             <SiteHeader
                 storeName={store.name}
                 logoUrl={store.logoUrl || undefined}
+                storeSlug={store.slug}
+                storeId={store.id} // Pass tenant ID
                 navItems={navItems}
                 homeSlug={homeSlug}
                 basePath={store.slug === 'omo' ? '' : `/store/${store.slug}`}

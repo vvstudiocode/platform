@@ -295,7 +295,7 @@ export function NavigationManager({ navItems, availablePages, addAction, removeA
     }
 
     return (
-        <div className="space-y-6 max-w-4xl">
+        <div className="space-y-6 w-full">
             {/* 新增項目 */}
             <div className="bg-card rounded-xl border border-border p-6 shadow-soft">
                 <label className="block text-sm font-medium text-foreground mb-4">新增導覽連結</label>

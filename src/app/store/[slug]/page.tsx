@@ -140,6 +140,7 @@ export default async function StorefrontPage({ params }: Props) {
     return (
         <StorefrontClient
             store={{
+                id: store.id,
                 name: store.name,
                 slug: store.slug,
                 settings: settings,

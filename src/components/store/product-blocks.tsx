@@ -112,9 +112,9 @@ export function ProductCard({ product, storeSlug, fitDesktop = 'cover', fitMobil
 
     return (
         <>
-            <div className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300">
+            <div className="group relative bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col">
                 {/* Image Area - Link */}
-                <Link href={productLink} className="block relative overflow-hidden bg-gray-100 aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)]"
+                <Link href={productLink} className="block relative overflow-hidden bg-gray-100 aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)] w-full"
                     style={{
                         '--aspect-desktop': typeof fitDesktop === 'string' && fitDesktop.includes('/') ? fitDesktop : '1/1',
                         '--aspect-mobile': typeof fitMobile === 'string' && fitMobile.includes('/') ? fitMobile : '1/1',
@@ -141,16 +141,19 @@ export function ProductCard({ product, storeSlug, fitDesktop = 'cover', fitMobil
                 </Link>
 
                 {/* Info Area */}
-                <div className="p-4 space-y-2">
-                    <Link href={productLink}>
-                        <h3 className="font-semibold text-gray-900 transition-colors line-clamp-2">
-                            {product.name}
-                        </h3>
-                    </Link>
-                    {product.description && (
-                        <p className="text-sm text-gray-500 line-clamp-2">{product.description}</p>
-                    )}
-                    <div className="flex items-center justify-between mt-2">
+                <div className="p-4 flex flex-col flex-1">
+                    <div className="space-y-2 mb-2">
+                        <Link href={productLink}>
+                            <h3 className="font-semibold text-gray-900 transition-colors line-clamp-2">
+                                {product.name}
+                            </h3>
+                        </Link>
+                        {product.description && (
+                            <p className="text-sm text-gray-500 line-clamp-2">{product.description}</p>
+                        )}
+                    </div>
+
+                    <div className="flex items-center justify-between mt-auto pt-2">
                         <div className="text-lg font-bold text-rose-600">
                             NT$ {product.price.toLocaleString()}
                         </div>

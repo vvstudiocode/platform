@@ -65,6 +65,7 @@ export function HomePageClient({ store, page, navItems, homeSlug }: Props) {
                 homeSlug={homeSlug}
                 basePath={store.slug === 'omo' ? '' : `/store/${store.slug}`}
                 onCartClick={() => setIsCartOpen(true)}
+                storeId={store.id}
             />
 
             {/* 頁面內容 */}

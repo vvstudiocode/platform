@@ -1,11 +1,9 @@
 'use client'
 
-import { useState, useTransition, useRef } from 'react'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CreditCard, Check, Loader2, History, AlertCircle } from 'lucide-react'
-import { updateSubscription, bindCreditCard, unbindCreditCard } from './actions'
+import { Check, History, Mail } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { TenantContext } from '@/lib/tenant'
 
 interface Props {
@@ -20,111 +18,19 @@ interface Props {
 }
 
 export function BillingSettingsPage({ tenant, plans, history }: Props) {
-    const [isPending, startTransition] = useTransition()
-    const [bindingCard, setBindingCard] = useState(false)
-    const [error, setError] = useState('')
-    // Guard to prevent multiple confirm dialogs
-    const isProcessingRef = useRef(false)
-
     const currentPlan = plans.find(p => p.id === tenant.plan_id) || plans[0]
 
-    const submitEcpayForm = (params: Record<string, string>, targetUrl: string) => {
-        const form = document.createElement('form')
-        form.method = 'POST'
-        form.action = targetUrl
-        form.style.display = 'none'
-
-        Object.entries(params).forEach(([key, value]) => {
-            const input = document.createElement('input')
-            input.type = 'hidden'
-            input.name = key
-            input.value = value as string
-            form.appendChild(input)
-        })
-
-        document.body.appendChild(form)
-        form.submit()
-    }
-
-    const handleUpgrade = (planId: string) => {
-        // Prevent multiple calls while processing
-        if (isPending || isProcessingRef.current) return
-
-        setError('')
-
-        // Case: Has Card -> Warn about charge
-        if (tenant.ecpay_card_id && planId !== 'free') {
-            const plan = plans.find(p => p.id === planId)
-            isProcessingRef.current = true
-            const confirmed = window.confirm(`確定要變更為 ${plan?.name} 嗎？\n系統將立即使用綁定的信用卡扣款 NT$ ${plan?.price_monthly}。`)
-            isProcessingRef.current = false
-            if (!confirmed) return
-        } else {
-            isProcessingRef.current = true
-            const confirmed = window.confirm('確定要變更方案嗎？')
-            isProcessingRef.current = false
-            if (!confirmed) return
-        }
-
-        startTransition(async () => {
-            const res = await updateSubscription(tenant.id, planId, tenant.isHQ)
-            if (res?.error) {
-                setError(res.error)
-            } else if (res?.requiresBinding && res?.ecpayParams && res?.ecpayUrl) {
-                submitEcpayForm(res.ecpayParams, res.ecpayUrl)
-            } else if (res?.success) {
-                window.alert('方案已成功變更！')
-            }
-        })
-    }
-
-    const handleBindCard = async () => {
-        setError('')
-        setBindingCard(true)
-        const formData = new FormData()
-
-        try {
-            const res = await bindCreditCard(tenant.id, tenant.isHQ, null, formData)
-            if (res.error) {
-                setError(res.error)
-                setBindingCard(false)
-            } else if (res.ecpayParams && res.ecpayUrl) {
-                submitEcpayForm(res.ecpayParams, res.ecpayUrl)
-            }
-        } catch (e) {
-            setError('發生錯誤')
-            setBindingCard(false)
-        }
-    }
-
-    const handleUnbindCard = async () => {
-        // Prevent multiple calls while processing
-        if (isPending || isProcessingRef.current) return
-
-        isProcessingRef.current = true
-        const confirmed = window.confirm('確定要移除信用卡嗎？\n移除後將無法自動續約，可能導致服務中斷。')
-        isProcessingRef.current = false
-        if (!confirmed) return
-
-        setError('')
-        startTransition(async () => {
-            await unbindCreditCard(tenant.id, tenant.isHQ)
-        })
+    const handleContact = () => {
+        // You can replace this with a specific Line URL or contact form
+        window.open('mailto:support@omoselect.shop?subject=詢問方案升級', '_blank')
     }
 
     return (
         <div className="space-y-8">
             <div>
                 <h2 className="text-xl font-semibold text-foreground mb-2">訂閱與帳單</h2>
-                <p className="text-muted-foreground">管理您的商店方案與付款方式。</p>
+                <p className="text-muted-foreground">檢視您的商店方案與使用狀況。</p>
             </div>
-
-            {error && (
-                <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5" />
-                    {error}
-                </div>
-            )}
 
             {/* Current Status */}
             <div className="grid gap-6 md:grid-cols-2">
@@ -141,8 +47,11 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
                                     {currentPlan?.price_monthly === 0 ? '免費' : `NT$ ${currentPlan?.price_monthly} / 月`}
                                 </p>
                             </div>
-                            <Badge variant={tenant.subscription_status === 'active' ? 'default' : 'destructive'} className="shadow-none">
-                                {tenant.subscription_status === 'active' ? '使用中' : '已暫停'}
+                            <Badge variant={tenant.subscription_status === 'active' ? 'default' : 'secondary'} className="shadow-none">
+                                {tenant.subscription_status === 'active' ? '使用中' :
+                                    tenant.subscription_status === 'past_due' ? '逾期' :
+                                        tenant.subscription_status === 'canceled' ? '已取消' :
+                                            tenant.subscription_status === 'trialing' ? '試用中' : '未知狀態'}
                             </Badge>
                         </div>
                         <div className="space-y-2 text-sm text-muted-foreground">
@@ -159,13 +68,7 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
                             {tenant.next_billing_at && (
                                 <div className="pt-4 flex items-center justify-between text-xs text-muted-foreground">
                                     <div className="flex items-center gap-1">
-                                        <span>自動續約日</span>
-                                        <div className="relative group cursor-help">
-                                            <div className="w-4 h-4 rounded-full border border-muted-foreground/50 flex items-center justify-center text-[10px] text-muted-foreground">?</div>
-                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded hidden group-hover:block whitespace-nowrap border border-border shadow-md z-50">
-                                                於此日期自動扣款，扣款失敗將於 3 日後降級
-                                            </div>
-                                        </div>
+                                        <span>到期日</span>
                                     </div>
                                     <span className="text-foreground font-mono text-sm">
                                         {new Date(tenant.next_billing_at).toLocaleDateString()}
@@ -176,58 +79,23 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-card border-border shadow-soft">
-                    <CardHeader>
-                        <CardTitle className="text-foreground">付款方式</CardTitle>
-                        <CardDescription>管理您的信用卡資訊 (由綠界科技安全儲存)。</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {tenant.ecpay_card_id ? (
-                            <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-muted/20">
-                                <div className="p-2 bg-background border border-border rounded-full">
-                                    <CreditCard className="h-6 w-6 text-foreground" />
-                                </div>
-                                <div>
-                                    <p className="text-foreground font-medium">已綁定信用卡</p>
-                                    <p className="text-sm text-muted-foreground">Card ID: {tenant.ecpay_card_id}</p>
-                                </div>
-                                <div className="ml-auto flex flex-col gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-primary hover:text-primary/80 hover:bg-primary/10"
-                                        onClick={handleBindCard}
-                                        disabled={bindingCard || isPending}
-                                    >
-                                        變更
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-                                        onClick={handleUnbindCard}
-                                        disabled={bindingCard || isPending}
-                                    >
-                                        移除
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="text-center py-6">
-                                <p className="text-muted-foreground mb-4">尚未綁定任何付款方式</p>
-                                <Button onClick={handleBindCard} disabled={bindingCard} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-soft">
-                                    {bindingCard && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                                    立即綁定信用卡
-                                </Button>
-                            </div>
-                        )}
-                    </CardContent>
+                <Card className="bg-card border-border shadow-soft flex flex-col justify-center items-center text-center p-6">
+                    <div className="p-4 bg-primary/10 rounded-full mb-4">
+                        <Mail className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">需要協助或變更方案？</h3>
+                    <p className="text-sm text-muted-foreground mb-6">
+                        如需升級方案、續約或有任何帳務問題，請直接聯繫我們的客服團隊。
+                    </p>
+                    <Button onClick={handleContact} className="shadow-soft">
+                        聯絡客服
+                    </Button>
                 </Card>
             </div>
 
             {/* Plans List */}
             <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">變更方案</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">方案介紹</h3>
                 <div className="grid gap-6 md:grid-cols-4">
                     {plans.map(plan => {
                         const isCurrent = plan.id === tenant.plan_id
@@ -278,10 +146,10 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
                                     <Button
                                         className="w-full shadow-soft"
                                         variant={isCurrent ? "secondary" : "default"}
-                                        disabled={isCurrent || isPending}
-                                        onClick={() => handleUpgrade(plan.id)}
+                                        disabled={isCurrent}
+                                        onClick={handleContact}
                                     >
-                                        {isCurrent ? '目前方案' : '選擇此方案'}
+                                        {isCurrent ? '目前方案' : '聯絡我們'}
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -311,7 +179,7 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
-                                    {history.map((tx) => (
+                                    {history.map((tx: any) => (
                                         <tr key={tx.id} className="hover:bg-muted/20 transition-colors">
                                             <td className="px-6 py-4 font-medium text-foreground">
                                                 {new Date(tx.occurred_at).toLocaleDateString()}

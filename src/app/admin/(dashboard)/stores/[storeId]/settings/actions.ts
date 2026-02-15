@@ -10,13 +10,27 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: '請先登入' }
 
-    const subscriptionTier = formData.get('subscription_tier') as string
+    const planId = formData.get('plan_id') as string
+    const subscriptionStatus = formData.get('subscription_status') as string
+    const nextBillingAt = formData.get('next_billing_at') as string
+
+    // 構建更新物件
+    const updates: any = {
+        plan_id: planId,
+        subscription_status: subscriptionStatus,
+        subscription_tier: planId, // 保持向後相容
+    }
+
+    // 當日期為空字串時，設為 null
+    if (nextBillingAt) {
+        updates.next_billing_at = new Date(nextBillingAt).toISOString()
+    } else {
+        updates.next_billing_at = null
+    }
 
     const { error } = await supabase
         .from('tenants')
-        .update({
-            subscription_tier: subscriptionTier,
-        })
+        .update(updates)
         .eq('id', storeId)
         .eq('managed_by', user.id)
 

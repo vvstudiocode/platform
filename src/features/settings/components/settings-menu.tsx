@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Settings, Database, CreditCard, Globe, Wallet } from 'lucide-react'
+import { Settings, Database, CreditCard, Globe, Wallet, Users } from 'lucide-react'
 
 interface Props {
     basePath: string // '/admin/settings' or '/app/settings'
@@ -44,6 +44,12 @@ export function SettingsMenu({ basePath }: Props) {
             title: '自訂網域',
             description: '設定您的專屬網址',
             href: `${basePath}/domain`
+        },
+        {
+            icon: Users,
+            title: '會員管理',
+            description: '管理會員名單、等級與點數機制',
+            href: `${basePath}/members`
         }
     ]
 

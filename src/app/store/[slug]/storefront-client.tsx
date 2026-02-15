@@ -11,6 +11,7 @@ import { ProductCard } from '@/components/store/product-blocks'
 
 interface Props {
     store: {
+        id: string
         name: string
         slug: string
         settings?: {
@@ -59,6 +60,7 @@ export function StorefrontClient({ store, products, navItems = [] }: Props) {
                 homeSlug={undefined}
                 basePath={store.slug === 'omo' ? '' : `/store/${store.slug}`}
                 onCartClick={() => setIsCartOpen(true)}
+                storeId={store.id}
             />
 
             {/* Products */}

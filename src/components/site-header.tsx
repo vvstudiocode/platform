@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, ShoppingCart, ClipboardList, ChevronDown } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Menu, X, ShoppingCart, ClipboardList, ChevronDown, User } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
 import { CartPopover } from '@/components/store/cart-popover'
 import { OrderLookupPopover } from '@/components/store/order-lookup-popover'
+import { CustomerAuthModal } from '@/components/store/customer-auth-modal'
 
 interface NavItem {
     id?: string
@@ -23,17 +26,33 @@ interface SiteHeaderProps {
     homeSlug?: string  // 設定的首頁 slug
     basePath?: string  // 基本路徑前綴，例如 '' 或 '/store/nike'
     onCartClick?: () => void  // 購物車按鈕點擊回調
+    storeId?: string
 }
 
-export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = '', onCartClick }: SiteHeaderProps) {
+export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = '', onCartClick, storeId }: SiteHeaderProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [mounted, setMounted] = useState(false)
     const [showOrderLookup, setShowOrderLookup] = useState(false)
+    const [showAuthModal, setShowAuthModal] = useState(false)
     const { getItemCount, storeSlug } = useCart()
+
+    const [user, setUser] = useState<any>(null)
+    const supabase = createClient()
+    const router = useRouter() // Ensure imported 'next/navigation'
 
     useEffect(() => {
         setMounted(true)
-    }, [])
+        // Check session
+        supabase.auth.getUser().then(({ data }) => {
+            setUser(data.user)
+        })
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null)
+        })
+
+        return () => subscription.unsubscribe()
+    }, [storeId])
 
     const isStorePath = basePath.includes('/store')
     const pagePrefix = (isStorePath || basePath === '') ? '' : '/p'
@@ -221,6 +240,32 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
 
                     {/* Right side actions */}
                     <div className="flex items-center gap-2 relative">
+                        {/* Auth Button */}
+                        <button
+                            onClick={() => {
+                                if (user) {
+                                    // Navigate to account page
+                                    // Construct path: /store/[slug]/account
+                                    // We can try to get slug from basePath or storeSlug
+                                    // If basePath is '/store/slug', appends '/account'
+                                    if (basePath && basePath.includes('/store/')) {
+                                        router.push(`${basePath}/account`)
+                                    } else if (storeSlug) {
+                                        router.push(`/store/${storeSlug}/account`)
+                                    } else {
+                                        // Fallback?
+                                        console.warn('No slug found for account navigation')
+                                    }
+                                } else {
+                                    setShowAuthModal(true)
+                                }
+                            }}
+                            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                            aria-label={user ? "會員帳戶" : "會員登入/註冊"}
+                        >
+                            <User className={`h-6 w-6 ${user ? 'text-primary' : ''}`} />
+                        </button>
+
                         {/* Order Lookup Button */}
                         <button
                             onClick={() => setShowOrderLookup(true)}
@@ -272,6 +317,27 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                             <MobileNavItem key={item.slug} item={item} />
                         ))}
 
+                        {/* Auth (Mobile) */}
+                        {/* Auth (Mobile) */}
+                        <button
+                            onClick={() => {
+                                setIsMenuOpen(false)
+                                if (user) {
+                                    if (basePath && basePath.includes('/store/')) {
+                                        router.push(`${basePath}/account`)
+                                    } else if (storeSlug) {
+                                        router.push(`/store/${storeSlug}/account`)
+                                    }
+                                } else {
+                                    setShowAuthModal(true)
+                                }
+                            }}
+                            className="w-full flex items-center gap-2 py-4 text-lg font-medium text-foreground hover:text-accent border-b border-border transition-colors text-left"
+                        >
+                            <User className={`h-6 w-6 ${user ? 'text-primary' : ''}`} />
+                            {user ? '我的帳戶' : '會員登入/註冊'}
+                        </button>
+
                         {/* Order Lookup (Mobile) */}
                         <button
                             onClick={() => {
@@ -292,6 +358,15 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                 onClose={() => setShowOrderLookup(false)}
                 storeSlug={storeSlug || ''}
             />
+
+            {showAuthModal && storeId && (
+                <CustomerAuthModal
+                    isOpen={showAuthModal}
+                    onClose={() => setShowAuthModal(false)}
+                    storeId={storeId}
+                    storeName={storeName}
+                />
+            )}
         </>
     )
 }
