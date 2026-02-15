@@ -12,6 +12,9 @@ import { AnimatedTextBlock } from '../store/animated-text-block'
 import { MarqueeBlock } from '../store/marquee-block'
 import { ImageMarqueeBlock } from '../store/image-marquee-block'
 import { ParallaxScrollGallery } from '../premium/framer/ParallaxScrollGallery'
+import { AnimatedTestimonials } from '../ui/image-testimonials'
+import { ThreeDMarquee } from '../ui/marquee-3d'
+import { AppleCardsCarousel } from '../ui/apple-cards-carousel'
 import dynamic from 'next/dynamic'
 
 // Inline LoadingState
@@ -375,6 +378,22 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 backgroundColor={block.props?.backgroundColor}
                 imageHeight={block.props?.imageHeight}
                 imageGap={block.props?.imageGap}
+            />;
+        case 'image_testimonials':
+            return <AnimatedTestimonials
+                testimonials={block.props?.testimonials || []}
+                autoplay={block.props?.autoplay ?? false}
+                autoplayDuration={block.props?.autoplayDuration}
+                isMobile={preview && previewDevice === 'mobile'}
+            />;
+            return <ThreeDMarquee
+                images={block.props?.images || []}
+            />;
+        case 'apple_cards_carousel':
+            return <AppleCardsCarousel
+                items={block.props?.items || []}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
             />;
         default:
             return null

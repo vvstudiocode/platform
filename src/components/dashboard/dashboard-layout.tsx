@@ -19,6 +19,11 @@ interface Props {
     navItems?: NavItem[]
     navSections?: NavSection[]
     children: React.ReactNode
+    usageData?: {
+        planName: string
+        storageUsageMb: number
+        storageLimitMb: number
+    }
 }
 
 // 圖標映射（從 CollapsibleSidebar 複製）
@@ -44,7 +49,7 @@ const iconMap: Record<string, any> = {
     Users,
 }
 
-export function DashboardLayout({ navItems, navSections, children }: Props) {
+export function DashboardLayout({ navItems, navSections, children, usageData }: Props) {
     const pathname = usePathname()
 
     // 取得所有導覽項目（用於手機版底部導覽）
@@ -55,7 +60,7 @@ export function DashboardLayout({ navItems, navSections, children }: Props) {
     return (
         <div className="flex flex-1 min-h-0">
             {/* 桌面版側邊欄 - 使用 sticky 確保固定在視窗 */}
-            <CollapsibleSidebar navItems={navItems} navSections={navSections} />
+            <CollapsibleSidebar navItems={navItems} navSections={navSections} usageData={usageData} />
 
             {/* 主內容區 */}
             <main className="flex-1 overflow-auto pb-16 md:pb-0">

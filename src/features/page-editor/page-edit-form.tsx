@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, useEffect } from 'react'
-import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Box, Sparkles } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Box, Sparkles, MessageSquareQuote } from 'lucide-react'
 import { useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -65,6 +65,7 @@ const componentCategories = [
 
             { type: 'image_text', icon: LayoutGrid, label: '圖文組合', description: '圖片+文字' },
             { type: 'image_grid', icon: LayoutGrid, label: '圖片組合', description: '多圖網格' },
+            { type: 'image_testimonials', icon: MessageSquareQuote, label: '動態見證牆', description: '客戶好評與見證' },
         ]
     },
     {
@@ -90,6 +91,8 @@ const componentCategories = [
         components: [
             { type: 'marquee', icon: Type, label: '跑馬燈', description: '滾動文字公告' },
             { type: 'image_marquee', icon: Image, label: '圖片跑馬燈', description: '滾動圖片展示' },
+            { type: 'marquee_3d', icon: LayoutGrid, label: '3D 跑馬燈', description: '3D 立體圖片展示' },
+            { type: 'apple_cards_carousel', icon: LayoutGrid, label: '滑動卡片', description: 'Apple 風格滑動卡片' },
         ]
     },
 ]
@@ -617,7 +620,7 @@ export function PageEditForm({ page, updateAction, updatePageContentAction, base
                                 )}
 
                                 {/* Footer (Only show in mobile preview to complete the look, or both if desired) */}
-                                {previewMode === 'mobile' && (
+                                {storeName && (
                                     <StoreFooter
                                         storeName={storeName || '商店名稱'}
                                         storeSlug={storeSlug || ''}

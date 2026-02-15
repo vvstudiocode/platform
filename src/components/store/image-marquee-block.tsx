@@ -22,7 +22,9 @@ export function ImageMarqueeBlock({
     imageHeight = 100,
     imageGap = 32,
 }: ImageMarqueeBlockProps) {
-    if (!images || images.length === 0) return null
+    const validImages = images.filter((img) => img.url && img.url.trim() !== "")
+
+    if (!validImages || validImages.length === 0) return null
 
     return (
         <div
@@ -37,16 +39,19 @@ export function ImageMarqueeBlock({
                 className="py-2"
             >
                 <div className="flex items-center" style={{ gap: `${imageGap}px` }}>
-                    {images.map((img, index) => (
+                    {validImages.map((img, index) => (
                         <div
                             key={index}
-                            className="relative flex-shrink-0"
-                            style={{ height: `${imageHeight}px` }}
+                            className="relative flex-shrink-0 overflow-hidden rounded-lg"
+                            style={{
+                                height: `${imageHeight}px`,
+                                width: `${imageHeight}px`
+                            }}
                         >
                             <img
                                 src={img.url}
                                 alt={img.alt || ""}
-                                className="h-full w-auto object-contain transition-all duration-300 hover:scale-105"
+                                className="h-full w-full object-cover transition-all duration-300 hover:scale-105"
                                 style={{ maxHeight: '100%' }}
                             />
                         </div>

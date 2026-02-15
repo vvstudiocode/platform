@@ -52,7 +52,7 @@ export default async function AppLayout({
     // 取得用戶的商店
     const { data: userRole } = await supabase
         .from('users_roles')
-        .select('tenant_id, role, tenants:tenant_id(id, name, slug, logo_url)')
+        .select('tenant_id, role, tenants:tenant_id(id, name, slug, logo_url, plan_id, storage_usage_mb, next_billing_at)')
         .eq('user_id', user.id)
         .in('role', ['store_owner', 'store_admin'])
         .single()
@@ -91,6 +91,20 @@ export default async function AppLayout({
         { href: '/app/settings', icon: 'Settings', label: '商店設定' },
     ]
 
+    // 取得所有方案資料以對照名稱與限制
+    const { data: plans } = await supabase
+        .from('plans')
+        .select('id, name, storage_limit_mb')
+
+    const currentPlan = plans?.find(p => p.id === store.plan_id) || plans?.find(p => p.name === '免費方案')
+
+    const usageData = {
+        planName: currentPlan?.name || '免費方案',
+        storageUsageMb: store.storage_usage_mb || 0,
+        storageLimitMb: currentPlan?.storage_limit_mb || 1000,
+        nextBillingAt: store.next_billing_at
+    }
+
     return (
         <div className="flex min-h-screen flex-col bg-background">
             <header className="border-b border-border bg-background/80 backdrop-blur-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
@@ -126,7 +140,7 @@ export default async function AppLayout({
                     </form>
                 </div>
             </header>
-            <DashboardLayout navItems={navItems}>
+            <DashboardLayout navItems={navItems} usageData={usageData}>
                 {children}
             </DashboardLayout>
         </div>

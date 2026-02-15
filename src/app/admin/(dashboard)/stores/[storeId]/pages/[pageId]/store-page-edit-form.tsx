@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Save } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Save, MessageSquareQuote } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,7 +17,8 @@ import {
     ProductCategoryEditor,
     ProductCarouselEditor,
     MarqueeEditor,
-    ImageMarqueeEditor
+    ImageMarqueeEditor,
+    ImageTestimonialsEditor
 } from '@/components/page-editor/component-editors'
 import { SpacingControls, ImageControls, AspectRatioControls } from '@/components/page-editor/responsive-controls'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
@@ -57,6 +58,7 @@ const componentCategories = [
             { type: 'carousel', icon: Image, label: '輪播圖', description: '圖片輪播' },
             { type: 'image_text', icon: LayoutGrid, label: '圖文組合', description: '圖片+文字' },
             { type: 'image_grid', icon: LayoutGrid, label: '圖片組合', description: '多圖網格' },
+            { type: 'image_testimonials', icon: MessageSquareQuote, label: '動態見證牆', description: '客戶好評與見證' },
         ]
     },
     {
@@ -702,6 +704,22 @@ function getDefaultProps(type: string): Record<string, any> {
                 imageHeight: 100,
                 imageGap: 32
             }
+        case 'image_testimonials':
+            return {
+                testimonials: [
+                    {
+                        id: 'default-1',
+                        quote: "這是我用過最好的產品，細節處理得非常完美！",
+                        name: "Sharon Chang",
+                        designation: "Product Manager",
+                        src: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=3560&auto=format&fit=crop"
+                    }
+                ],
+                autoplay: false,
+                autoplayDuration: 5000,
+                paddingYDesktop: 0,
+                paddingYMobile: 0
+            }
         default:
             return {}
     }
@@ -735,6 +753,8 @@ function ComponentEditor({ type, props, onChange, tenantId }: { type: string; pr
             return <MarqueeEditor props={props} onChange={onChange} />
         case 'image_marquee':
             return <ImageMarqueeEditor props={props} onChange={onChange} tenantId={tenantId} />
+        case 'image_testimonials':
+            return <ImageTestimonialsEditor props={props} onChange={onChange} />
         default:
             return (
                 <div className="text-zinc-500 text-sm">

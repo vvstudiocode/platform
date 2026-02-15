@@ -123,6 +123,7 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
                                         {plan.name === '成長方案' && (
                                             <>
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 解鎖完整品牌工具</div>
+                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 會員功能</div>
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> {plan.storage_limit_mb >= 1024 ? `${plan.storage_limit_mb / 1024} GB` : `${plan.storage_limit_mb} MB`} 儲存空間</div>
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 更低的交易手續費</div>
                                             </>

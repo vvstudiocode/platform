@@ -246,8 +246,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                                 if (user) {
                                     // Navigate to account page
                                     // Construct path: /store/[slug]/account
-                                    // We can try to get slug from basePath or storeSlug
-                                    // If basePath is '/store/slug', appends '/account'
+                                    // We can try to get slug from pattern match
                                     if (basePath && basePath.includes('/store/')) {
                                         router.push(`${basePath}/account`)
                                     } else if (storeSlug) {
@@ -260,7 +259,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                                     setShowAuthModal(true)
                                 }
                             }}
-                            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                            className="hidden md:block p-2 text-muted-foreground hover:text-foreground transition-colors"
                             aria-label={user ? "會員帳戶" : "會員登入/註冊"}
                         >
                             <User className={`h-6 w-6 ${user ? 'text-primary' : ''}`} />
@@ -269,7 +268,7 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                         {/* Order Lookup Button */}
                         <button
                             onClick={() => setShowOrderLookup(true)}
-                            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                            className="hidden md:block p-2 text-muted-foreground hover:text-foreground transition-colors"
                             title="訂單查詢"
                         >
                             <ClipboardList className="h-6 w-6" />

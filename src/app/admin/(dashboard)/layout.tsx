@@ -114,6 +114,27 @@ export default async function AdminLayout({
         },
     ]
 
+    // 取得所有方案資料以對照名稱與限制
+    const { data: plans } = await supabase
+        .from('plans')
+        .select('id, name, storage_limit_mb')
+
+    // 取得目前商店的方案資訊
+    const { data: tenantPlan } = await supabase
+        .from('tenants')
+        .select('plan_id, storage_usage_mb, next_billing_at')
+        .eq('id', hqStore?.id || '')
+        .single()
+
+    const currentPlan = plans?.find(p => p.id === tenantPlan?.plan_id) || plans?.find(p => p.name === '免費方案')
+
+    const usageData = {
+        planName: currentPlan?.name || '免費方案',
+        storageUsageMb: tenantPlan?.storage_usage_mb || 0,
+        storageLimitMb: currentPlan?.storage_limit_mb || 1000,
+        nextBillingAt: tenantPlan?.next_billing_at
+    }
+
     return (
         <div className="flex min-h-screen flex-col bg-background">
             <header className="border-b border-border bg-background/80 backdrop-blur-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
@@ -145,7 +166,7 @@ export default async function AdminLayout({
                     </form>
                 </div>
             </header>
-            <DashboardLayout navSections={navSections}>
+            <DashboardLayout navSections={navSections} usageData={usageData}>
                 {children}
             </DashboardLayout>
         </div>

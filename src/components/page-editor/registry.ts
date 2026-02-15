@@ -18,7 +18,10 @@ import {
     ProductCarouselEditor,
     AnimatedTextEditor,
     MarqueeEditor,
-    ImageMarqueeEditor
+    ImageMarqueeEditor,
+    ImageTestimonialsEditor,
+    ThreeDMarqueeEditor,
+    AppleCardsCarouselEditor
 } from './editors'
 
 export interface ComponentConfig {
@@ -242,6 +245,92 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             backgroundColor: '#ffffff',
             imageHeight: 100,
             imageGap: 32
+        }
+    },
+    image_testimonials: {
+        editor: ImageTestimonialsEditor,
+        label: '動態見證牆',
+        icon: 'message-square',
+        category: 'media',
+        defaultProps: {
+            testimonials: [
+                {
+                    quote: "這是一個非常棒的產品，完全改變了我們的工作方式。",
+                    name: "使用者姓名",
+                    designation: "職稱",
+                    src: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=3560&auto=format&fit=crop"
+                }
+            ],
+            autoplay: true,
+            autoplayDuration: 5000,
+            paddingYDesktop: 0,
+            paddingYMobile: 0,
+        },
+    },
+    marquee_3d: {
+        editor: ThreeDMarqueeEditor,
+        label: '3D 跑馬燈',
+        icon: 'layout-grid',
+        category: 'interactive',
+        defaultProps: {
+            images: [
+                "https://images.unsplash.com/photo-1554080353-a576cf803bda?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1505144808419-1957a94ca61e?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1554080353-a576cf803bda?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1505144808419-1957a94ca61e?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1554080353-a576cf803bda?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1505144808419-1957a94ca61e?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1554080353-a576cf803bda?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1505144808419-1957a94ca61e?auto=format&fit=crop&w=1000&q=80",
+                "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1000&q=80",
+            ],
+            paddingYDesktop: 64,
+            paddingYMobile: 32,
+        },
+    },
+    apple_cards_carousel: {
+        editor: AppleCardsCarouselEditor,
+        label: '滑動卡片',
+        icon: '📱',
+        category: 'interactive',
+        defaultProps: {
+            items: [
+                {
+                    category: "人工智能",
+                    title: "你可以用 AI 做更多事。",
+                    src: "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?q=80&w=3556&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                },
+                {
+                    category: "生產力",
+                    title: "提升你的生產力。",
+                    src: "https://images.unsplash.com/photo-1531554694128-c4c6665f59c2?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                },
+                {
+                    category: "產品",
+                    title: "推出新的 Apple Vision Pro。",
+                    src: "https://images.unsplash.com/photo-1713869791518-a770879e60dc?q=80&w=2333&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                },
+                {
+                    category: "產品",
+                    title: "Maps for your iPhone 15 Pro Max.",
+                    src: "https://images.unsplash.com/photo-1599202860130-f600f4948364?q=80&w=2515&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                },
+                {
+                    category: "iOS",
+                    title: "Photography just got better.",
+                    src: "https://images.unsplash.com/photo-1602081957921-9137a5d6eaee?q=80&w=2793&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                },
+                {
+                    category: "Hiring",
+                    title: "Hiring for a Staff Software Engineer",
+                    src: "https://images.unsplash.com/photo-1511984802559-2512431aa931?q=80&w=2928&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                }
+            ],
+            paddingYDesktop: 0,
+            paddingYMobile: 0,
         }
     }
 }

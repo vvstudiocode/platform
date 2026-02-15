@@ -189,8 +189,9 @@ export function ProductVariantsEditor({ initialOptions = [], initialVariants = [
                                         </button>
                                     </div>
                                 ))}
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 items-center">
                                     <Input
+                                        id={`option-input-${option.id}`}
                                         placeholder="輸入後按 Enter"
                                         className="w-32 h-8 text-sm bg-background border-input"
                                         onKeyDown={(e) => {
@@ -201,6 +202,21 @@ export function ProductVariantsEditor({ initialOptions = [], initialVariants = [
                                             }
                                         }}
                                     />
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="secondary"
+                                        className="h-8 px-2"
+                                        onClick={() => {
+                                            const input = document.getElementById(`option-input-${option.id}`) as HTMLInputElement
+                                            if (input && input.value) {
+                                                addValue(idx, input.value)
+                                                input.value = ''
+                                            }
+                                        }}
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -212,55 +228,57 @@ export function ProductVariantsEditor({ initialOptions = [], initialVariants = [
             </div>
 
             {/* Variants Table */}
-            {variants.length > 0 && (
-                <div className="space-y-2">
-                    <Label className="text-base text-foreground font-medium">規格列表 ({variants.length})</Label>
-                    <div className="border border-border rounded-xl overflow-hidden shadow-sm">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-muted-foreground uppercase bg-muted/40 border-b border-border">
-                                    <tr>
-                                        <th className="px-4 py-3 font-medium">規格</th>
-                                        <th className="px-4 py-3 w-32 font-medium">價格</th>
-                                        <th className="px-4 py-3 w-24 font-medium">庫存</th>
-                                        <th className="px-4 py-3 w-32 font-medium">SKU</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-card divide-y divide-border">
-                                    {variants.map((variant, idx) => (
-                                        <tr key={idx} className="hover:bg-accent/5 transition-colors">
-                                            <td className="px-4 py-3 font-medium text-foreground">{variant.name}</td>
-                                            <td className="px-4 py-3">
-                                                <Input
-                                                    type="number"
-                                                    value={variant.price}
-                                                    onChange={(e) => updateVariantField(idx, 'price', Number(e.target.value))}
-                                                    className="h-8 bg-background border-input"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <Input
-                                                    type="number"
-                                                    value={variant.stock}
-                                                    onChange={(e) => updateVariantField(idx, 'stock', Number(e.target.value))}
-                                                    className="h-8 bg-background border-input"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <Input
-                                                    value={variant.sku || ''}
-                                                    onChange={(e) => updateVariantField(idx, 'sku', e.target.value)}
-                                                    className="h-8 bg-background border-input"
-                                                />
-                                            </td>
+            {
+                variants.length > 0 && (
+                    <div className="space-y-2">
+                        <Label className="text-base text-foreground font-medium">規格列表 ({variants.length})</Label>
+                        <div className="border border-border rounded-xl overflow-hidden shadow-sm">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="text-xs text-muted-foreground uppercase bg-muted/40 border-b border-border">
+                                        <tr>
+                                            <th className="px-4 py-3 font-medium">規格</th>
+                                            <th className="px-4 py-3 w-32 font-medium">價格</th>
+                                            <th className="px-4 py-3 w-24 font-medium">庫存</th>
+                                            <th className="px-4 py-3 w-32 font-medium">SKU</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="bg-card divide-y divide-border">
+                                        {variants.map((variant, idx) => (
+                                            <tr key={idx} className="hover:bg-accent/5 transition-colors">
+                                                <td className="px-4 py-3 font-medium text-foreground">{variant.name}</td>
+                                                <td className="px-4 py-3">
+                                                    <Input
+                                                        type="number"
+                                                        value={variant.price}
+                                                        onChange={(e) => updateVariantField(idx, 'price', Number(e.target.value))}
+                                                        className="h-8 bg-background border-input"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <Input
+                                                        type="number"
+                                                        value={variant.stock}
+                                                        onChange={(e) => updateVariantField(idx, 'stock', Number(e.target.value))}
+                                                        className="h-8 bg-background border-input"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <Input
+                                                        value={variant.sku || ''}
+                                                        onChange={(e) => updateVariantField(idx, 'sku', e.target.value)}
+                                                        className="h-8 bg-background border-input"
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     )
 }

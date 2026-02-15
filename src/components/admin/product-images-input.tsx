@@ -23,7 +23,11 @@ export function ProductImagesInput({ items = [], onChange, maxImages = 5 }: Prop
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const sensors = useSensors(
-        useSensor(PointerSensor),
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         })

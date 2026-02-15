@@ -40,12 +40,20 @@ interface NavSection {
     items: NavItem[]
 }
 
+interface UsageData {
+    planName: string
+    storageUsageMb: number
+    storageLimitMb: number
+    nextBillingAt?: string | null
+}
+
 interface Props {
     navItems?: NavItem[]
     navSections?: NavSection[]
+    usageData?: UsageData
 }
 
-export function CollapsibleSidebar({ navItems, navSections }: Props) {
+export function CollapsibleSidebar({ navItems, navSections, usageData }: Props) {
     const [collapsed, setCollapsed] = useState(false)
     const pathname = usePathname()
 
@@ -104,6 +112,37 @@ export function CollapsibleSidebar({ navItems, navSections }: Props) {
                         </div>
                     ))}
                 </nav>
+
+                {/* Usage Widget */}
+                {usageData && !collapsed && (
+                    <div className="px-4 py-4 mt-auto border-t border-sidebar-border">
+                        <div className="bg-sidebar-accent/50 rounded-lg p-3 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-medium text-sidebar-primary">{usageData.planName}</span>
+                                <span className="text-[10px] text-muted-foreground bg-background px-1.5 py-0.5 rounded border border-border">使用中</span>
+                            </div>
+
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-[10px] text-muted-foreground">
+                                    <span>儲存空間</span>
+                                    <span>{(usageData.storageUsageMb).toFixed(1)} / {usageData.storageLimitMb} MB</span>
+                                </div>
+                                <div className="h-1.5 w-full bg-background rounded-full overflow-hidden border border-border/50">
+                                    <div
+                                        className="h-full bg-primary transition-all duration-300"
+                                        style={{ width: `${Math.min((usageData.storageUsageMb / (usageData.storageLimitMb || 1)) * 100, 100)}%` }}
+                                    />
+                                </div>
+                                {usageData.nextBillingAt && (
+                                    <div className="flex justify-between text-[10px] text-muted-foreground pt-1">
+                                        <span>到期日</span>
+                                        <span>{new Date(usageData.nextBillingAt).toLocaleDateString()}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </aside>
 
             {/* 收合/展開按鈕 - 在外層容器，騎在邊線上 */}
