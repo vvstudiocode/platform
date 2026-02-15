@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Settings, Database, CreditCard, Globe, Wallet, Users } from 'lucide-react'
+import { Settings, Database, CreditCard, Globe, Wallet, Users, MessageSquare } from 'lucide-react'
 
 interface Props {
     basePath: string // '/admin/settings' or '/app/settings'
@@ -50,6 +50,12 @@ export function SettingsMenu({ basePath }: Props) {
             title: '會員管理',
             description: '管理會員名單、等級與點數機制',
             href: `${basePath}/members`
+        },
+        {
+            icon: MessageSquare,
+            title: 'LINE Bot',
+            description: '串接 LINE 官方帳號與群組喊單功能',
+            href: `${basePath}/line`
         }
     ]
 

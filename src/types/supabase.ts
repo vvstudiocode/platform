@@ -23,6 +23,8 @@ export type Database = {
           email: string | null
           id: string
           level_id: string | null
+          line_user_id: string | null
+          line_display_name: string | null
           name: string | null
           orders_count: number | null
           phone: string | null
@@ -38,6 +40,8 @@ export type Database = {
           email?: string | null
           id?: string
           level_id?: string | null
+          line_user_id?: string | null
+          line_display_name?: string | null
           name?: string | null
           orders_count?: number | null
           phone?: string | null
@@ -53,6 +57,8 @@ export type Database = {
           email?: string | null
           id?: string
           level_id?: string | null
+          line_user_id?: string | null
+          line_display_name?: string | null
           name?: string | null
           orders_count?: number | null
           phone?: string | null
@@ -599,6 +605,7 @@ export type Database = {
           id: string
           image_url: string | null
           images: Json | null
+          keyword: string | null
           name: string
           options: Json | null
           price: number
@@ -622,6 +629,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           images?: Json | null
+          keyword?: string | null
           name: string
           options?: Json | null
           price?: number
@@ -645,6 +653,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           images?: Json | null
+          keyword?: string | null
           name?: string
           options?: Json | null
           price?: number
