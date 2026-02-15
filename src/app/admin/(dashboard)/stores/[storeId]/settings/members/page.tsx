@@ -21,7 +21,7 @@ export default function MemberSettingsPage({ params }: Props) {
     const router = useRouter()
     const supabase = createClient()
     const [loading, setLoading] = useState(true)
-    const [activeTab, setActiveTab] = useState<'list' | 'levels' | 'points'>('list')
+    const [activeTab, setActiveTab] = useState<'list' | 'levels'>('list')
 
     // Data state
     const [levels, setLevels] = useState<any[]>([])
@@ -159,12 +159,6 @@ export default function MemberSettingsPage({ params }: Props) {
                     >
                         等級設定
                     </button>
-                    <button
-                        onClick={() => setActiveTab('points')}
-                        className={`pb-2 border-b-2 transition-colors ${activeTab === 'points' ? 'border-primary text-primary font-medium' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-                    >
-                        點數規則
-                    </button>
                 </div>
 
                 {activeTab === 'list' && (
@@ -178,12 +172,7 @@ export default function MemberSettingsPage({ params }: Props) {
                     />
                 )}
 
-                {activeTab === 'points' && (
-                    <MemberPointsSettings
-                        storeId={storeId}
-                        initialSettings={storeSettings}
-                    />
-                )}
+
             </div>
         </div>
     )

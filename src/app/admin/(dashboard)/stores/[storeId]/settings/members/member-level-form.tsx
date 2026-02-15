@@ -14,7 +14,7 @@ interface MemberLevel {
     min_spend: number
     discount_type: 'percent' | 'fixed' | 'none'
     discount_value: number
-    point_rate: number // Changed from point_earn_rate to match App usage, will map
+
     is_default?: boolean
 }
 
@@ -41,7 +41,7 @@ export function MemberLevelForm({ storeId, initialLevels }: Props) {
                 min_spend: l.min_spend,
                 discount_type: l.discount_type,
                 discount_value: l.discount_value,
-                point_earn_rate: l.point_rate, // Map back to DB column
+
                 is_default: l.is_default || false,
                 updated_at: new Date().toISOString()
             }))
@@ -78,7 +78,7 @@ export function MemberLevelForm({ storeId, initialLevels }: Props) {
             min_spend: 0,
             discount_type: 'percent',
             discount_value: 0,
-            point_rate: 1.0,
+
             is_default: false
         }])
     }
@@ -180,20 +180,7 @@ export function MemberLevelForm({ storeId, initialLevels }: Props) {
                                 )}
                             </div>
                         </div>
-                        <div className="col-span-12 md:col-span-2">
-                            <div className="flex items-center gap-1 mb-1.5">
-                                <Label>點數回饋倍率</Label>
-                                <div title="1.0 為正常回饋，1.5 為 1.5 倍回饋" className="cursor-help text-muted-foreground">
-                                    <HelpCircle className="h-3 w-3" />
-                                </div>
-                            </div>
-                            <Input
-                                type="number"
-                                step="0.1"
-                                value={level.point_rate}
-                                onChange={(e) => updateLevel(level.id, 'point_rate', parseFloat(e.target.value) || 1)}
-                            />
-                        </div>
+
                         <div className="col-span-12 md:col-span-1">
                             <Button variant="ghost" size="icon" onClick={() => removeLevel(level.id, index)} className="text-destructive h-10 w-10">
                                 <Trash2 className="h-4 w-4" />

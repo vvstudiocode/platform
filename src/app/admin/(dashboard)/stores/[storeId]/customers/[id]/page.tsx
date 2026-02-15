@@ -25,24 +25,13 @@ interface Customer {
     tags: string[]
 }
 
-interface PointTransaction {
-    id: string
-    amount: number
-    type: string
-    created_at: string
-    description: string
-}
-
 export default function CustomerDetailPage() {
     const params = useParams()
     const storeId = params.storeId as string
-    const customerId = params.customerId as string // Check route params naming
-    // Correct route is /admin/stores/[storeId]/customers/[id] -> id
     const id = params.id as string
 
     const supabase = createClient()
     const [customer, setCustomer] = useState<Customer | null>(null)
-    const [transactions, setTransactions] = useState<PointTransaction[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -63,16 +52,9 @@ export default function CustomerDetailPage() {
             if (error) throw error
             setCustomer(data as any)
 
-            // Fetch transactions
-            const { data: tx, error: txError } = await supabase
-                .from('point_transactions')
-                .select('*')
-                .eq('customer_id', id)
-                .order('created_at', { ascending: false })
-                .limit(10)
-
-            if (!txError) setTransactions(tx)
-
+            // Fetch transactions (Removed)
+            // const { data: tx, error: txError } = await supabase...
+            // if (!txError) setTransactions(tx)
         } catch (error) {
             console.error('Error:', error)
         } finally {
@@ -99,7 +81,7 @@ export default function CustomerDetailPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Basic Info */}
                 <Card>
                     <CardHeader>
@@ -121,19 +103,13 @@ export default function CustomerDetailPage() {
                     </CardContent>
                 </Card>
 
-                {/* Status */}
+                {/* Status (Simplified, Removed Points) */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>會員狀態</CardTitle>
+                        <CardTitle>消費概況</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="flex justify-between items-center border-b pb-2">
-                            <div className="flex items-center gap-2">
-                                <Star className="h-4 w-4 text-amber-500" />
-                                <span>持有點數</span>
-                            </div>
-                            <span className="text-xl font-bold text-amber-600">{customer.current_points}</span>
-                        </div>
+                        {/* Removed Points Display */}
                         <div className="flex justify-between items-center border-b pb-2">
                             <div className="flex items-center gap-2">
                                 <History className="h-4 w-4 text-muted-foreground" />
@@ -148,44 +124,20 @@ export default function CustomerDetailPage() {
                     </CardContent>
                 </Card>
 
-                {/* Actions */}
-                <Card>
+                {/* Actions (Removed Points Adjustment) */}
+                <Card className="col-span-1 md:col-span-2">
                     <CardHeader>
                         <CardTitle>快速操作</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        <Button variant="outline" className="w-full justify-start">調整點數</Button>
+                        {/* <Button variant="outline" className="w-full justify-start">調整點數</Button> */}
                         <Button variant="outline" className="w-full justify-start">變更等級</Button>
                         <Button variant="outline" className="w-full justify-start text-destructive hover:bg-destructive/10">封鎖黑名單</Button>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Transactions */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>最近點數紀錄</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {transactions.length === 0 ? (
-                        <div className="text-muted-foreground text-sm">尚無紀錄</div>
-                    ) : (
-                        <div className="space-y-4">
-                            {transactions.map(tx => (
-                                <div key={tx.id} className="flex justify-between items-center border-b pb-2 last:border-0 last:pb-0">
-                                    <div>
-                                        <div className="font-medium">{tx.type}</div>
-                                        <div className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleString()}</div>
-                                    </div>
-                                    <div className={`font-bold ${tx.amount > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                        {tx.amount > 0 ? '+' : ''}{tx.amount}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+            {/* Transactions Card Removed */}
         </div>
     )
 }

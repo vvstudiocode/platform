@@ -170,12 +170,7 @@ export default function AccountPage({ params }: { params: Promise<{ slug: string
                                             {customer.level?.name || '一般會員'}
                                         </Badge>
                                     </div>
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-4xl font-bold font-heading text-neutral-900 tracking-tight">
-                                            {customer.current_points}
-                                        </span>
-                                        <span className="text-sm text-neutral-500">點</span>
-                                    </div>
+                                    {/* Points Removed */}
                                 </div>
                             </CardContent>
                         </Card>

@@ -144,7 +144,7 @@ export function MembersTable({ storeId }: Props) {
                                     <TableHead>姓名 / Email</TableHead>
                                     <TableHead>電話</TableHead>
                                     <TableHead>等級</TableHead>
-                                    <TableHead className="text-right">現有點數</TableHead>
+
                                     <TableHead className="text-right">累積消費</TableHead>
                                     <TableHead className="text-right">加入時間</TableHead>
                                     <TableHead className="w-[50px]"></TableHead>
@@ -176,9 +176,7 @@ export function MembersTable({ storeId }: Props) {
                                                     {member.level?.name || '一般會員'}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="text-right font-mono">
-                                                {member.current_points}
-                                            </TableCell>
+
                                             <TableCell className="text-right font-mono">
                                                 ${member.total_spent.toLocaleString()}
                                             </TableCell>
