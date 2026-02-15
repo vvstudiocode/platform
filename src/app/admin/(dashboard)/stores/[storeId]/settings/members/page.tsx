@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { MemberLevelForm } from './member-level-form'
-import { MemberPointsSettings } from './member-points-settings'
+
 import { MembersTable } from './members-table'
 
 interface Props {
