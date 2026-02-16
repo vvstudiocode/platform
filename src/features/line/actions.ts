@@ -148,6 +148,7 @@ export async function saveLineWelcomeMessage(
 
     const welcomeMessage = formData.get('welcomeMessage') as string || ''
     const groupOrderingEnabled = formData.get('groupOrderingEnabled') === 'on'
+    const dmOrderingEnabled = formData.get('dmOrderingEnabled') === 'on'
     const notifyShipped = formData.get('notifyShipped') === 'on'
     const notifyCompleted = formData.get('notifyCompleted') === 'on'
     const shippedMessage = formData.get('shippedMessage') as string || ''
@@ -171,6 +172,7 @@ export async function saveLineWelcomeMessage(
             ...(currentSettings.line || {}),
             welcome_message: welcomeMessage,
             group_ordering_enabled: groupOrderingEnabled,
+            dm_ordering_enabled: dmOrderingEnabled,
             notify_shipped: notifyShipped,
             notify_completed: notifyCompleted,
             shipped_message: shippedMessage,

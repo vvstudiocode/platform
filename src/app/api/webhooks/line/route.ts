@@ -412,14 +412,22 @@ async function handleTextMessage(
 
     const settings = (tenant?.settings as Record<string, any>) || {}
     const groupOrderingEnabled = settings.line?.group_ordering_enabled || false
+    const dmOrderingEnabled = settings.line?.dm_ordering_enabled || false
 
-    console.log('[LINE +1] Group ordering enabled:', groupOrderingEnabled, 'Source type:', event.source.type)
+    console.log('[LINE +1] Settings:', { groupOrderingEnabled, dmOrderingEnabled }, 'Source type:', event.source.type)
 
-    // If in group, only process when group ordering is enabled
-    // If in 1-on-1 chat (user source), always allow ordering
-    if (isGroupContext && !groupOrderingEnabled) {
-        console.log('[LINE +1] SKIP: Group ordering is disabled')
-        return
+    // Check permissions based on context
+    if (isGroupContext) {
+        if (!groupOrderingEnabled) {
+            console.log('[LINE +1] SKIP: Group ordering is disabled')
+            return
+        }
+    } else {
+        // 1-on-1 Chat
+        if (!dmOrderingEnabled) {
+            console.log('[LINE +1] SKIP: DM ordering is disabled')
+            return
+        }
     }
 
     // Parse "+1" pattern: productId+quantity or productId *quantity
@@ -457,9 +465,9 @@ async function handleTextMessage(
     const customer = await getOrCreateCustomer(adminClient, client, tenantId, lineUserId)
 
     if (!customer) {
-        // Always push error messages privately to the user
-        await client.pushMessage({
-            to: lineUserId,
+        // Reply with error
+        await client.replyMessage({
+            replyToken: event.replyToken,
             messages: [{
                 type: 'text',
                 text: `❌ 系統錯誤，無法處理您的訂單。請稍後再試。`
@@ -474,8 +482,8 @@ async function handleTextMessage(
         (product.options as any[]).length > 0
 
     if (hasVariants) {
-        // Send variant selector as private message to user
-        await sendVariantSelector(client, lineUserId, product, quantity, customer.id)
+        // Send variant selector
+        await sendVariantSelector(client, event.replyToken, product, quantity)
     } else {
         // Simple product - add directly to cart
         await addToCart(adminClient, tenantId, customer.id, product.id, null, quantity)
@@ -494,9 +502,9 @@ async function handleTextMessage(
             customer.isNew
         )
 
-        // Always send as private message (DM) to the customer
-        await client.pushMessage({
-            to: lineUserId,
+        // Reply with Flex Message
+        await client.replyMessage({
+            replyToken: event.replyToken,
             messages: [flexMessage],
         })
     }
@@ -549,9 +557,9 @@ async function handlePostback(
             customer.isNew
         )
 
-        // Always send as private message (DM) to the customer
-        await client.pushMessage({
-            to: lineUserId,
+        // Reply with Flex Message
+        await client.replyMessage({
+            replyToken: event.replyToken,
             messages: [flexMessage],
         })
     }
@@ -563,10 +571,9 @@ async function handlePostback(
 
 async function sendVariantSelector(
     client: any,
-    lineUserId: string,
+    replyToken: string,
     product: any,
-    quantity: number,
-    customerId: string
+    quantity: number
 ) {
     const options = product.options as any[]
     // LINE carousel supports max 12 bubbles, each with max ~10 buttons
@@ -659,9 +666,9 @@ async function sendVariantSelector(
             : bubbles[0],
     }
 
-    // Send as private message (DM) to the customer
-    await client.pushMessage({
-        to: lineUserId,
+    // Reply with Flex Message
+    await client.replyMessage({
+        replyToken: replyToken,
         messages: [flexMessage],
     })
 }

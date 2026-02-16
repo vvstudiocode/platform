@@ -19,6 +19,7 @@ interface Props {
     }
     welcomeMessage: string
     groupOrderingEnabled: boolean
+    dmOrderingEnabled: boolean
     notifyShipped: boolean
     notifyCompleted: boolean
     shippedMessage: string
@@ -34,6 +35,7 @@ export function LineSettingsForm({
     currentSettings,
     welcomeMessage,
     groupOrderingEnabled,
+    dmOrderingEnabled,
     notifyShipped,
     notifyCompleted,
     shippedMessage,
@@ -315,29 +317,53 @@ export function LineSettingsForm({
                         </div>
 
                         <div className="rounded-lg border border-border overflow-hidden">
-                            <div className="flex items-center justify-between p-4 bg-muted/20">
-                                <div>
-                                    <p className="font-medium text-foreground">群組喊單功能 (+1)</p>
-                                    <p className="text-xs text-muted-foreground mt-0.5">啟用後，客人在 LINE 群組或官方帳號中輸入商品編號+數量即可加入購物車。回覆會以私訊方式傳送給客人。</p>
+                            <div className="px-4 py-3 bg-muted/20 border-b border-border">
+                                <p className="font-medium text-foreground">喊單功能 (+1)</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">客人輸入商品編號+數量即可加入購物車。可分別開啟群組或私訊模式。</p>
+                            </div>
+
+                            <div className="divide-y divide-border">
+                                {/* Toggle: Group Ordering */}
+                                <div className="flex items-center justify-between p-4">
+                                    <div>
+                                        <p className="text-sm font-medium text-foreground">群組喊單回覆</p>
+                                        <p className="text-xs text-muted-foreground mt-0.5">客人在 LINE 群組中喊單，Bot <strong>在群組中</strong>回覆購物車卡片。</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            name="groupOrderingEnabled"
+                                            defaultChecked={groupOrderingEnabled}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                    </label>
                                 </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        name="groupOrderingEnabled"
-                                        defaultChecked={groupOrderingEnabled}
-                                        className="sr-only peer"
-                                    />
-                                    <div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                                </label>
+
+                                {/* Toggle: DM Ordering */}
+                                <div className="flex items-center justify-between p-4">
+                                    <div>
+                                        <p className="text-sm font-medium text-foreground">私訊喊單</p>
+                                        <p className="text-xs text-muted-foreground mt-0.5">客人在官方帳號 1對1 聊天中喊單，Bot <strong>私訊</strong>回覆購物車卡片。</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            name="dmOrderingEnabled"
+                                            defaultChecked={dmOrderingEnabled}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                    </label>
+                                </div>
                             </div>
 
                             {/* Usage Examples */}
                             <div className="p-4 border-t border-border space-y-3">
                                 <p className="text-sm font-medium text-foreground">使用方式</p>
                                 <p className="text-sm text-muted-foreground">
-                                    客人在 LINE 群組或官方帳號 1對1 聊天中，輸入<strong>「商品編號 + 數量」</strong>即可將商品加入購物車。
+                                    客人輸入<strong>「商品編號 + 數量」</strong>即可將商品加入購物車。
                                     系統會使用後台的商品編號（如 <code className="bg-muted px-1.5 py-0.5 rounded text-xs">p000001</code>）自動比對。
-                                    <strong>購物車資訊會以私訊方式回覆給客人</strong>，不會在群組中顯示。
                                 </p>
 
                                 <div className="bg-muted/30 rounded-lg p-3 space-y-2">
@@ -351,27 +377,20 @@ export function LineSettingsForm({
                                             <code className="bg-background border border-border px-2 py-1 rounded text-sm font-mono">p000003+2</code>
                                             <span className="text-xs text-muted-foreground">→ 商品 p000003 加入 2 件</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <code className="bg-background border border-border px-2 py-1 rounded text-sm font-mono">p000010*3</code>
-                                            <span className="text-xs text-muted-foreground">→ 商品 p000010 加入 3 件</span>
-                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">流程說明</p>
-                                    <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                                        <li>客人在群組或 1對1 聊天中輸入 <code className="bg-muted px-1 py-0.5 rounded text-xs">p000001+1</code></li>
-                                        <li>Bot 自動比對商品編號，找到對應商品</li>
-                                        <li>若商品<strong>無規格</strong>→ 直接加入購物車，Bot <strong>私訊</strong>客人確認</li>
-                                        <li>若商品<strong>有規格</strong>（顏色/尺寸）→ Bot <strong>私訊</strong>客人互動卡片讓客人選擇</li>
-                                        <li>客人到網站購物車完成結帳</li>
-                                    </ol>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">回覆方式差異</p>
+                                    <div className="text-sm text-muted-foreground space-y-1">
+                                        <p>• <strong>群組喊單回覆</strong>：Bot 直接在群組中回覆，所有成員看得到（不消耗推播額度）</p>
+                                        <p>• <strong>私訊喊單</strong>：Bot 透過 1對1 聊天回覆，只有客人看得到（消耗推播額度）</p>
+                                    </div>
                                 </div>
 
                                 <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
                                     <p className="text-xs text-amber-700 dark:text-amber-400">
-                                        ⚠️ <strong>注意：</strong>私訊功能需消耗 LINE 推播訊息額度。客人需先加入 LINE 官方帳號好友才能收到私訊。在群組中啟用此功能需開啟上方開關。
+                                        ⚠️ <strong>注意：</strong>群組回覆使用回覆訊息（不計額度），私訊使用推播訊息（消耗免費方案 200 則/月額度）。
                                     </p>
                                 </div>
                             </div>

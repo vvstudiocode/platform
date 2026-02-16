@@ -55,6 +55,7 @@ export default async function LineSettingsPage() {
                 currentSettings={currentSettings}
                 welcomeMessage={lineSettings.welcome_message || ''}
                 groupOrderingEnabled={lineSettings.group_ordering_enabled || false}
+                dmOrderingEnabled={lineSettings.dm_ordering_enabled || false}
                 notifyShipped={lineSettings.notify_shipped || false}
                 notifyCompleted={lineSettings.notify_completed || false}
                 shippedMessage={lineSettings.shipped_message || ''}

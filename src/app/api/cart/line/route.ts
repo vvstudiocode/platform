@@ -4,8 +4,10 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 
 // ============================================================
 // LINE Cart Hydration API
-// Returns cart items from DB for a logged-in LINE user
-// Used by the cart hydration page to populate localStorage
+// Returns cart items from DB for a LINE user
+// Supports multiple auth methods:
+//   1. Supabase session (cookie)
+//   2. user_id query param (from JWT-verified magic link redirect)
 // ============================================================
 
 export const dynamic = 'force-dynamic'
@@ -24,64 +26,30 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Missing tenant_id' }, { status: 400 })
     }
 
-    // Get current user from session
-    const supabase = await createServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    // Try to get user ID from multiple sources
+    let userId: string | null = null
 
-    // Fallback: try reading magic-login cookie directly if SSR auth fails
-    let userId = user?.id
-    if (!userId) {
-        const { cookies: getCookies } = await import('next/headers')
-        const cookieStore = await getCookies()
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-        const projectRef = new URL(supabaseUrl).hostname.split('.')[0]
-        const cookieName = `sb-${projectRef}-auth-token`
-
-        let authCookieValue = cookieStore.get(cookieName)?.value || ''
-
-        // Check for chunked cookies
-        if (!authCookieValue) {
-            const chunks: string[] = []
-            let i = 0
-            while (true) {
-                const chunk = cookieStore.get(`${cookieName}.${i}`)?.value
-                if (!chunk) break
-                chunks.push(chunk)
-                i++
-            }
-            if (chunks.length > 0) {
-                authCookieValue = chunks.join('')
-            }
+    // Method 1: Supabase session (standard cookie auth)
+    try {
+        const supabase = await createServerClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user?.id) {
+            userId = user.id
+            console.log('[Cart API] Auth via session cookie:', userId)
         }
-
-        if (authCookieValue) {
-            try {
-                const parsed = JSON.parse(authCookieValue)
-                if (parsed.access_token) {
-                    // Verify the token with Supabase
-                    const adminClient = getAdminClient()
-                    const { data: tokenUser } = await adminClient.auth.getUser(parsed.access_token)
-                    if (tokenUser?.user) {
-                        userId = tokenUser.user.id
-                        console.log('[Cart API] Fallback auth succeeded for user:', userId)
-                    }
-                }
-            } catch (e) {
-                console.error('[Cart API] Failed to parse auth cookie:', e)
-            }
-        }
+    } catch (e) {
+        console.log('[Cart API] Session auth failed, trying fallback')
     }
 
-    // Final fallback: use user_id from magic-login redirect (verified by JWT)
+    // Method 2: user_id from magic-login redirect (already JWT-verified)
     if (!userId) {
         const userIdParam = request.nextUrl.searchParams.get('user_id')
         if (userIdParam) {
-            // Verify this user actually exists
             const adminClient = getAdminClient()
             const { data: verifiedUser } = await adminClient.auth.admin.getUserById(userIdParam)
             if (verifiedUser?.user) {
                 userId = verifiedUser.user.id
-                console.log('[Cart API] Using user_id from query param:', userId)
+                console.log('[Cart API] Auth via user_id param:', userId)
             }
         }
     }
