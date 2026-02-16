@@ -28,24 +28,28 @@ export default async function EditPagePage({ params }: Props) {
     const cookieTenantId = cookieStore.get('tenant_id')?.value
     const tenantId = cookieTenantId || page.tenant_id
 
-    // 3. 取得商店 slug
+    // 3. 取得商店 slug & Subscription Plan
     let storeSlug: string | undefined
     let storeName: string | undefined
     let footerSettings: any
+    let subscriptionPlan: 'free' | 'growth' = 'free'
 
     if (tenantId) {
         const { data: tenant } = await supabase
             .from('tenants')
-            .select('slug, name, footer_settings')
+            .select('slug, name, footer_settings, plan_id')
             .eq('id', tenantId)
             .single()
+
         storeSlug = tenant?.slug
         storeName = tenant?.name
         footerSettings = tenant?.footer_settings
-    }
 
-    // Mock subscription plan until DB is ready
-    const subscriptionPlan: 'free' | 'growth' = 'free'
+        // Map plan_id to subscriptionPlan
+        if (tenant?.plan_id === 'growth') {
+            subscriptionPlan = 'growth'
+        }
+    }
 
     const boundUpdatePage = updatePage.bind(null, pageId)
 

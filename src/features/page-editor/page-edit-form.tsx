@@ -108,6 +108,7 @@ const componentCategories = [
             { type: 'flowing-menu-block', icon: LayoutGrid, label: '流動選單', description: 'GSAP 流動選單效果' },
             { type: 'image-trail-block', icon: Sparkles, label: '圖片軌跡', description: '滑鼠軌跡圖片效果' },
             { type: 'before_after', icon: LayoutGrid, label: 'Before/After', description: '前後對比效果' },
+            { type: 'scroll_reveal', icon: Sparkles, label: 'Scroll Reveal', description: '捲動視差揭露效果' },
         ]
     },
 ]

@@ -34,9 +34,10 @@ import {
     ThreadsBlockEditor,
     FlowingMenuBlockEditor,
     ImageTrailEditor,
-    BeforeAfterEditor
+    BeforeAfterEditor,
+    ScrollRevealBlockEditor
 } from './editors'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, ScrollText } from 'lucide-react'
 
 export interface ComponentConfig {
     editor: ComponentType<EditorProps>
@@ -720,6 +721,38 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             sliderColor: '#ffffff',
             paddingYDesktop: 64,
             paddingYMobile: 32
+        }
+    },
+    scroll_reveal: {
+        editor: ScrollRevealBlockEditor,
+        label: 'Scroll Reveal',
+        icon: ScrollText,
+        category: 'interactive',
+        tier: 'growth',
+        defaultProps: {
+            items: [
+                {
+                    id: '1',
+                    title: '專業品質',
+                    description: '我們堅持使用最高品質的材料與工藝，為您打造經得起時間考驗的優質產品。每一個細節都經過精心設計與嚴格把關。',
+                    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80',
+                    backgroundColor: '#e8f4f8'
+                },
+                {
+                    id: '2',
+                    title: '客製化服務',
+                    description: '根據您的需求量身打造專屬方案。從初步諮詢到最終交付，我們提供全程客製化服務，確保完美符合您的期待。',
+                    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80',
+                    backgroundColor: '#fff5e6'
+                },
+                {
+                    id: '3',
+                    title: '快速交付',
+                    description: '高效的作業流程讓我們能在最短時間內完成您的訂單，同時保持最高品質標準。準時交付是我們對客戶的承諾。',
+                    image: 'https://images.unsplash.com/photo-1542744094-3a31f272c490?w=800&q=80',
+                    backgroundColor: '#f0f4e8'
+                }
+            ]
         }
     }
 }

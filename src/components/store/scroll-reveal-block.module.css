@@ -1,0 +1,94 @@
+.scrollRevealContainer {
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+}
+
+.section {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #faf9f6;
+  /* Warm beige/cream background like other components */
+}
+
+.contentWrapper {
+  display: flex;
+  width: 100%;
+  max-width: 1200px;
+  padding: var(--padding-y-desktop, 0px) 48px;
+  gap: 64px;
+  align-items: center;
+  height: 100%;
+}
+
+@media (max-width: 992px) {
+  .contentWrapper {
+    padding: var(--padding-y-mobile, 0px) 24px;
+  }
+}
+
+.textContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.imageWrapper {
+  flex: 1;
+  height: 60vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.title {
+  font-size: 3em;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.desc {
+  font-size: 1.2em;
+  line-height: 1.7;
+  color: #333;
+  opacity: 0.9;
+}
+
+@media (max-width: 992px) {
+  .section {
+    height: auto;
+    min-height: 100vh;
+    padding: 80px 0;
+  }
+
+  .contentWrapper {
+    flex-direction: column-reverse;
+    gap: 32px;
+    padding: var(--padding-y-mobile, 0px) 24px;
+  }
+
+  .imageWrapper {
+    width: 100%;
+    height: 300px;
+    flex: none;
+  }
+
+  .title {
+    font-size: 2em;
+  }
+}

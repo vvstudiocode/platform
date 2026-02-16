@@ -23,12 +23,15 @@ export default async function EditPagePage({ params }: Props) {
 
     const { data: tenant } = await supabase
         .from('tenants')
-        .select('name, slug, footer_settings')
+        .select('name, slug, footer_settings, plan_id')
         .eq('id', page.tenant_id || '')
         .single()
 
-    // Mock subscription plan until DB is ready
-    const subscriptionPlan: 'free' | 'growth' = 'free'
+    // Map plan_id to subscriptionPlan
+    let subscriptionPlan: 'free' | 'growth' = 'free'
+    if (tenant?.plan_id === 'growth') {
+        subscriptionPlan = 'growth'
+    }
 
     const boundUpdatePage = updatePage.bind(null, pageId)
 
