@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getLineSettings, saveLineSettings, saveLineWelcomeMessage } from '@/features/line/actions'
 import { LineSettingsForm } from '@/features/line/components/line-settings-form'
+import { headers } from 'next/headers'
 
 export default async function LineSettingsPage() {
     const supabase = await createClient()
@@ -26,8 +27,14 @@ export default async function LineSettingsPage() {
     const tenantSettings = (tenant.settings as Record<string, any>) || {}
     const lineSettings = tenantSettings.line || {}
 
-    // Build webhook URL from site URL env var
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    // Build webhook URL: env var first, fallback to request host
+    let siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    if (!siteUrl) {
+        const headersList = await headers()
+        const host = headersList.get('host') || 'localhost:3000'
+        const protocol = host.includes('localhost') ? 'http' : 'https'
+        siteUrl = `${protocol}://${host}`
+    }
     const webhookUrl = `${siteUrl}/api/webhooks/line?tenant=${tenant.id}`
 
     // Bind tenant ID to actions

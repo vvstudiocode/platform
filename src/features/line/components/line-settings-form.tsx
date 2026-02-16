@@ -91,7 +91,7 @@ export function LineSettingsForm({
             {/* Step-by-Step Tutorial */}
             <div className="bg-card rounded-xl border border-border shadow-soft overflow-hidden">
                 <div className="px-6 py-4 border-b border-border">
-                    <h2 className="text-lg font-semibold text-foreground">📖 設定教學</h2>
+                    <h2 className="text-lg font-semibold text-foreground">設定教學</h2>
                     <p className="text-sm text-muted-foreground mt-1">請依照以下步驟完成 LINE Bot 串接</p>
                 </div>
                 <div className="p-6 space-y-6">

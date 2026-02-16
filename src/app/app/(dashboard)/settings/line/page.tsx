@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getLineSettings, saveLineSettings, saveLineWelcomeMessage } from '@/features/line/actions'
 import { LineSettingsForm } from '@/features/line/components/line-settings-form'
 import { getCurrentTenant } from '@/lib/tenant'
+import { headers } from 'next/headers'
 
 export default async function LineSettingsPage() {
     const supabase = await createClient()
@@ -25,7 +26,13 @@ export default async function LineSettingsPage() {
     const tenantSettings = (tenantData?.settings as Record<string, any>) || {}
     const lineSettings = tenantSettings.line || {}
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    let siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    if (!siteUrl) {
+        const headersList = await headers()
+        const host = headersList.get('host') || 'localhost:3000'
+        const protocol = host.includes('localhost') ? 'http' : 'https'
+        siteUrl = `${protocol}://${host}`
+    }
     const webhookUrl = `${siteUrl}/api/webhooks/line?tenant=${tenant.id}`
 
     const boundSaveLineAction = saveLineSettings.bind(null, tenant.id, false)
