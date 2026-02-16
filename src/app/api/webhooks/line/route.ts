@@ -41,10 +41,19 @@ async function generateMagicLinkToken(
     return token
 }
 
-function buildMagicLinkUrl(token: string): string {
+function buildMagicLinkUrl(token: string, storeSlug: string | null = null): string {
     // Prefer SITE_URL (server-only, read at runtime even in standalone mode)
     // NEXT_PUBLIC_SITE_URL is inlined at build time, may be stale in standalone
     const siteUrl = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN
+    const isDev = process.env.NODE_ENV === 'development'
+
+    // If production and we have a store slug/root domain, create subdomain URL
+    // e.g. https://demo.omoselect.shop/api/auth/...
+    if (!isDev && storeSlug && rootDomain) {
+        return `https://${storeSlug}.${rootDomain}/api/auth/line-magic-login?token=${token}`
+    }
+
     console.log('[LINE Magic] Building magic link with siteUrl:', siteUrl)
     return `${siteUrl}/api/auth/line-magic-login?token=${token}`
 }
@@ -501,7 +510,7 @@ async function handleTextMessage(
 
         // Generate Magic Link for one-click checkout
         const magicToken = await generateMagicLinkToken(customer.authUserId, tenantId)
-        const magicUrl = buildMagicLinkUrl(magicToken)
+        const magicUrl = buildMagicLinkUrl(magicToken, tenant?.slug) // Pass slug
         const totalPrice = product.price * quantity
 
         const flexMessage = buildCheckoutFlexMessage(
@@ -544,10 +553,18 @@ async function handlePostback(
 
         if (!customer || !productId) return
 
+        // Fetch product and tenant slug
         const { data: product } = await adminClient
             .from('products')
-            .select('name, price, image_url')
+            .select('name, price, image_url, tenant_id') // added tenant_id check? no need
             .eq('id', productId)
+            .single()
+
+        // Fetch tenant slug for URL
+        const { data: tenant } = await adminClient
+            .from('tenants')
+            .select('slug')
+            .eq('id', tenantId)
             .single()
 
         if (!product) return
@@ -556,7 +573,7 @@ async function handlePostback(
 
         // Generate Magic Link for one-click checkout
         const magicToken = await generateMagicLinkToken(customer.authUserId, tenantId)
-        const magicUrl = buildMagicLinkUrl(magicToken)
+        const magicUrl = buildMagicLinkUrl(magicToken, tenant?.slug)
         const totalPrice = product.price * quantity
 
         const flexMessage = buildCheckoutFlexMessage(
@@ -580,6 +597,50 @@ async function handlePostback(
 // Helper Functions
 // ============================================================
 
+// Helper to generate cartesian product of option values
+function generateCombinations(options: any[]): string[] {
+    if (!options || options.length === 0) return []
+
+    // 1. Identify structure: Are options "flat strings" or "groups with values"?
+    const isGrouped = options.some(opt => typeof opt === 'object' && opt.values && Array.isArray(opt.values))
+
+    if (!isGrouped) {
+        // Flat list of variants (legacy or simple)
+        // e.g. ["Red", "Blue", "S", "M"] -> just return as is?
+        // Or if it's mixed strings and objects without values?
+        return options.map(opt => typeof opt === 'string' ? opt : opt.name || JSON.stringify(opt))
+    }
+
+    // 2. It's grouped options (e.g. Color, Size)
+    // We need to generate all combinations: [Color:Red, Size:S], [Color:Red, Size:M]...
+    // Input: [{ name: 'Color', values: ['Red', 'Blue'] }, { name: 'Size', values: ['S', 'M'] }]
+    // Output: ["Red / S", "Red / M", "Blue / S", "Blue / M"]
+
+    const groups = options.filter(opt => opt.values && Array.isArray(opt.values) && opt.values.length > 0)
+
+    if (groups.length === 0) return []
+
+    // Recursive generator
+    const combine = (current: string[], index: number): string[][] => {
+        if (index === groups.length) return [current]
+
+        const group = groups[index]
+        const res: string[][] = []
+
+        for (const value of group.values) {
+            const next = [...current, value]
+            res.push(...combine(next, index + 1))
+        }
+        return res
+    }
+
+    // Flatten to "Value / Value" strings
+    // Or include group names? e.g. "Color: Red / Size: S"?
+    // Typically shorter is better for buttons: "Red / S"
+    const combinations = combine([], 0)
+    return combinations.map(combo => combo.join(' / ')) // Separator can be customised
+}
+
 async function sendVariantSelector(
     client: any,
     replyToken: string,
@@ -587,31 +648,52 @@ async function sendVariantSelector(
     quantity: number
 ) {
     const options = product.options as any[]
-    // LINE carousel supports max 12 bubbles, each with max ~10 buttons
+
+    // Generate valid sellable variants (combinations)
+    const variants = generateCombinations(options)
+
+    if (variants.length === 0) {
+        // Fallback or error? If options exist but no values?
+        // Maybe allow adding base product?
+        // For now, assume if options exist, variants must exist.
+        return
+    }
+
+    // LINE carousel supports max 12 bubbles, each with max ~10 buttons (actually closer to 3-4 for good UX, limit is high but vertical space is issue)
+    // We'll use 10 buttons per bubble
     const MAX_BUTTONS_PER_BUBBLE = 10
     const MAX_BUBBLES = 12
-    const limitedOptions = options.slice(0, MAX_BUTTONS_PER_BUBBLE * MAX_BUBBLES)
+    const MAX_TOTAL_VARIANTS = MAX_BUTTONS_PER_BUBBLE * MAX_BUBBLES
 
-    // Split options into chunks
-    const chunks: any[][] = []
-    for (let i = 0; i < limitedOptions.length; i += MAX_BUTTONS_PER_BUBBLE) {
-        chunks.push(limitedOptions.slice(i, i + MAX_BUTTONS_PER_BUBBLE))
+    let limitedVariants = variants
+    const totalCount = variants.length
+
+    if (totalCount > MAX_TOTAL_VARIANTS) {
+        limitedVariants = variants.slice(0, MAX_TOTAL_VARIANTS)
+        // Warn? "Too many variants, please order on website"
+        // We'll just show the first N and maybe add a "More on website" button later if needed
+    }
+
+    // Split into chunks for carousel bubbles
+    const chunks: string[][] = []
+    for (let i = 0; i < limitedVariants.length; i += MAX_BUTTONS_PER_BUBBLE) {
+        chunks.push(limitedVariants.slice(i, i + MAX_BUTTONS_PER_BUBBLE))
     }
 
     const totalPages = chunks.length
 
     // Build a bubble for each chunk
     const bubbles = chunks.map((chunk, pageIndex) => {
-        const buttons = chunk.map((option: any) => {
-            const label = typeof option === 'string' ? option : option.name || option.label || JSON.stringify(option)
+        const buttons = chunk.map((variantLabel) => {
             return {
                 type: 'button',
-                style: 'primary',
+                style: 'secondary', // Use secondary for choices
                 color: '#1a1a1a',
+                height: 'sm',
                 action: {
                     type: 'postback',
-                    label: label.substring(0, 20),
-                    data: `action=add_to_cart&product_id=${product.id}&variant=${encodeURIComponent(label)}&quantity=${quantity}`,
+                    label: variantLabel.substring(0, 20), // Truncate label to fit
+                    data: `action=add_to_cart&product_id=${product.id}&variant=${encodeURIComponent(variantLabel)}&quantity=${quantity}`,
                 }
             }
         })
@@ -621,13 +703,15 @@ async function sendVariantSelector(
                 type: 'text',
                 text: product.name,
                 weight: 'bold',
-                size: 'lg',
+                size: 'md', // Reduce size slightly
+                wrap: true,
             },
             {
                 type: 'text',
                 text: `NT$${product.price} × ${quantity}`,
                 size: 'sm',
                 color: '#888888',
+                margin: 'xs',
             },
             {
                 type: 'text',
@@ -636,32 +720,38 @@ async function sendVariantSelector(
                     : '請選擇規格：',
                 size: 'sm',
                 margin: 'md',
+                weight: 'bold',
+                color: '#555555',
             },
         ]
 
         const bubble: any = {
             type: 'bubble',
+            size: 'kilo', // make bubble smaller if possible, or use default 'mega'
             body: {
                 type: 'box',
                 layout: 'vertical',
-                spacing: 'md',
+                spacing: 'sm',
+                paddingAll: '16px',
                 contents: bodyContents,
             },
             footer: {
                 type: 'box',
                 layout: 'vertical',
                 spacing: 'sm',
+                paddingAll: '16px',
                 contents: buttons,
             },
         }
 
-        // Only show hero image on first bubble
+        // Only show hero image on first bubble to save data/space
+        // AND only if total pages is small, otherwise scrolling back to see variants is annoying if image is huge
         if (pageIndex === 0 && product.image_url) {
             bubble.hero = {
                 type: 'image',
                 url: product.image_url,
                 size: 'full',
-                aspectRatio: '4:3',
+                aspectRatio: '20:13',
                 aspectMode: 'cover',
             }
         }
@@ -671,13 +761,12 @@ async function sendVariantSelector(
 
     const flexMessage = {
         type: 'flex',
-        altText: `選擇 ${product.name} 的規格`,
+        altText: `請選擇 ${product.name} 的規格`,
         contents: totalPages > 1
             ? { type: 'carousel', contents: bubbles }
             : bubbles[0],
     }
 
-    // Reply with Flex Message
     await client.replyMessage({
         replyToken: replyToken,
         messages: [flexMessage],
