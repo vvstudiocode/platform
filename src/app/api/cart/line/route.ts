@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
         if (customerError) {
             // If no row found, it's fine, return empty cart
             if (customerError.code === 'PGRST116') {
+                console.log('[Cart API] Customer not found for authUserId:', userId)
                 return NextResponse.json({ items: [] })
             }
             // Real DB error
@@ -85,8 +86,11 @@ export async function GET(request: NextRequest) {
         }
 
         if (!customer) {
+            console.log('[Cart API] No customer data returned')
             return NextResponse.json({ items: [] })
         }
+
+        console.log('[Cart API] Found customer:', customer.id)
 
         // Get cart items with product details
         const { data: cartItems, error } = await adminClient
@@ -109,6 +113,8 @@ export async function GET(request: NextRequest) {
             .eq('tenant_id', tenantId)
             .eq('customer_id', customer.id)
 
+        console.log('[Cart API] Raw cart items query result:', { count: cartItems?.length, error })
+
         if (error) {
             console.error('[Cart API] Error fetching cart items:', error)
             return NextResponse.json({
@@ -117,6 +123,8 @@ export async function GET(request: NextRequest) {
                 code: error.code
             }, { status: 500 })
         }
+
+        console.log('[Cart API] Raw cart items content:', JSON.stringify(cartItems, null, 2))
 
         // Transform to match CartItem interface from cart-context
         const items = (cartItems || [])
