@@ -33,7 +33,8 @@ import {
     PortfolioGridEditor,
     ThreadsBlockEditor,
     FlowingMenuBlockEditor,
-    ImageTrailEditor
+    ImageTrailEditor,
+    BeforeAfterEditor
 } from './editors'
 import { Sparkles } from 'lucide-react'
 
@@ -704,8 +705,25 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             paddingYDesktop: 0,
             paddingYMobile: 0
         }
+    },
+    before_after: {
+        editor: BeforeAfterEditor,
+        label: 'Before/After',
+        icon: '↔️',
+        category: 'interactive',
+        tier: 'free',
+        defaultProps: {
+            beforeImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
+            afterImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80&grayscale', // Same image but different effect for demo
+            beforeLabel: 'Before',
+            afterLabel: 'After',
+            sliderColor: '#ffffff',
+            paddingYDesktop: 64,
+            paddingYMobile: 32
+        }
     }
 }
+
 
 /**
  * 取得元件編輯器

@@ -185,3 +185,67 @@ export async function updateGeneralSettings(
     console.log('[[DEBUG PAYMENT]] Save successful!')
     return { success: true }
 }
+
+const seoSettingsSchema = z.object({
+    ga4_measurement_id: z.string().regex(/^G-[A-Z0-9]+$/, 'GA4 ID 格式錯誤 (應為 G-XXXXXXXXXX)').nullish().or(z.literal('')),
+    gsc_verification_code: z.string().max(100, '驗證碼過長').nullish().or(z.literal(''))
+})
+
+export async function updateSeoSettings(
+    tenantId: string,
+    prevState: any,
+    formData: FormData
+): Promise<State> {
+    const supabase = await createClient()
+
+    // 權限驗證
+    const hasAccess = await verifyTenantAccess(tenantId)
+    if (!hasAccess) return { error: 'Unauthorized' }
+
+    const rawData = {
+        ga4_measurement_id: formData.get('ga4_measurement_id'),
+        gsc_verification_code: formData.get('gsc_verification_code')
+    }
+
+    const validated = seoSettingsSchema.safeParse(rawData)
+
+    if (!validated.success) {
+        return { error: validated.error.issues[0].message }
+    }
+
+
+    const { ga4_measurement_id, gsc_verification_code } = validated.data
+
+    // Get current settings and plan to verify access
+    const { data: currentTenant } = await supabase
+        .from('tenants')
+        .select('settings, plan_id')
+        .eq('id', tenantId)
+        .single()
+
+    if (currentTenant?.plan_id === 'starter') {
+        return { error: '此功能需要 Growth 進階版方案' }
+    }
+
+    const currentSettings = (currentTenant?.settings as Record<string, any>) || {}
+    const newSettings = {
+        ...currentSettings,
+        analytics: {
+            ga4_measurement_id: ga4_measurement_id || null,
+            gsc_verification_code: gsc_verification_code || null,
+        }
+    }
+
+    const { error } = await supabase
+        .from('tenants')
+        .update({
+            settings: newSettings
+        })
+        .eq('id', tenantId)
+
+    if (error) {
+        return { error: '更新失敗: ' + error.message }
+    }
+
+    return { success: true }
+}

@@ -56,6 +56,12 @@ export function SettingsMenu({ basePath }: Props) {
             title: 'LINE Bot',
             description: '串接 LINE 官方帳號與群組喊單功能',
             href: `${basePath}/line`
+        },
+        {
+            icon: Settings, // using Settings icon again or Search icon
+            title: 'SEO分析',
+            description: '設定 GA4 與 Search Console',
+            href: `${basePath}/seo`
         }
     ]
 

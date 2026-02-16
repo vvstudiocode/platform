@@ -107,6 +107,7 @@ const componentCategories = [
             { type: 'threads_block', icon: Sparkles, label: 'Threads 背景', description: 'WebGL 互動背景效果' },
             { type: 'flowing-menu-block', icon: LayoutGrid, label: '流動選單', description: 'GSAP 流動選單效果' },
             { type: 'image-trail-block', icon: Sparkles, label: '圖片軌跡', description: '滑鼠軌跡圖片效果' },
+            { type: 'before_after', icon: LayoutGrid, label: 'Before/After', description: '前後對比效果' },
         ]
     },
 ]

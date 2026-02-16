@@ -133,13 +133,13 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> LINE Bot 下單自動回覆整合</div>
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 自訂網域綁定</div>
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> {plan.storage_limit_mb >= 1024 ? `${plan.storage_limit_mb / 1024} GB` : `${plan.storage_limit_mb} MB`} 儲存空間</div>
+                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 行銷模組（GA4/GSC）</div>
                                             </>
                                         )}
                                         {plan.name === 'Roadmap 未來擴充' && (
                                             <>
                                                 <div className="flex items-center gap-2 text-muted-foreground"><Check className="h-4 w-4 text-muted-foreground shrink-0" /> 自動化金流 (ECPay / LINE Pay)</div>
                                                 <div className="flex items-center gap-2 text-muted-foreground"><Check className="h-4 w-4 text-muted-foreground shrink-0" /> 超商物流整合 (7-11 / 全家)</div>
-                                                <div className="flex items-center gap-2 text-muted-foreground"><Check className="h-4 w-4 text-muted-foreground shrink-0" /> 行銷模組（GA4/GSC）</div>
                                             </>
                                         )}
                                         {!['Starter 入門版', 'Growth 進階版', 'Roadmap 未來擴充'].includes(plan.name) && (

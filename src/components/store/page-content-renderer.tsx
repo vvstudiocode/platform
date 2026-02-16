@@ -27,6 +27,7 @@ import { PortfolioGrid } from '../store/portfolio-grid'
 import { ThreadsBlock } from '../store/threads-block'
 import { FlowingMenuBlock } from '../store/flowing-menu-block'
 import { ImageTrailBlock } from '../store/image-trail-block'
+import { BeforeAfterSlider } from '../store/before-after-slider'
 import dynamic from 'next/dynamic'
 
 // Inline LoadingState
@@ -120,7 +121,7 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
     // 定義哪些區塊應該是全寬的
     const isFullWidthBlock = (type: string) => {
         // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
-        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block'].includes(type)
+        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after'].includes(type)
     }
 
     return (
@@ -548,6 +549,16 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 variant={block.props?.variant}
                 height={block.props?.height}
                 backgroundColor={block.props?.backgroundColor}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+            />
+        case 'before_after':
+            return <BeforeAfterSlider
+                beforeImage={block.props?.beforeImage}
+                afterImage={block.props?.afterImage}
+                beforeLabel={block.props?.beforeLabel}
+                afterLabel={block.props?.afterLabel}
+                sliderColor={block.props?.sliderColor}
                 paddingYDesktop={block.props?.paddingYDesktop}
                 paddingYMobile={block.props?.paddingYMobile}
             />
