@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 
 // ============================================================
 // LINE Magic Login
@@ -69,7 +69,6 @@ export async function GET(request: NextRequest) {
         }
 
         // 4. Extract the hashed_token from the generated link
-        // The link contains a token_hash we can use to verify the OTP
         const actionLink = new URL(linkData.properties.action_link)
         const tokenHash = actionLink.searchParams.get('token_hash') || actionLink.searchParams.get('token')
         const type = actionLink.searchParams.get('type') || 'magiclink'
@@ -79,15 +78,20 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Failed to extract token' }, { status: 500 })
         }
 
-        // 5. Verify the OTP to create a session
-        const { data: sessionData, error: sessionError } = await adminClient.auth.verifyOtp({
+        // 5. Create server client and verify OTP (sets cookies)
+        const supabase = await createServerClient()
+
+        // Sign out previous user first
+        await supabase.auth.signOut()
+
+        const { data: sessionData, error: sessionError } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
             type: type as any,
         })
 
         if (sessionError || !sessionData?.session) {
             console.error('[Magic Login] Failed to verify OTP:', sessionError)
-            return NextResponse.json({ error: 'Failed to create session' }, { status: 500 })
+            return NextResponse.json({ error: 'Failed to verify session' }, { status: 500 })
         }
 
         console.log('[Magic Login] Session created successfully for user:', userId)
@@ -101,50 +105,9 @@ export async function GET(request: NextRequest) {
 
         const storeSlug = tenant?.slug || 'omo'
 
-        // 7. Set session cookies
-        const cookieStore = await cookies()
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-        // Extract project ref from URL (e.g., "xgzhsvneffvpbppkojfo" from "https://xgzhsvneffvpbppkojfo.supabase.co")
-        const projectRef = new URL(supabaseUrl).hostname.split('.')[0]
+        // 7. Redirect to cart hydration page
+        console.log('[Magic Login] Redirecting to:', `/store/${storeSlug}/line-cart`)
 
-        // Set the Supabase auth cookies
-        const session = sessionData.session
-        const cookieOptions = {
-            path: '/',
-            httpOnly: false,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax' as const,
-            maxAge: 60 * 60 * 24 * 7, // 7 days
-        }
-
-        // Supabase stores auth as a single base64 JSON cookie
-        const authCookieValue = JSON.stringify({
-            access_token: session.access_token,
-            refresh_token: session.refresh_token,
-            expires_in: session.expires_in,
-            expires_at: session.expires_at,
-            token_type: session.token_type,
-            user: session.user,
-        })
-
-        // Set as chunked cookies (Supabase SSR pattern)
-        const cookieName = `sb-${projectRef}-auth-token`
-        const chunkSize = 3500 // Cookie max ~4KB, leave room for metadata
-
-        if (authCookieValue.length <= chunkSize) {
-            cookieStore.set(cookieName, authCookieValue, cookieOptions)
-        } else {
-            // Chunk the cookie for large payloads
-            const chunks = Math.ceil(authCookieValue.length / chunkSize)
-            for (let i = 0; i < chunks; i++) {
-                const chunk = authCookieValue.slice(i * chunkSize, (i + 1) * chunkSize)
-                cookieStore.set(`${cookieName}.${i}`, chunk, cookieOptions)
-            }
-        }
-
-        console.log('[Magic Login] Cookies set, redirecting to cart hydration:', `/store/${storeSlug}/line-cart`)
-
-        // 8. Redirect to cart hydration page (bridges DB cart → localStorage → checkout)
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `http://localhost:3000`
         const redirectUrl = `${siteUrl}/store/${storeSlug}/line-cart?tenant_id=${tenantId}&user_id=${userId}`
 
