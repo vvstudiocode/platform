@@ -45,6 +45,9 @@ function buildMagicLinkUrl(token: string, storeSlug: string | null = null): stri
     // Prefer SITE_URL (server-only, read at runtime even in standalone mode)
     // NEXT_PUBLIC_SITE_URL is inlined at build time, may be stale in standalone
     const siteUrl = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
+    // DISABLE Subdomain Logic for now due to SSL/Wildcard cert issues
+    /*
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN
     const isDev = process.env.NODE_ENV === 'development'
 
@@ -53,6 +56,7 @@ function buildMagicLinkUrl(token: string, storeSlug: string | null = null): stri
     if (!isDev && storeSlug && rootDomain) {
         return `https://${storeSlug}.${rootDomain}/api/auth/line-magic-login?token=${token}`
     }
+    */
 
     console.log('[LINE Magic] Building magic link with siteUrl:', siteUrl)
     return `${siteUrl}/api/auth/line-magic-login?token=${token}`
@@ -687,7 +691,7 @@ async function sendVariantSelector(
         const buttons = chunk.map((variantLabel) => {
             return {
                 type: 'button',
-                style: 'secondary', // Use secondary for choices
+                style: 'primary', // Use primary for better contrast
                 color: '#1a1a1a',
                 height: 'sm',
                 action: {
