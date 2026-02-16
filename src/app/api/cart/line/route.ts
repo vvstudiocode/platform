@@ -93,6 +93,7 @@ export async function GET(request: NextRequest) {
         console.log('[Cart API] Found customer:', customer.id)
 
         // Get cart items with product details
+        console.log('[Cart API] Querying cart_items for customer_id:', customer.id, 'tenant_id:', tenantId)
         const { data: cartItems, error } = await adminClient
             .from('cart_items')
             .select(`

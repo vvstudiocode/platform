@@ -681,6 +681,8 @@ async function addToCart(
     variant: string | null,
     quantity: number
 ) {
+    console.log('[LINE +1] addToCart called:', { tenantId, customerId, productId, variant, quantity })
+
     // Check if item already in cart
     let query = adminClient
         .from('cart_items')
@@ -695,17 +697,30 @@ async function addToCart(
         query = query.is('variant', null)
     }
 
-    const { data: existing } = await query.single()
+    const { data: existing, error: lookupError } = await query.single()
+
+    if (lookupError && lookupError.code !== 'PGRST116') {
+        console.error('[LINE +1] addToCart lookup error:', lookupError)
+    }
 
     if (existing) {
         // Update quantity
-        await adminClient
+        const newQty = existing.quantity + quantity
+        console.log('[LINE +1] addToCart: updating existing item', existing.id, 'qty:', existing.quantity, '->', newQty)
+        const { error: updateError } = await adminClient
             .from('cart_items')
-            .update({ quantity: existing.quantity + quantity })
+            .update({ quantity: newQty })
             .eq('id', existing.id)
+
+        if (updateError) {
+            console.error('[LINE +1] addToCart UPDATE failed:', updateError)
+        } else {
+            console.log('[LINE +1] addToCart: update success')
+        }
     } else {
         // Insert new item
-        await adminClient
+        console.log('[LINE +1] addToCart: inserting new item')
+        const { data: inserted, error: insertError } = await adminClient
             .from('cart_items')
             .insert({
                 tenant_id: tenantId,
@@ -714,5 +729,13 @@ async function addToCart(
                 variant,
                 quantity,
             })
+            .select('id')
+            .single()
+
+        if (insertError) {
+            console.error('[LINE +1] addToCart INSERT failed:', insertError)
+        } else {
+            console.log('[LINE +1] addToCart: insert success, id:', inserted?.id)
+        }
     }
 }
