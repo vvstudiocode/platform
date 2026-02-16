@@ -7,7 +7,7 @@ import { ImageInput } from '../image-input'
 import { Trash2, Plus } from 'lucide-react'
 import type { EditorProps } from '../shared/types'
 
-export function ArchPortfolioEditor({ props, onChange }: EditorProps) {
+export function PortfolioGridEditor({ props, onChange }: EditorProps) {
     const items = props.items || []
 
     const updateItem = (index: number, field: string, value: any) => {
@@ -23,6 +23,8 @@ export function ArchPortfolioEditor({ props, onChange }: EditorProps) {
                 {
                     image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2653&auto=format&fit=crop',
                     title: 'New Project',
+                    category: 'Category',
+                    link: '#',
                     isWide: false
                 }
             ]
@@ -42,7 +44,7 @@ export function ArchPortfolioEditor({ props, onChange }: EditorProps) {
                 <Input
                     value={props.title || ''}
                     onChange={(e) => onChange({ title: e.target.value })}
-                    placeholder="Our Portfolio..."
+                    placeholder="Selected Works"
                 />
             </div>
             <div className="space-y-2">
@@ -85,12 +87,31 @@ export function ArchPortfolioEditor({ props, onChange }: EditorProps) {
                                 />
                             </div>
 
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-2">
+                                    <label className="text-xs text-muted-foreground">標題</label>
+                                    <Input
+                                        value={item.title}
+                                        onChange={(e) => updateItem(index, 'title', e.target.value)}
+                                        placeholder="標題"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs text-muted-foreground">分類</label>
+                                    <Input
+                                        value={item.category}
+                                        onChange={(e) => updateItem(index, 'category', e.target.value)}
+                                        placeholder="例如: Residential"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
-                                <label className="text-xs text-muted-foreground">標題</label>
+                                <label className="text-xs text-muted-foreground">連結</label>
                                 <Input
-                                    value={item.title}
-                                    onChange={(e) => updateItem(index, 'title', e.target.value)}
-                                    placeholder="標題 (e.g. NEW YORK OFFICE)"
+                                    value={item.link}
+                                    onChange={(e) => updateItem(index, 'link', e.target.value)}
+                                    placeholder="#"
                                 />
                             </div>
 

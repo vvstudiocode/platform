@@ -5,12 +5,15 @@ import { Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface PortfolioItem {
+    id?: string
     image: string
     title: string
+    category?: string
+    link?: string
     isWide?: boolean
 }
 
-interface ArchPortfolioProps {
+interface PortfolioGridProps {
     title?: string
     subtitle?: string
     items?: PortfolioItem[]
@@ -22,35 +25,46 @@ interface ArchPortfolioProps {
     isMobile?: boolean
 }
 
-export function ArchPortfolio({
-    title = "Our Portfolio of Pioneering Design",
-    subtitle = "Explore our selected works that demonstrate our commitment to design excellence.",
+export function PortfolioGrid({
+    title = "Selected Works",
+    subtitle = "Explore our diverse portfolio of residential, commercial, and public projects.",
     items = [
         {
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAEVyFpT-JipTnmroNn-stYHhIHl0Nl7Wwy4r53p990qKM4v0rmemmBpk_XSFO18tKUSijgyClNBP1dRj2UMstQyzf2otLpuDXZgyFB94CdncxQAx6YRrMnd2KeTFrvysHbrQWiaUGHPLg0HB3xBNjrr0D4zI_kACrTBi-A7sPIYvoAfEOvtw8lR9hFyHAjH-_RSwFx-s0a_squ4gkQjJ9a_IQcsYA4Ew6M3ksL9ralBpvFQlI1gUbWJ4wbSItPSZHx7geWU1GaOSw",
-            title: "NEW YORK OFFICE"
+            id: "p1",
+            title: "Modern Minimalist Villa",
+            category: "Residential",
+            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuATqNKzokp4OAnY_zjD5UP27GxSET-095CL8C_6Xr4UIY4oX6ZjQTZPKAmWNV_InQEGULE5fYJlY4Uuf0g-QS23q_0n9ZEpcIPvCPoCeyxJlZX5QteDEJsfV3QqBQTscUHySioMmv82oizPWdo5woBb-dMZIBDxfNy7JjjSN-6jlYoqNmtY_J97G8ivscYRbkpb2WidGA2Tg6NXzjWKlZDnJF9hVXt1O4UGDcklfEOjDJcKYfuV4roDeH_quT5zj2M9x6FPzSMAjYc",
+            link: "#"
         },
         {
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCMdWEIX5IF1Hsg-_w_o3jDUxtUnflLECNDIZJPXBawUSZ8ULU0bC-4_G6uBeTrdU1tmo49BE_8mPKGai3_jQufgjf76Gu2Bwm2Idy-VAR8VYKlZuDc3o0GVNqI8Cwe3BIGxVihxweRmq6QRnJyY-C91-m_k4OIAGATBeGrVUOousFx-lVydPLpah0QiSwccirEhn4szi4qIMad4GRcQU_IntIXqDi0dLkvQHeYxkhI01yPPUfy7pvREiRU9D5y2gppEHjL6MCGBBw",
-            title: "COMMERCIAL RESTAURANT"
+            id: "p2",
+            title: "Eco-Friendly Office Complex",
+            category: "Commercial",
+            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDbJ6ibw2wCMVnna0ye7gYst70ysSTl2ma7ZaJ4_U7qUm8qeT1Q5YHJ3y9P1Z2vcU9NYlg9dzezeabaTeAduBEaS0LHw4k0bkLqxk5Wi5qKOn2F9TWp2lwxbdQVczOo8OljIzEhde3231o9fAJw8EkJ2fcU0Ewqvq_l9HO6tfu7qlXwDGi2_H4Gbt0TtV6Sr7dsQlKppGfGeT8ZWjP9-1eJ8iEhxy15lVvG4EZ5ei2P6bbx7hB9aCTxs78GoTZZMli0Va3voW05qss",
+            link: "#"
         },
         {
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDlJ_67SuI0MphSAV5QKMsbhF65_ieThoviOsOQi0JmpPjfVhMapDMnYDz_NFxCxNXFsMEzVnASftsBuSY_EceVRkIJJoVyFCOkHp8oqg_CnLvOxIGZdfLGOrtfqQXA6z6YG6kILOCIwqPXFpBUx75M8R_ztfBPF9_sb3JR14O-NbvkkImHUn353YmkeWbb9NH-xKXzhbQCbozMoMFpjFwj6U9354haWCXXYNMOSOE0mPZSDKBbeM-n6JjSu2XMnGLdEVOv0XYfwYU",
-            title: "PRIVATE LUXURY HOUSE",
-            isWide: true
+            id: "p3",
+            title: "City Public Library",
+            category: "Public",
+            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAIxkBrahcWg6l1YBgbo8lam4dgPgbjRrR6IWvTk0Zc-m7fzqaySd4Yh0USplEbZCgiGXQHOdNNCl3HAw11rACqzq3jzlJxsE1zuIbQBosXdj6-fLlbJYw8C5PLbHjdKbl7NHDyGFU1GWTTMaVUBokCS5-LlRpx06Sn9Q4Jj1vCf7fyDdFc9Lpb-ayeYgR9GJjIpKuBxcxnVP-B8iBpwPPcBAbxrx-4OM7HIvWZkKYQKi-4Qr_kYjelpUWQeIFKAfgRfhDjJoaRqf8",
+            link: "#"
         },
         {
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuA2aY0gzHwKhojrIcw8v4GFm_odQf6-gB53CJl6B0Eq7d_ZRtEzF0JuXZHYBtwr8V4xIW_Q-QjUhkSy25kgcwPOFoH51HFcvMbW1_cJFhRJshPGrumMhcXMQrKnITya0KCLGc8m-eTlJ6dntyn9o-ZnxwtX_jQWwuQ_ruPVEiIamNA0o-9Rz_or_x4xQQXgJCDwrLTeKtvoFsC2YdIlVyNiEpi7NAw5pJ9yuCsxEcrkkP6xWlzx2AO5MgOZwnj_PZ4iPT8Wbty15dU",
-            title: "HOTEL ROOMS"
+            id: "p4",
+            title: "Riverside Apartments",
+            category: "Residential",
+            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBeHQZdXp0A000zRMqsFCBvL_gF24kchyxqnWPLJy0Gd-mLBNfSCqTA3SBFK-ku_LkWcltvdzf8SXl75kvYAQVh0gt3_xiDcAv_6INCNwhwY1y9skSrcrqARpyXBj_WyodxJJY7Vy3MCOS1lCvN-Fog4u81gPU9fHkPqiMhFB8HVrDLjau4mJUV6DWzAsfxPL0qKELsxxfdJXQHATpCHdwim5rDa7nAAWGv7DJyA--7cK_iCehIOU--PXN0t7vCtXb1sABvQERlFH4",
+            link: "#"
         }
     ],
     showViewAll = true,
-    viewAllText = "See More Projects",
-    viewAllUrl = "#",
+    viewAllText = "View All Projects",
+    viewAllUrl = "/portfolio",
     paddingYDesktop = 64,
     paddingYMobile = 32,
     isMobile = false
-}: ArchPortfolioProps) {
+}: PortfolioGridProps) {
     return (
         <section
             className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
@@ -67,7 +81,7 @@ export function ArchPortfolio({
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-                {items.map((item, index) => (
+                {items.map((item: PortfolioItem, index: number) => (
                     <div
                         key={index}
                         className={cn(

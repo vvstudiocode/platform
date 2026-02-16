@@ -28,15 +28,19 @@ import {
     TestimonialShowcaseEditor,
     NewsletterBannerEditor,
 
-    ArchStatsEditor,
-    ArchServicesEditor,
-    ArchPortfolioEditor
+    StatsGridEditor,
+    ScrollableCardsEditor,
+    PortfolioGridEditor,
+    ThreadsBlockEditor,
+    FlowingMenuBlockEditor,
+    ImageTrailEditor
 } from './editors'
+import { Sparkles } from 'lucide-react'
 
 export interface ComponentConfig {
     editor: ComponentType<EditorProps>
     label: string
-    icon: string
+    icon: string | ComponentType<any> // Updated to allow ComponentType for icons
     category: 'basic' | 'media' | 'product' | 'interactive'
     defaultProps: Record<string, any>
 }
@@ -244,16 +248,33 @@ export const componentRegistry: Record<string, ComponentConfig> = {
     image_marquee: {
         editor: ImageMarqueeEditor,
         label: '圖片跑馬燈',
-        icon: '🖼️',
-        category: 'interactive',
+        icon: '🎠',
+        category: 'media',
         defaultProps: {
-            images: [],
+            images: [
+                {
+                    url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+                    alt: '產品 1'
+                },
+                {
+                    url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
+                    alt: '產品 2'
+                },
+                {
+                    url: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400',
+                    alt: '產品 3'
+                }
+            ],
             speed: 30,
-            direction: 'left',
+            direction: 'left' as const,
             pauseOnHover: true,
             backgroundColor: '#ffffff',
             imageHeight: 100,
-            imageGap: 32
+            imageGap: 32,
+            fadeOut: false,
+            scaleOnHover: false,
+            paddingYDesktop: 64,
+            paddingYMobile: 32
         }
     },
     image_testimonials: {
@@ -490,93 +511,167 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         }
     },
 
-    arch_stats: {
-        editor: ArchStatsEditor,
-        label: '建築數據',
+    stats_grid: {
+        editor: StatsGridEditor,
+        label: '數據指標',
         icon: '📊',
         category: 'basic',
         defaultProps: {
-            title: "About Company",
-            description: "At Apex Architects, we believe that architecture is more than just buildings; it's about creating environments that enhance human experience.",
+            title: "Why Choose Us",
+            description: "We bring years of experience and a passion for excellence to every project.",
             stats: [
-                { value: "25+", label: "Years of Excellence" },
-                { value: "500+", label: "Projects Completed" },
-                { value: "98%", label: "Client Retention" },
-                { value: "15+", label: "Countries Active" }
+                { value: "15+", label: "Years Experience" },
+                { value: "200+", label: "Projects Completed" },
+                { value: "50+", label: "Awards Won" },
+                { value: "100%", label: "Client Satisfaction" }
             ],
-            logos: [
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuAigGH9th4zRtRl_Ha6q2Yckyv46Mq4lak0gxb5HIKXI-Kn-Ozl9edZUwZTGc2sMZj1fRhAUqJ0skn8bU54VoX7aNcG-5VBtroAnXaRK8-x-bMCE6Oas8BPf2ysxpsjlrhp-46WlV_lA9JO7QShVbhZzCNBnj2RKgpcmXoOo_fL9aWCFvJVlJzdVRDSo-SGsLQXYdj_gSQ2YIo2kqVizBiipE5-r373RBW1WComGBYpdCZkwT8aXfelVWmVAwa8PrNDvtZuRggHc98",
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuBfbrcK9gtOCFP-HFLonTTVFT79WZ8oY6Mm6vqiB5c7g5d56ZA7TkHEGxt6EXNJXphMjMrP6voCcW4dqcsZOwuuTf9FgMYaclrCPRK38xBmke9bM18Oc4okrfTpfN5na0Pv_4tVKoRmambe0H40JPcY0kLPbhvf5DerZq3YfRXU7QFJPxrWO2jc5ZGOvHgEXodqy3Z7bqdPZI4yrWjizLt4nggGjvkqdQhADIKqxCDCBNKCrGcEPXVD2FzTsdtlsJSvU9E3h3QdcOg",
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuCD7l-oUmmQVRx6wITvizrgnl1BVj_fZGv-u_azr5dTyfhe6M8i9Iv7zcCEfQcVdjJOyzWeu9quI6__8x_IQQ_5dk0MVm2v3QGBvkLkTGziumq-9LQJPJzU3QrZYZcglG_VTMZXFmoSp74dr7V3L5Z7_kGCpN0ZCJFAMFBWL1ZJmvDAQ5aB4ZRInn7GB5ktwW8utruZjolbmAGpii4Sr5ztcIky0x39EFRJyOiOQvtOWxjbG5l2Qj-VmX1Kx9OWLyB8GZyBThkHGV0"
-            ],
+            logos: [],
             paddingYDesktop: 64,
-            paddingYMobile: 32,
-            backgroundColor: 'transparent'
+            paddingYMobile: 32
         }
     },
-    arch_services: {
-        editor: ArchServicesEditor,
-        label: '建築服務',
-        icon: '🛠️',
+    scrollable_cards: {
+        editor: ScrollableCardsEditor,
+        label: '滾動卡片',
+        icon: '🃏',
         category: 'media',
         defaultProps: {
             title: "Services we provide",
             services: [
                 {
                     id: "01",
-                    title: "Arch Design",
-                    description: "From initial concept development and schematic design for unique structures.",
-                    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuATqNKzokp4OAnY_zjD5UP27GxSET-095CL8C_6Xr4UIY4oX6ZjQTZPKAmWNV_InQEGULE5fYJlY4Uuf0g-QS23q_0n9ZEpcIPvCPoCeyxJlZX5QteDEJsfV3QqBQTscUHySioMmv82oizPWdo5woBb-dMZIBDxfNy7JjjSN-6jlYoqNmtY_J97G8ivscYRbkpb2WidGA2Tg6NXzjWKlZDnJF9hVXt1O4UGDcklfEOjDJcKYfuV4roDeH_quT5zj2M9x6FPzSMAjYc"
+                    title: "Design",
+                    description: "Creating beautiful and functional designs.",
+                    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80"
                 },
                 {
                     id: "02",
-                    title: "Interior Design",
-                    description: "Creating cohesive interior spaces that reflect your style and lifestyle.",
-                    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDbJ6ibw2wCMVnna0ye7gYst70ysSTl2ma7ZaJ4_U7qUm8qeT1Q5YHJ3y9P1Z2vcU9NYlg9dzezeabaTeAduBEaS0LHw4k0bkLqxk5Wi5qKOn2F9TWp2lwxbdQVczOo8OljIzEhde3231o9fAJw8EkJ2fcU0Ewqvq_l9HO6tfu7qlXwDGi2_H4Gbt0TtV6Sr7dsQlKppGfGeT8ZWjP9-1eJ8iEhxy15lVvG4EZ5ei2P6bbx7hB9aCTxs78GoTZZMli0Va3voW05qss"
+                    title: "Development",
+                    description: "Building robust and scalable solutions.",
+                    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1000&q=80"
                 },
                 {
                     id: "03",
-                    title: "Urban Planning",
-                    description: "Designing the spaces between buildings & outdoors for better communities.",
-                    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAIxkBrahcWg6l1YBgbo8lam4dgPgbjRrR6IWvTk0Zc-m7fzqaySd4Yh0USplEbZCgiGXQHOdNNCl3HAw11rACqzq3jzlJxsE1zuIbQBosXdj6-fLlbJYw8C5PLbHjdKbl7NHDyGFU1GWTTMaVUBokCS5-LlRpx06Sn9Q4Jj1vCf7fyDdFc9Lpb-ayeYgR9GJjIpKuBxcxnVP-B8iBpwPPcBAbxrx-4OM7HIvWZkKYQKi-4Qr_kYjelpUWQeIFKAfgRfhDjJoaRqf8"
+                    title: "Marketing",
+                    description: "Reaching your target audience effectively.",
+                    image: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=1000&q=80"
                 }
             ],
             paddingYDesktop: 64,
             paddingYMobile: 32
         }
     },
-    arch_portfolio: {
-        editor: ArchPortfolioEditor,
-        label: '建築作品集',
-        icon: '🖼️',
+    portfolio_grid: {
+        editor: PortfolioGridEditor,
+        label: '作品集網格',
+        icon: '🔳',
         category: 'media',
         defaultProps: {
-            title: "Our Portfolio of Pioneering Design",
-            subtitle: "Explore our selected works that demonstrate our commitment to design excellence.",
+            title: "Selected Works",
+            subtitle: "Explore our diverse portfolio of projects.",
             items: [
                 {
-                    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAEVyFpT-JipTnmroNn-stYHhIHl0Nl7Wwy4r53p990qKM4v0rmemmBpk_XSFO18tKUSijgyClNBP1dRj2UMstQyzf2otLpuDXZgyFB94CdncxQAx6YRrMnd2KeTFrvysHbrQWiaUGHPLg0HB3xBNjrr0D4zI_kACrTBi-A7sPIYvoAfEOvtw8lR9hFyHAjH-_RSwFx-s0a_squ4gkQjJ9a_IQcsYA4Ew6M3ksL9ralBpvFQlI1gUbWJ4wbSItPSZHx7geWU1GaOSw",
-                    title: "NEW YORK OFFICE"
+                    id: "p1",
+                    title: "Project Alpha",
+                    category: "Design",
+                    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=80",
+                    link: "#"
                 },
                 {
-                    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCMdWEIX5IF1Hsg-_w_o3jDUxtUnflLECNDIZJPXBawUSZ8ULU0bC-4_G6uBeTrdU1tmo49BE_8mPKGai3_jQufgjf76Gu2Bwm2Idy-VAR8VYKlZuDc3o0GVNqI8Cwe3BIGxVihxweRmq6QRnJyY-C91-m_k4OIAGATBeGrVUOousFx-lVydPLpah0QiSwccirEhn4szi4qIMad4GRcQU_IntIXqDi0dLkvQHeYxkhI01yPPUfy7pvREiRU9D5y2gppEHjL6MCGBBw",
-                    title: "COMMERCIAL RESTAURANT"
+                    id: "p2",
+                    title: "Project Beta",
+                    category: "Development",
+                    image: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1000&q=80",
+                    link: "#"
                 },
                 {
-                    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDlJ_67SuI0MphSAV5QKMsbhF65_ieThoviOsOQi0JmpPjfVhMapDMnYDz_NFxCxNXFsMEzVnASftsBuSY_EceVRkIJJoVyFCOkHp8oqg_CnLvOxIGZdfLGOrtfqQXA6z6YG6kILOCIwqPXFpBUx75M8R_ztfBPF9_sb3JR14O-NbvkkImHUn353YmkeWbb9NH-xKXzhbQCbozMoMFpjFwj6U9354haWCXXYNMOSOE0mPZSDKBbeM-n6JjSu2XMnGLdEVOv0XYfwYU",
-                    title: "PRIVATE LUXURY HOUSE",
-                    isWide: true
+                    id: "p3",
+                    title: "Project Gamma",
+                    category: "Marketing",
+                    image: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1000&q=80",
+                    link: "#"
                 },
                 {
-                    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuA2aY0gzHwKhojrIcw8v4GFm_odQf6-gB53CJl6B0Eq7d_ZRtEzF0JuXZHYBtwr8V4xIW_Q-QjUhkSy25kgcwPOFoH51HFcvMbW1_cJFhRJshPGrumMhcXMQrKnITya0KCLGc8m-eTlJ6dntyn9o-ZnxwtX_jQWwuQ_ruPVEiIamNA0o-9Rz_or_x4xQQXgJCDwrLTeKtvoFsC2YdIlVyNiEpi7NAw5pJ9yuCsxEcrkkP6xWlzx2AO5MgOZwnj_PZ4iPT8Wbty15dU",
-                    title: "HOTEL ROOMS"
+                    id: "p4",
+                    title: "Project Delta",
+                    category: "Strategy",
+                    image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1000&q=80",
+                    link: "#"
                 }
             ],
             showViewAll: true,
-            viewAllText: "See More Projects",
-            viewAllUrl: "#",
+            viewAllText: "View All Projects",
+            viewAllUrl: "/portfolio",
             paddingYDesktop: 64,
             paddingYMobile: 32
+        }
+    },
+    threads_block: {
+        editor: ThreadsBlockEditor,
+        label: 'Threads 背景',
+        icon: Sparkles,
+        category: 'interactive',
+        defaultProps: {
+            title: "Interactive Threads",
+            description: "Move your mouse to interact with the background.",
+            color: [1, 1, 1],
+            backgroundColor: '#000000',
+            amplitude: 1,
+            distance: 0,
+            mobileAmplitude: 0.5,
+            mobileDistance: 0,
+            enableMouseInteraction: true,
+            paddingYDesktop: 0,
+            paddingYMobile: 0,
+            titleColor: '#ffffff',
+            descriptionColor: '#a1a1aa',
+            primaryButtonLabel: '',
+            primaryButtonLink: '',
+            secondaryButtonLabel: '',
+            secondaryButtonLink: ''
+        }
+    },
+    'flowing-menu-block': {
+        editor: FlowingMenuBlockEditor,
+        label: '流動選單 (Flowing Menu)',
+        icon: '🌊',
+        category: 'interactive',
+        defaultProps: {
+            items: [
+                { link: '#', text: 'Mojave', image: 'https://picsum.photos/600/400?random=1' },
+                { link: '#', text: 'Sonoma', image: 'https://picsum.photos/600/400?random=2' },
+                { link: '#', text: 'Monterey', image: 'https://picsum.photos/600/400?random=3' },
+                { link: '#', text: 'Sequoia', image: 'https://picsum.photos/600/400?random=4' }
+            ],
+            speed: 15,
+            textColor: '#ffffff',
+            bgColor: '#060010',
+            marqueeBgColor: '#ffffff',
+            marqueeTextColor: '#060010',
+            borderColor: '#ffffff',
+            height: 600,
+            paddingYDesktop: 0,
+            paddingYMobile: 0
+        }
+    },
+    'image-trail-block': {
+        editor: ImageTrailEditor,
+        label: '圖片軌跡 (Image Trail)',
+        icon: '✨',
+        category: 'interactive',
+        defaultProps: {
+            images: [
+                'https://picsum.photos/id/287/300/300',
+                'https://picsum.photos/id/1001/300/300',
+                'https://picsum.photos/id/1025/300/300',
+                'https://picsum.photos/id/1026/300/300',
+                'https://picsum.photos/id/1027/300/300'
+            ],
+            variant: 1,
+            height: 500,
+            backgroundColor: 'transparent',
+            paddingYDesktop: 0,
+            paddingYMobile: 0
         }
     }
 }

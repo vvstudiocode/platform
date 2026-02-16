@@ -6,7 +6,7 @@ import { ImageInput } from '../image-input'
 import { Trash2, Plus } from 'lucide-react'
 import type { EditorProps } from '../shared/types'
 
-export function ArchServicesEditor({ props, onChange }: EditorProps) {
+export function ScrollableCardsEditor({ props, onChange }: EditorProps) {
     const services = props.services || []
 
     const updateService = (index: number, field: string, value: string) => {

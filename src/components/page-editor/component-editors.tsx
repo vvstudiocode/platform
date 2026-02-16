@@ -18,7 +18,8 @@ export {
     ProductCarouselEditor,
     MarqueeEditor,
     ImageMarqueeEditor,
-    ImageTestimonialsEditor
+    ImageTestimonialsEditor,
+    FlowingMenuBlockEditor
 } from './editors'
 
 // 保留 AlignmentButtons 的匯出以維持向後相容

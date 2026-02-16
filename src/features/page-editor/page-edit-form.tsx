@@ -57,15 +57,6 @@ interface Props {
 // 元件分類定義
 const componentCategories = [
     {
-        name: 'Apex Arc (建築設計)',
-        components: [
-
-            { type: 'arch_stats', icon: LayoutGrid, label: '建築數據', description: '公司介紹與數據展示' },
-            { type: 'arch_services', icon: LayoutGrid, label: '建築服務', description: '橫向捲動服務卡片' },
-            { type: 'arch_portfolio', icon: LayoutGrid, label: '建築作品', description: '拼圖式作品展示' },
-        ]
-    },
-    {
         name: '圖片元件',
         components: [
             { type: 'hero', icon: Image, label: 'Hero Banner', description: '大型橫幅圖片' },
@@ -79,6 +70,8 @@ const componentCategories = [
             { type: 'image_card_grid', icon: LayoutGrid, label: '圖片卡片網格', description: '展示目的地或分類' },
             { type: 'magazine_grid', icon: LayoutGrid, label: '雜誌排版', description: '圖文並茂的雜誌佈局' },
             { type: 'testimonial_showcase', icon: MessageSquareQuote, label: '見證展示', description: '豐富的客戶見證展示' },
+            { type: 'scrollable_cards', icon: LayoutGrid, label: '滾動卡片', description: '橫向捲動服務卡片' },
+            { type: 'portfolio_grid', icon: LayoutGrid, label: '作品集網格', description: '拼圖式作品展示' },
         ]
     },
     {
@@ -90,6 +83,7 @@ const componentCategories = [
             { type: 'features', icon: LayoutGrid, label: '特色區塊', description: '特色/服務' },
             { type: 'faq', icon: MessageSquare, label: 'FAQ 問答', description: '常見問答' },
             { type: 'newsletter_banner', icon: MessageSquare, label: '訂閱 Banner', description: '電子報訂閱區塊' },
+            { type: 'stats_grid', icon: LayoutGrid, label: '數據指標', description: '公司介紹與數據展示' },
         ]
     },
     {
@@ -107,6 +101,9 @@ const componentCategories = [
             { type: 'image_marquee', icon: Image, label: '圖片跑馬燈', description: '滾動圖片展示' },
             { type: 'marquee_3d', icon: LayoutGrid, label: '3D 跑馬燈', description: '3D 立體圖片展示' },
             { type: 'apple_cards_carousel', icon: LayoutGrid, label: '滑動卡片', description: 'Apple 風格滑動卡片' },
+            { type: 'threads_block', icon: Sparkles, label: 'Threads 背景', description: 'WebGL 互動背景效果' },
+            { type: 'flowing-menu-block', icon: LayoutGrid, label: '流動選單', description: 'GSAP 流動選單效果' },
+            { type: 'image-trail-block', icon: Sparkles, label: '圖片軌跡', description: '滑鼠軌跡圖片效果' },
         ]
     },
 ]

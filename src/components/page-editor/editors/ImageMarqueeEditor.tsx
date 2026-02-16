@@ -278,6 +278,8 @@ export function ImageMarqueeEditor({ props, onChange, tenantId }: Props) {
                     <SelectContent>
                         <SelectItem value="left">向左</SelectItem>
                         <SelectItem value="right">向右</SelectItem>
+                        <SelectItem value="up">向上</SelectItem>
+                        <SelectItem value="down">向下</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -290,6 +292,32 @@ export function ImageMarqueeEditor({ props, onChange, tenantId }: Props) {
                         type="checkbox"
                         checked={pauseOnHover}
                         onChange={(e) => handleChange('pauseOnHover', e.target.checked)}
+                        className="w-5 h-5 rounded border-gray-300 accent-primary"
+                    />
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+                <Label htmlFor="fade-out">邊緣淡出效果</Label>
+                <div className="flex items-center h-6">
+                    <input
+                        id="fade-out"
+                        type="checkbox"
+                        checked={props.fadeOut ?? false}
+                        onChange={(e) => handleChange('fadeOut', e.target.checked)}
+                        className="w-5 h-5 rounded border-gray-300 accent-primary"
+                    />
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+                <Label htmlFor="scale-hover">懸停縮放效果</Label>
+                <div className="flex items-center h-6">
+                    <input
+                        id="scale-hover"
+                        type="checkbox"
+                        checked={props.scaleOnHover ?? false}
+                        onChange={(e) => handleChange('scaleOnHover', e.target.checked)}
                         className="w-5 h-5 rounded border-gray-300 accent-primary"
                     />
                 </div>

@@ -21,9 +21,12 @@ import { MagazineGrid } from '../store/magazine-grid'
 import { TestimonialShowcase } from '../store/testimonial-showcase'
 import { NewsletterBanner } from '../store/newsletter-banner'
 
-import { ArchStats } from '../store/arch-stats'
-import { ArchServices } from '../store/arch-services'
-import { ArchPortfolio } from '../store/arch-portfolio'
+import { StatsGrid } from '../store/stats-grid'
+import { ScrollableCards } from '../store/scrollable-cards'
+import { PortfolioGrid } from '../store/portfolio-grid'
+import { ThreadsBlock } from '../store/threads-block'
+import { FlowingMenuBlock } from '../store/flowing-menu-block'
+import { ImageTrailBlock } from '../store/image-trail-block'
 import dynamic from 'next/dynamic'
 
 // Inline LoadingState
@@ -117,7 +120,7 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
     // 定義哪些區塊應該是全寬的
     const isFullWidthBlock = (type: string) => {
         // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
-        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'arch_services', 'arch_hero'].includes(type)
+        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block'].includes(type)
     }
 
     return (
@@ -387,6 +390,10 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 backgroundColor={block.props?.backgroundColor}
                 imageHeight={block.props?.imageHeight}
                 imageGap={block.props?.imageGap}
+                fadeOut={block.props?.fadeOut}
+                scaleOnHover={block.props?.scaleOnHover}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
             />;
         case 'image_testimonials':
             return <AnimatedTestimonials
@@ -474,8 +481,8 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 isMobile={preview && previewDevice === 'mobile'}
             />
 
-        case 'arch_stats':
-            return <ArchStats
+        case 'stats_grid':
+            return <StatsGrid
                 title={block.props?.title}
                 description={block.props?.description}
                 stats={block.props?.stats}
@@ -484,16 +491,16 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 paddingYMobile={block.props?.paddingYMobile}
                 isMobile={preview && previewDevice === 'mobile'}
             />
-        case 'arch_services':
-            return <ArchServices
+        case 'scrollable_cards':
+            return <ScrollableCards
                 title={block.props?.title}
                 services={block.props?.services}
                 paddingYDesktop={block.props?.paddingYDesktop}
                 paddingYMobile={block.props?.paddingYMobile}
                 isMobile={preview && previewDevice === 'mobile'}
             />
-        case 'arch_portfolio':
-            return <ArchPortfolio
+        case 'portfolio_grid':
+            return <PortfolioGrid
                 title={block.props?.title}
                 subtitle={block.props?.subtitle}
                 items={block.props?.items}
@@ -503,6 +510,49 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 paddingYDesktop={block.props?.paddingYDesktop}
                 paddingYMobile={block.props?.paddingYMobile}
                 isMobile={preview && previewDevice === 'mobile'}
+            />
+        case 'threads_block':
+            return <ThreadsBlock
+                title={block.props?.title}
+                description={block.props?.description}
+                color={block.props?.color}
+                backgroundColor={block.props?.backgroundColor}
+                amplitude={block.props?.amplitude}
+                distance={block.props?.distance}
+                mobileAmplitude={block.props?.mobileAmplitude}
+                mobileDistance={block.props?.mobileDistance}
+                enableMouseInteraction={block.props?.enableMouseInteraction}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                titleColor={block.props?.titleColor}
+                descriptionColor={block.props?.descriptionColor}
+                primaryButtonLabel={block.props?.primaryButtonLabel}
+                primaryButtonLink={block.props?.primaryButtonLink}
+                secondaryButtonLabel={block.props?.secondaryButtonLabel}
+                secondaryButtonLink={block.props?.secondaryButtonLink}
+                isMobile={preview && previewDevice === 'mobile'}
+            />
+        case 'flowing-menu-block':
+            return <FlowingMenuBlock
+                items={block.props?.items}
+                speed={block.props?.speed}
+                textColor={block.props?.textColor}
+                bgColor={block.props?.bgColor}
+                marqueeBgColor={block.props?.marqueeBgColor}
+                marqueeTextColor={block.props?.marqueeTextColor}
+                borderColor={block.props?.borderColor}
+                height={block.props?.height}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+            />
+        case 'image-trail-block':
+            return <ImageTrailBlock
+                images={block.props?.images}
+                variant={block.props?.variant}
+                height={block.props?.height}
+                backgroundColor={block.props?.backgroundColor}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
             />
         default:
             return null

@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Save, MessageSquareQuote } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Save, MessageSquareQuote, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,7 +18,9 @@ import {
     ProductCarouselEditor,
     MarqueeEditor,
     ImageMarqueeEditor,
-    ImageTestimonialsEditor
+    ImageTestimonialsEditor,
+    FlowingMenuBlockEditor,
+    ImageTrailEditor
 } from '@/components/page-editor/component-editors'
 import { SpacingControls, ImageControls, AspectRatioControls } from '@/components/page-editor/responsive-controls'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
@@ -83,6 +85,8 @@ const componentCategories = [
         components: [
             { type: 'marquee', icon: Type, label: '跑馬燈', description: '滾動文字公告' },
             { type: 'image_marquee', icon: Image, label: '圖片跑馬燈', description: '滾動圖片展示' },
+            { type: 'flowing-menu-block', icon: LayoutGrid, label: '流動選單', description: 'GSAP 流動選單效果' },
+            { type: 'image-trail-block', icon: Sparkles, label: '圖片軌跡', description: '滑鼠軌跡圖片效果' },
         ]
     },
 ]
@@ -720,6 +724,39 @@ function getDefaultProps(type: string): Record<string, any> {
                 paddingYDesktop: 0,
                 paddingYMobile: 0
             }
+        case 'flowing-menu-block':
+            return {
+                items: [
+                    { link: '#', text: 'Mojave', image: 'https://picsum.photos/600/400?random=1' },
+                    { link: '#', text: 'Sonoma', image: 'https://picsum.photos/600/400?random=2' },
+                    { link: '#', text: 'Monterey', image: 'https://picsum.photos/600/400?random=3' },
+                    { link: '#', text: 'Sequoia', image: 'https://picsum.photos/600/400?random=4' }
+                ],
+                speed: 15,
+                textColor: '#ffffff',
+                bgColor: '#060010',
+                marqueeBgColor: '#ffffff',
+                marqueeTextColor: '#060010',
+                borderColor: '#ffffff',
+                height: 600,
+                paddingYDesktop: 0,
+                paddingYMobile: 0
+            }
+        case 'image-trail-block':
+            return {
+                images: [
+                    'https://picsum.photos/id/287/300/300',
+                    'https://picsum.photos/id/1001/300/300',
+                    'https://picsum.photos/id/1025/300/300',
+                    'https://picsum.photos/id/1026/300/300',
+                    'https://picsum.photos/id/1027/300/300'
+                ],
+                variant: 1,
+                height: 500,
+                backgroundColor: 'transparent',
+                paddingYDesktop: 0,
+                paddingYMobile: 0
+            }
         default:
             return {}
     }
@@ -755,6 +792,10 @@ function ComponentEditor({ type, props, onChange, tenantId }: { type: string; pr
             return <ImageMarqueeEditor props={props} onChange={onChange} tenantId={tenantId} />
         case 'image_testimonials':
             return <ImageTestimonialsEditor props={props} onChange={onChange} />
+        case 'flowing-menu-block':
+            return <FlowingMenuBlockEditor props={props} onChange={onChange} />
+        case 'image-trail-block':
+            return <ImageTrailEditor props={props} onChange={onChange} tenantId={tenantId} />
         default:
             return (
                 <div className="text-zinc-500 text-sm">

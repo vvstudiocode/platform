@@ -10,7 +10,7 @@ interface ServiceItem {
     image: string
 }
 
-interface ArchServicesProps {
+interface ScrollableCardsProps {
     title?: string
     services?: ServiceItem[]
     paddingYDesktop?: number
@@ -18,7 +18,7 @@ interface ArchServicesProps {
     isMobile?: boolean
 }
 
-export function ArchServices({
+export function ScrollableCards({
     title = "Services we provide",
     services = [
         {
@@ -43,7 +43,7 @@ export function ArchServices({
     paddingYDesktop = 64,
     paddingYMobile = 32,
     isMobile = false
-}: ArchServicesProps) {
+}: ScrollableCardsProps) {
     const scrollRef = useRef<HTMLDivElement>(null)
 
     const scroll = (direction: 'left' | 'right') => {

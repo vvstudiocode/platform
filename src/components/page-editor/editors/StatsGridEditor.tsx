@@ -6,7 +6,7 @@ import { ImageInput } from '../image-input'
 import { Trash2, Plus } from 'lucide-react'
 import type { EditorProps } from '../shared/types'
 
-export function ArchStatsEditor({ props, onChange }: EditorProps) {
+export function StatsGridEditor({ props, onChange }: EditorProps) {
     const stats = props.stats || []
     const logos = props.logos || []
 
@@ -45,13 +45,13 @@ export function ArchStatsEditor({ props, onChange }: EditorProps) {
     return (
         <div className="space-y-6">
             <div className="space-y-4">
-                <h4 className="font-medium text-sm text-foreground/80">公司介紹</h4>
+                <h4 className="font-medium text-sm text-foreground/80">區塊設定</h4>
                 <div className="space-y-2">
                     <label className="text-sm font-medium">標題</label>
                     <Input
                         value={props.title || ''}
                         onChange={(e) => onChange({ title: e.target.value })}
-                        placeholder="About Company"
+                        placeholder="Why Choose Us"
                     />
                 </div>
                 <div className="space-y-2">
@@ -59,7 +59,7 @@ export function ArchStatsEditor({ props, onChange }: EditorProps) {
                     <Textarea
                         value={props.description || ''}
                         onChange={(e) => onChange({ description: e.target.value })}
-                        placeholder="公司簡介..."
+                        placeholder="Description..."
                         rows={3}
                     />
                 </div>
@@ -126,44 +126,6 @@ export function ArchStatsEditor({ props, onChange }: EditorProps) {
                             </div>
                         </div>
                     ))}
-                </div>
-            </div>
-
-            <div className="space-y-4">
-                <h4 className="font-medium text-sm text-foreground/80">外觀設定</h4>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">背景顏色</label>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="color"
-                                value={props.backgroundColor || '#F8F8F8'}
-                                onChange={(e) => onChange({ backgroundColor: e.target.value })}
-                                className="h-8 w-8 rounded cursor-pointer border border-input p-1"
-                            />
-                            <Input
-                                value={props.backgroundColor || '#F8F8F8'}
-                                onChange={(e) => onChange({ backgroundColor: e.target.value })}
-                                placeholder="#F8F8F8"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">文字顏色</label>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="color"
-                                value={props.textColor || '#1A1A1A'}
-                                onChange={(e) => onChange({ textColor: e.target.value })}
-                                className="h-8 w-8 rounded cursor-pointer border border-input p-1"
-                            />
-                            <Input
-                                value={props.textColor || '#1A1A1A'}
-                                onChange={(e) => onChange({ textColor: e.target.value })}
-                                placeholder="#1A1A1A"
-                            />
-                        </div>
-                    </div>
                 </div>
             </div>
 
