@@ -5,6 +5,7 @@ import { Loader2, Check, Eye, EyeOff, Copy, ExternalLink, MessageSquare, AlertTr
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { deleteLineSettings } from '@/features/line/actions'
 
 interface Props {
@@ -18,6 +19,10 @@ interface Props {
     }
     welcomeMessage: string
     groupOrderingEnabled: boolean
+    notifyShipped: boolean
+    notifyCompleted: boolean
+    shippedMessage: string
+    completedMessage: string
     saveLineAction: (prevState: any, formData: FormData) => Promise<any>
     saveWelcomeAction: (prevState: any, formData: FormData) => Promise<any>
 }
@@ -29,6 +34,10 @@ export function LineSettingsForm({
     currentSettings,
     welcomeMessage,
     groupOrderingEnabled,
+    notifyShipped,
+    notifyCompleted,
+    shippedMessage,
+    completedMessage,
     saveLineAction,
     saveWelcomeAction,
 }: Props) {
@@ -362,6 +371,109 @@ export function LineSettingsForm({
                                 <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
                                     <p className="text-xs text-amber-700 dark:text-amber-400">
                                         ⚠️ <strong>注意：</strong>客人需先綁定 LINE 帳號與會員帳號，才能使用喊單功能。未綁定的客人輸入指令時，Bot 會提示綁定。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* LINE Order Notification Toggles */}
+                        <div className="rounded-lg border border-border overflow-hidden">
+                            <div className="px-4 py-3 bg-muted/20 border-b border-border">
+                                <p className="font-medium text-foreground">訂單狀態通知</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">訂單狀態改變時，自動透過 LINE 推播通知客人。</p>
+                            </div>
+
+                            <div className="divide-y divide-border">
+                                {/* Notify Shipped */}
+                                <div className="p-4 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm font-medium text-foreground">已出貨通知</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">訂單狀態改為「已出貨」時，推播通知客人。</p>
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                name="notifyShipped"
+                                                defaultChecked={notifyShipped}
+                                                className="sr-only peer"
+                                                onChange={(e) => {
+                                                    const textarea = document.getElementById('shipped-msg-area');
+                                                    if (textarea) textarea.style.display = e.target.checked ? 'block' : 'none';
+                                                }}
+                                            />
+                                            <div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                        </label>
+                                    </div>
+                                    <div id="shipped-msg-area" style={{ display: notifyShipped ? 'block' : 'none' }}>
+                                        <label className="text-xs font-medium mb-1.5 block text-muted-foreground">自訂通知內容</label>
+                                        <Textarea
+                                            name="shippedMessage"
+                                            defaultValue={shippedMessage}
+                                            placeholder="請輸入通知內容..."
+                                            rows={4}
+                                            className="text-sm"
+                                        />
+                                        <p className="text-[10px] text-muted-foreground mt-1.5">
+                                            可用變數：<code>{'{{customer}}'}</code> 顧客名稱, <code>{'{{order_number}}'}</code> 訂單編號, <code>{'{{total_amount}}'}</code> 總金額
+                                        </p>
+                                        <div className="mt-2 bg-muted/30 rounded-lg p-3 space-y-1">
+                                            <p className="text-[10px] font-medium text-muted-foreground">範例</p>
+                                            <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
+                                                {'出貨通知\n\n{{customer}} 您好！\n您的訂單 #{{order_number}} 已出貨 🚚\n\n訂單金額：NT${{total_amount}}\n\n感謝您的購買！如有問題請隨時聯繫我們 💕'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Notify Completed */}
+                                <div className="p-4 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm font-medium text-foreground">已完成通知</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">訂單狀態改為「已完成」時，推播通知客人。</p>
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                name="notifyCompleted"
+                                                defaultChecked={notifyCompleted}
+                                                className="sr-only peer"
+                                                onChange={(e) => {
+                                                    const textarea = document.getElementById('completed-msg-area');
+                                                    if (textarea) textarea.style.display = e.target.checked ? 'block' : 'none';
+                                                }}
+                                            />
+                                            <div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                        </label>
+                                    </div>
+                                    <div id="completed-msg-area" style={{ display: notifyCompleted ? 'block' : 'none' }}>
+                                        <label className="text-xs font-medium mb-1.5 block text-muted-foreground">自訂通知內容</label>
+                                        <Textarea
+                                            name="completedMessage"
+                                            defaultValue={completedMessage}
+                                            placeholder="請輸入通知內容..."
+                                            rows={4}
+                                            className="text-sm"
+                                        />
+                                        <p className="text-[10px] text-muted-foreground mt-1.5">
+                                            可用變數：<code>{'{{customer}}'}</code> 顧客名稱, <code>{'{{order_number}}'}</code> 訂單編號, <code>{'{{total_amount}}'}</code> 總金額
+                                        </p>
+                                        <div className="mt-2 bg-muted/30 rounded-lg p-3 space-y-1">
+                                            <p className="text-[10px] font-medium text-muted-foreground">範例</p>
+                                            <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
+                                                {'訂單完成通知\n\n{{customer}} 您好！\n您的訂單 #{{order_number}} 已完成 🎉\n\n訂單金額：NT${{total_amount}}\n\n感謝您的支持！期待您再次光臨 💕'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Quota Warning */}
+                            <div className="p-4 border-t border-border">
+                                <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
+                                    <p className="text-xs text-amber-700 dark:text-amber-400">
+                                        💡 <strong>額度提醒：</strong>訂單通知使用 LINE 推播訊息（Push Message），會消耗您 LINE 官方帳號的每月免費訊息額度（免費方案 200 則/月）。回覆訊息（Reply Message）不計額度。
                                     </p>
                                 </div>
                             </div>

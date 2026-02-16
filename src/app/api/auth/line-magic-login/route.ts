@@ -142,13 +142,11 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        console.log('[Magic Login] Cookies set, redirecting to checkout:', `/store/${storeSlug}/checkout`)
+        console.log('[Magic Login] Cookies set, redirecting to cart hydration:', `/store/${storeSlug}/line-cart`)
 
-        // 8. Redirect to checkout
+        // 8. Redirect to cart hydration page (bridges DB cart → localStorage → checkout)
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `http://localhost:3000`
-        const redirectUrl = storeSlug === 'omo'
-            ? `${siteUrl}/checkout`
-            : `${siteUrl}/store/${storeSlug}/checkout`
+        const redirectUrl = `${siteUrl}/store/${storeSlug}/line-cart?tenant_id=${tenantId}`
 
         return NextResponse.redirect(redirectUrl)
 
