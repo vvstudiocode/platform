@@ -42,7 +42,10 @@ async function generateMagicLinkToken(
 }
 
 function buildMagicLinkUrl(token: string): string {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    // Prefer SITE_URL (server-only, read at runtime even in standalone mode)
+    // NEXT_PUBLIC_SITE_URL is inlined at build time, may be stale in standalone
+    const siteUrl = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    console.log('[LINE Magic] Building magic link with siteUrl:', siteUrl)
     return `${siteUrl}/api/auth/line-magic-login?token=${token}`
 }
 
