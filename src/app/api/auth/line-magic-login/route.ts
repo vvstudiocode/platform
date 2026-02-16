@@ -107,47 +107,18 @@ export async function GET(request: NextRequest) {
 
         // 7. Redirect based on query parameter
         const redirectParam = request.nextUrl.searchParams.get('redirect')
-        // Use the origin from the request to ensure we stay on the same domain (subdomain)
-        // This is critical because the cookie is set on the current domain
-        const origin = request.nextUrl.origin
+        // Use SITE_URL to ensure we redirect to the public domain, not the internal container address (localhost:8080)
+        // Zeabur or other reverse proxies might cause request.nextUrl.origin to be localhost
+        const siteUrl = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
         let redirectUrl: string
         if (redirectParam === 'account') {
             // Login keyword → go to account page
-            // If we are on a subdomain (store.omo...), path is /account (middleware handles rewrite?)
-            // Wait, middleware rewrites subdomain to /store/[slug].
-            // BUT browser URL shows /.
-            // So if I am on store.omo..., I should redirect to /account.
-            // If I am on omo..., I should redirect to /store/[slug]/account.
-
-            // However, to be safe and consistent with how middleware expects paths:
-            // If unrewritten (browser side), /account on subdomain maps to /store/[slug]/account.
-            // So redirecting to /account on subdomain is correct.
-
-            // Let's check if we are on main domain or subdomain.
-            const hostname = request.headers.get('host') || ''
-            const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'omoselect.shop'
-            const isSubdomain = hostname.endsWith(`.${rootDomain}`) && hostname !== `www.${rootDomain}`
-
-            if (isSubdomain) {
-                redirectUrl = `${origin}/account`
-            } else {
-                redirectUrl = `${origin}/store/${storeSlug}/account`
-            }
+            redirectUrl = `${siteUrl}/store/${storeSlug}/account`
         } else {
             // Default: go to LINE cart hydration page
-            // Similar logic: /line-cart on subdomain, /store/[slug]/line-cart on main
-            const hostname = request.headers.get('host') || ''
-            const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'omoselect.shop'
-            const isSubdomain = hostname.endsWith(`.${rootDomain}`) && hostname !== `www.${rootDomain}`
-
-            if (isSubdomain) {
-                console.log('[Magic Login] Redirecting to subdomain path:', `/line-cart`)
-                redirectUrl = `${origin}/line-cart?tenant_id=${tenantId}&user_id=${userId}`
-            } else {
-                console.log('[Magic Login] Redirecting to main domain path:', `/store/${storeSlug}/line-cart`)
-                redirectUrl = `${origin}/store/${storeSlug}/line-cart?tenant_id=${tenantId}&user_id=${userId}`
-            }
+            console.log('[Magic Login] Redirecting to:', `/store/${storeSlug}/line-cart`)
+            redirectUrl = `${siteUrl}/store/${storeSlug}/line-cart?tenant_id=${tenantId}&user_id=${userId}`
         }
 
         return NextResponse.redirect(redirectUrl)
