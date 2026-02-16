@@ -402,6 +402,7 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 autoplayDuration={block.props?.autoplayDuration}
                 isMobile={preview && previewDevice === 'mobile'}
             />;
+        case 'marquee_3d':
             return <ThreeDMarquee
                 images={block.props?.images || []}
             />;

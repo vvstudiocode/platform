@@ -86,14 +86,42 @@ class ImageTrailVariant1 {
         this.lastMousePos = { x: 0, y: 0 }
         this.cacheMousePos = { x: 0, y: 0 }
 
+        const isMobile = window.matchMedia('(max-width: 768px)').matches
+
         const handlePointerMove = (ev: MouseEvent | TouchEvent) => {
             const rect = this.container.getBoundingClientRect()
+
+            // Mobile Optimization: Restrict touch area to center 60%
+            if (isMobile && 'touches' in ev) {
+                const touchX = ev.touches[0].clientX
+                const windowWidth = window.innerWidth
+                const margin = windowWidth * 0.2 // 20% margin on each side
+
+                // If touch is within left or right margin, ignore it (allow scrolling)
+                if (touchX < margin || touchX > windowWidth - margin) {
+                    return
+                }
+                // Prevent default ONLY if within the active center area to avoid scroll interference
+                if (ev.cancelable) {
+                    ev.preventDefault()
+                }
+            }
+
             this.mousePos = getLocalPointerPos(ev, rect)
         }
+
         container.addEventListener('mousemove', handlePointerMove)
-        container.addEventListener('touchmove', handlePointerMove)
+        container.addEventListener('touchmove', handlePointerMove, { passive: false })
 
         const initRender = (ev: MouseEvent | TouchEvent) => {
+            // For initRender, we also respect the margin logic
+            if (isMobile && 'touches' in ev) {
+                const touchX = ev.touches[0].clientX
+                const windowWidth = window.innerWidth
+                const margin = windowWidth * 0.2
+                if (touchX < margin || touchX > windowWidth - margin) return
+            }
+
             const rect = this.container.getBoundingClientRect()
             this.mousePos = getLocalPointerPos(ev, rect)
             this.cacheMousePos = { ...this.mousePos }
@@ -102,7 +130,7 @@ class ImageTrailVariant1 {
             container.removeEventListener('touchmove', initRender as EventListener)
         }
         container.addEventListener('mousemove', initRender as EventListener)
-        container.addEventListener('touchmove', initRender as EventListener)
+        container.addEventListener('touchmove', initRender as EventListener, { passive: false })
     }
 
     private render() {

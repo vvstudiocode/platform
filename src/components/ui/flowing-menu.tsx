@@ -37,6 +37,18 @@ const FlowingMenu: React.FC<FlowingMenuProps> = ({
     marqueeTextColor = '#060010',
     borderColor = '#fff'
 }) => {
+    const [isMobile, setIsMobile] = useState(false)
+    const [activeItem, setActiveItem] = useState<number | null>(null)
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.matchMedia('(max-width: 768px)').matches)
+        }
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
+
     if (items.length === 0) {
         return (
             <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: bgColor, minHeight: '400px' }}>
@@ -58,6 +70,9 @@ const FlowingMenu: React.FC<FlowingMenuProps> = ({
                         marqueeTextColor={marqueeTextColor}
                         borderColor={borderColor}
                         isFirst={idx === 0}
+                        isMobile={isMobile}
+                        isActive={activeItem === idx}
+                        setActive={() => setActiveItem(idx)}
                     />
                 ))}
             </nav>
@@ -65,7 +80,13 @@ const FlowingMenu: React.FC<FlowingMenuProps> = ({
     )
 }
 
-const MenuItem: React.FC<MenuItemProps> = ({
+interface MenuItemExtendedProps extends MenuItemProps {
+    isMobile: boolean
+    isActive: boolean
+    setActive: () => void
+}
+
+const MenuItem: React.FC<MenuItemExtendedProps> = ({
     link,
     text,
     image,
@@ -74,7 +95,10 @@ const MenuItem: React.FC<MenuItemProps> = ({
     marqueeBgColor,
     marqueeTextColor,
     borderColor,
-    isFirst
+    isFirst,
+    isMobile,
+    isActive,
+    setActive
 }) => {
     const itemRef = useRef<HTMLDivElement>(null)
     const marqueeRef = useRef<HTMLDivElement>(null)
@@ -143,7 +167,31 @@ const MenuItem: React.FC<MenuItemProps> = ({
         }
     }, [text, image, repetitions, speed])
 
+    // Handle hover animations (Desktop) and click-triggered animations (Mobile)
+    useEffect(() => {
+        if (!itemRef.current || !marqueeRef.current || !marqueeInnerRef.current) return
+
+        // If mobile and active, simulate "MouseEnter" animation
+        if (isMobile && isActive) {
+            gsap
+                .timeline({ defaults: animationDefaults })
+                .set(marqueeRef.current, { y: '-101%' }, 0) // Always come from top for simplicity on mobile
+                .set(marqueeInnerRef.current, { y: '101%' }, 0)
+                .to([marqueeRef.current, marqueeInnerRef.current], { y: '0%' }, 0)
+        }
+        // If mobile and NOT active (but was previous active, or just default state), hide it
+        else if (isMobile && !isActive) {
+            gsap
+                .timeline({ defaults: animationDefaults })
+                .to(marqueeRef.current, { y: '-101%' }, 0)
+                .to(marqueeInnerRef.current, { y: '101%' }, 0)
+        }
+    }, [isMobile, isActive])
+
+
     const handleMouseEnter = (ev: React.MouseEvent<HTMLAnchorElement>) => {
+        if (isMobile) return // Disable hover on mobile
+
         if (!itemRef.current || !marqueeRef.current || !marqueeInnerRef.current) return
         const rect = itemRef.current.getBoundingClientRect()
         const edge = findClosestEdge(ev.clientX - rect.left, ev.clientY - rect.top, rect.width, rect.height)
@@ -156,6 +204,8 @@ const MenuItem: React.FC<MenuItemProps> = ({
     }
 
     const handleMouseLeave = (ev: React.MouseEvent<HTMLAnchorElement>) => {
+        if (isMobile) return // Disable hover on mobile
+
         if (!itemRef.current || !marqueeRef.current || !marqueeInnerRef.current) return
         const rect = itemRef.current.getBoundingClientRect()
         const edge = findClosestEdge(ev.clientX - rect.left, ev.clientY - rect.top, rect.width, rect.height)
@@ -164,6 +214,17 @@ const MenuItem: React.FC<MenuItemProps> = ({
             .timeline({ defaults: animationDefaults })
             .to(marqueeRef.current, { y: edge === 'top' ? '-101%' : '101%' }, 0)
             .to(marqueeInnerRef.current, { y: edge === 'top' ? '101%' : '-101%' }, 0)
+    }
+
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (isMobile) {
+            if (!isActive) {
+                // First tap: Activate (Simulate Hover)
+                e.preventDefault()
+                setActive()
+            }
+            // Second tap (isActive is true): Allow default link navigation
+        }
     }
 
     return (
@@ -177,6 +238,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
                 href={link}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
+                onClick={handleClick}
                 style={{ color: textColor }}
             >
                 {text}
