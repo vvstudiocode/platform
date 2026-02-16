@@ -139,6 +139,8 @@ async function handleTextMessage(
     const text = event.message.text.trim()
     const lineUserId = event.source.userId
 
+    console.log('[LINE +1] Received text message:', { text, lineUserId, sourceType: event.source.type })
+
     // Check tenant settings for group ordering
     const { data: tenant } = await adminClient
         .from('tenants')
@@ -149,28 +151,43 @@ async function handleTextMessage(
     const settings = (tenant?.settings as Record<string, any>) || {}
     const groupOrderingEnabled = settings.line?.group_ordering_enabled || false
 
+    console.log('[LINE +1] Group ordering enabled:', groupOrderingEnabled, 'Source type:', event.source.type)
+
     // Only process +1 in group context and if enabled
-    if (!groupOrderingEnabled) return
-    if (event.source.type !== 'group' && event.source.type !== 'room') return
+    if (!groupOrderingEnabled) {
+        console.log('[LINE +1] SKIP: Group ordering is disabled')
+        return
+    }
+    if (event.source.type !== 'group' && event.source.type !== 'room') {
+        console.log('[LINE +1] SKIP: Not in group/room, source type:', event.source.type)
+        return
+    }
 
     // Parse "+1" pattern: productId+quantity or productId *quantity
     // Supports formats: p000001+1, P000001+2, p000001*3, p000001 +1
     const match = text.match(/^(p\d{4,})\s*[+*×x]\s*(\d+)$/i)
-    if (!match) return
+    if (!match) {
+        console.log('[LINE +1] SKIP: Regex did not match text:', text)
+        return
+    }
 
-    const productId = match[1].toLowerCase()  // normalize to lowercase
+    const productId = match[1].toUpperCase()  // normalize to uppercase (DB stores as P000001)
     const quantity = parseInt(match[2], 10)
+
+    console.log('[LINE +1] Parsed:', { productId, quantity })
 
     if (quantity <= 0 || quantity > 99) return
 
-    // Find product by ID (product IDs are like p000001)
-    const { data: product } = await adminClient
+    // Find product by ID (product IDs are like P000001)
+    const { data: product, error: productError } = await adminClient
         .from('products')
         .select('id, name, price, options, image_url, stock')
         .eq('tenant_id', tenantId)
         .eq('id', productId)
         .eq('status', 'active')
         .single()
+
+    console.log('[LINE +1] Product lookup:', { productId, tenantId, found: !!product, error: productError?.message })
 
     if (!product) {
         // Don't reply for invalid IDs to avoid spam
