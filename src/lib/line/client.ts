@@ -27,6 +27,14 @@ export async function getLineCredentials(tenantId: string): Promise<{
     channelAccessToken: string
     channelSecret: string
 } | null> {
+    console.log('[LINE] getLineCredentials called for tenant:', tenantId)
+
+    // Check if Service Role Key is available
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error('[LINE] ERROR: SUPABASE_SERVICE_ROLE_KEY is missing in environment variables!')
+        return null
+    }
+
     const encryptionKey = getEncryptionKey()
     const adminClient = getAdminClient()
 
@@ -39,7 +47,16 @@ export async function getLineCredentials(tenantId: string): Promise<{
             p_encryption_key: encryptionKey,
         })
 
-        if (error || !data) return null
+        if (error) {
+            console.error(`[LINE] Error fetching secret ${type}:`, error)
+            return null
+        }
+
+        if (!data) {
+            console.warn(`[LINE] Secret ${type} not found for tenant:`, tenantId)
+            return null
+        }
+
         results[type] = data as string
     }
 
