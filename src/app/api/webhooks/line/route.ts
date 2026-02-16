@@ -178,12 +178,12 @@ async function handleTextMessage(
 
     if (quantity <= 0 || quantity > 99) return
 
-    // Find product by ID (product IDs are like P000001)
+    // Find product by SKU (product IDs are like P000001)
     const { data: product, error: productError } = await adminClient
         .from('products')
-        .select('id, name, price, options, image_url, stock')
+        .select('id, name, price, options, image_url, stock, sku')
         .eq('tenant_id', tenantId)
-        .eq('id', productId)
+        .eq('sku', productId)
         .eq('status', 'active')
         .single()
 
