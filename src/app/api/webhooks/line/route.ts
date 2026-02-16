@@ -433,6 +433,14 @@ async function handleTextMessage(
         }
     }
 
+    // ── Login / Member / Order keywords ──
+    const loginKeywords = ['登入', 'login', '會員', 'member', '查詢', '查訂單', '訂單', '我的帳戶', 'account']
+    const textLower = text.toLowerCase()
+    if (loginKeywords.some(kw => textLower === kw)) {
+        await handleLoginRequest(event, tenantId, tenant?.slug || 'omo', client, adminClient)
+        return
+    }
+
     // Parse "+1" pattern: productId+quantity or productId *quantity
     // Supports formats: p000001+1, P000001+2, p000001*3, p000001 +1
     const match = text.match(/^(p\d{4,})\s*[+*×x]\s*(\d+)$/i)
@@ -672,6 +680,111 @@ async function sendVariantSelector(
     // Reply with Flex Message
     await client.replyMessage({
         replyToken: replyToken,
+        messages: [flexMessage],
+    })
+}
+
+/**
+ * Handle login/member/query keyword requests
+ * Generates a Magic Link and replies with a Flex Message to access Account page
+ */
+async function handleLoginRequest(
+    event: any,
+    tenantId: string,
+    storeSlug: string,
+    client: any,
+    adminClient: any
+) {
+    const lineUserId = event.source.userId
+    if (!lineUserId) return
+
+    console.log('[LINE Login] Login request from:', lineUserId)
+
+    // Get or create customer (shadow account)
+    const customer = await getOrCreateCustomer(adminClient, client, tenantId, lineUserId)
+
+    if (!customer) {
+        await client.replyMessage({
+            replyToken: event.replyToken,
+            messages: [{
+                type: 'text',
+                text: '❌ 系統錯誤，無法處理您的請求。請稍後再試。'
+            }]
+        })
+        return
+    }
+
+    // Generate Magic Link pointing to account page
+    const magicToken = await generateMagicLinkToken(customer.authUserId, tenantId)
+    const siteUrl = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const magicUrl = `${siteUrl}/api/auth/line-magic-login?token=${magicToken}&redirect=account`
+
+    console.log('[LINE Login] Magic link generated for customer:', customer.id)
+
+    // Build Flex Message
+    const flexMessage = {
+        type: 'flex',
+        altText: '👤 會員中心入口',
+        contents: {
+            type: 'bubble',
+            body: {
+                type: 'box',
+                layout: 'vertical',
+                spacing: 'md',
+                paddingAll: '20px',
+                contents: [
+                    {
+                        type: 'text',
+                        text: '👤 會員中心',
+                        weight: 'bold',
+                        size: 'lg',
+                        color: '#1a1a1a',
+                    },
+                    {
+                        type: 'separator',
+                        margin: 'md',
+                    },
+                    {
+                        type: 'text',
+                        text: `哈囉 ${customer.name}！`,
+                        size: 'sm',
+                        margin: 'md',
+                        color: '#555555',
+                    },
+                    {
+                        type: 'text',
+                        text: '點擊下方按鈕即可進入您的會員中心，查看訂單或管理個人資料。',
+                        size: 'sm',
+                        wrap: true,
+                        color: '#888888',
+                        margin: 'sm',
+                    },
+                ],
+            },
+            footer: {
+                type: 'box',
+                layout: 'vertical',
+                spacing: 'sm',
+                paddingAll: '16px',
+                contents: [
+                    {
+                        type: 'button',
+                        style: 'primary',
+                        color: '#1a1a1a',
+                        height: 'md',
+                        action: {
+                            type: 'uri',
+                            label: '🔑 前往會員中心',
+                            uri: magicUrl,
+                        },
+                    },
+                ],
+            },
+        },
+    }
+
+    await client.replyMessage({
+        replyToken: event.replyToken,
         messages: [flexMessage],
     })
 }

@@ -14,6 +14,11 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     const subscriptionStatus = formData.get('subscription_status') as string
     const nextBillingAt = formData.get('next_billing_at') as string
 
+    // Auto-billing fields
+    const shouldGenerateBilling = formData.get('generate_billing') === 'true'
+    const billingAmount = parseFloat(formData.get('billing_amount') as string || '0')
+    const billingDescription = formData.get('billing_description') as string || ''
+
     // 構建更新物件
     const updates: any = {
         plan_id: planId,
@@ -28,6 +33,7 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         updates.next_billing_at = null
     }
 
+    // 更新 tenant
     const { error } = await supabase
         .from('tenants')
         .update(updates)
@@ -38,8 +44,32 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         return { error: error.message }
     }
 
+    // 自動建立帳單紀錄
+    let billingCreated = false
+    if (shouldGenerateBilling && billingAmount > 0) {
+        const { error: billingError } = await supabase
+            .from('billing_transactions')
+            .insert({
+                tenant_id: storeId,
+                transaction_type: 'subscription_charge',
+                amount: billingAmount,
+                fee_amount: 0,
+                provider: 'admin_manual',
+                provider_transaction_id: `ADMIN-${Date.now()}`,
+                order_id: null,
+                occurred_at: new Date().toISOString(),
+                description: billingDescription || `[後台升級] 方案升級`,
+            })
+
+        if (billingError) {
+            // 方案已更新成功，但帳單建立失敗 -> 回傳警告
+            return { success: true, billingCreated: false, warning: `方案已更新，但帳單建立失敗: ${billingError.message}` }
+        }
+        billingCreated = true
+    }
+
     revalidatePath(`/admin/stores/${storeId}/settings`)
-    return { success: true }
+    return { success: true, billingCreated }
 }
 
 // 刪除商店

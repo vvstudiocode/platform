@@ -5,6 +5,7 @@ import { ArrowLeft, ExternalLink, Users } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { StoreSettingsClient } from './store-settings-client'
+import { getAllPlans, getBillingHistory } from '@/features/billing/actions'
 
 interface Props {
     params: Promise<{ storeId: string }>
@@ -25,6 +26,12 @@ export default async function StoreSettingsPage({ params }: Props) {
     if (!store) {
         notFound()
     }
+
+    // 獲取方案與帳單資料
+    const [plans, billingHistory] = await Promise.all([
+        getAllPlans(),
+        getBillingHistory(storeId)
+    ])
 
     // 商店網址
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'omoselect.shop'
@@ -73,7 +80,7 @@ export default async function StoreSettingsPage({ params }: Props) {
                     <p className="text-xs text-muted-foreground">這是您商店的公開網址</p>
                 </div>
 
-                {/* 會員制度設定入口 - 僅顯示給 Growth 以上方案 (但在這裡做簡單入口，內頁再擋) */}
+                {/* 會員制度設定入口 */}
                 <div className="grid gap-4 md:grid-cols-2">
                     <Link href={`/admin/stores/${storeId}/settings/members`} className="w-full">
                         <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:border-primary/50 transition-colors shadow-sm cursor-pointer group">
@@ -98,6 +105,8 @@ export default async function StoreSettingsPage({ params }: Props) {
                     currentPlanId={store.plan_id || 'free'}
                     currentStatus={store.subscription_status || 'active'}
                     currentNextBillingAt={store.next_billing_at}
+                    dbPlans={plans}
+                    billingHistory={billingHistory as any}
                 />
             </div>
         </div>

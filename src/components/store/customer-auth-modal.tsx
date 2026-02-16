@@ -253,6 +253,14 @@ export function CustomerAuthModal({ isOpen, onClose, storeId, storeName }: Props
                     </DialogDescription>
                 </DialogHeader>
 
+                {/* LINE Login Hint */}
+                {mode === 'login' && (
+                    <div className="flex items-start gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2.5 text-xs text-green-700">
+                        <span className="text-base leading-none mt-0.5">💡</span>
+                        <span>LINE 用戶請直接在 LINE 官方帳號輸入「<strong>登入</strong>」即可免密碼登入，無須填寫下方表單。</span>
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-4 py-4">
                     {mode === 'register' && (
                         <>

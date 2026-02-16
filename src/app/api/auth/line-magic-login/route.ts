@@ -105,11 +105,19 @@ export async function GET(request: NextRequest) {
 
         const storeSlug = tenant?.slug || 'omo'
 
-        // 7. Redirect to cart hydration page
-        console.log('[Magic Login] Redirecting to:', `/store/${storeSlug}/line-cart`)
-
+        // 7. Redirect based on query parameter
+        const redirectParam = request.nextUrl.searchParams.get('redirect')
         const siteUrl = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || `http://localhost:3000`
-        const redirectUrl = `${siteUrl}/store/${storeSlug}/line-cart?tenant_id=${tenantId}&user_id=${userId}`
+
+        let redirectUrl: string
+        if (redirectParam === 'account') {
+            // Login keyword → go to account page
+            redirectUrl = `${siteUrl}/store/${storeSlug}/account`
+        } else {
+            // Default: go to LINE cart hydration page
+            console.log('[Magic Login] Redirecting to:', `/store/${storeSlug}/line-cart`)
+            redirectUrl = `${siteUrl}/store/${storeSlug}/line-cart?tenant_id=${tenantId}&user_id=${userId}`
+        }
 
         return NextResponse.redirect(redirectUrl)
 
