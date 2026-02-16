@@ -15,6 +15,15 @@ import { ParallaxScrollGallery } from '../premium/framer/ParallaxScrollGallery'
 import { AnimatedTestimonials } from '../ui/image-testimonials'
 import { ThreeDMarquee } from '../ui/marquee-3d'
 import { AppleCardsCarousel } from '../ui/apple-cards-carousel'
+import { HeroComposition } from '../store/hero-composition'
+import { ImageCardGrid } from '../store/image-card-grid'
+import { MagazineGrid } from '../store/magazine-grid'
+import { TestimonialShowcase } from '../store/testimonial-showcase'
+import { NewsletterBanner } from '../store/newsletter-banner'
+
+import { ArchStats } from '../store/arch-stats'
+import { ArchServices } from '../store/arch-services'
+import { ArchPortfolio } from '../store/arch-portfolio'
 import dynamic from 'next/dynamic'
 
 // Inline LoadingState
@@ -108,7 +117,7 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
     // 定義哪些區塊應該是全寬的
     const isFullWidthBlock = (type: string) => {
         // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
-        return ['hero', 'showcase_slider', 'marquee', 'image_marquee'].includes(type)
+        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'arch_services', 'arch_hero'].includes(type)
     }
 
     return (
@@ -395,6 +404,106 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 paddingYDesktop={block.props?.paddingYDesktop}
                 paddingYMobile={block.props?.paddingYMobile}
             />;
+
+        case 'hero_composition':
+            return <HeroComposition
+                title={block.props?.title}
+                description={block.props?.description}
+                subtitle={block.props?.subtitle}
+                buttonText={block.props?.buttonText}
+                buttonUrl={block.props?.buttonUrl}
+                images={block.props?.images}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                isMobile={preview && previewDevice === 'mobile'}
+            />
+
+        case 'image_card_grid':
+            return <ImageCardGrid
+                title={block.props?.title}
+                headerButtonText={block.props?.headerButtonText}
+                headerButtonUrl={block.props?.headerButtonUrl}
+                cards={block.props?.cards}
+                columns={block.props?.columns}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                isMobile={preview && previewDevice === 'mobile'}
+            />
+
+        case 'magazine_grid':
+            return <MagazineGrid
+                title={block.props?.title}
+                headerButtonText={block.props?.headerButtonText}
+                headerButtonUrl={block.props?.headerButtonUrl}
+                featuredStory={block.props?.featuredStory}
+                sideStories={block.props?.sideStories}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                isMobile={preview && previewDevice === 'mobile'}
+            />
+
+        case 'testimonial_showcase':
+            return <TestimonialShowcase
+                sectionTitle={block.props?.sectionTitle}
+                userName={block.props?.userName}
+                userRole={block.props?.userRole}
+                userAvatar={block.props?.userAvatar}
+                rating={block.props?.rating}
+                quoteTitle={block.props?.quoteTitle}
+                quote={block.props?.quote}
+                image1={block.props?.image1}
+                image2={block.props?.image2}
+                image2Text={block.props?.image2Text}
+                headerButtonText={block.props?.headerButtonText}
+                headerButtonUrl={block.props?.headerButtonUrl}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                isMobile={preview && previewDevice === 'mobile'}
+            />
+
+        case 'newsletter_banner':
+            return <NewsletterBanner
+                title={block.props?.title}
+                subtitle={block.props?.subtitle}
+                placeholder={block.props?.placeholder}
+                buttonText={block.props?.buttonText}
+                backgroundImage={block.props?.backgroundImage}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                overlayOpacity={block.props?.overlayOpacity}
+                isMobile={preview && previewDevice === 'mobile'}
+            />
+
+        case 'arch_stats':
+            return <ArchStats
+                title={block.props?.title}
+                description={block.props?.description}
+                stats={block.props?.stats}
+                logos={block.props?.logos}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                isMobile={preview && previewDevice === 'mobile'}
+            />
+        case 'arch_services':
+            return <ArchServices
+                title={block.props?.title}
+                services={block.props?.services}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                isMobile={preview && previewDevice === 'mobile'}
+            />
+        case 'arch_portfolio':
+            return <ArchPortfolio
+                title={block.props?.title}
+                subtitle={block.props?.subtitle}
+                items={block.props?.items}
+                showViewAll={block.props?.showViewAll}
+                viewAllText={block.props?.viewAllText}
+                viewAllUrl={block.props?.viewAllUrl}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                isMobile={preview && previewDevice === 'mobile'}
+            />
         default:
             return null
     }

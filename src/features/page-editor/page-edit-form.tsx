@@ -57,6 +57,15 @@ interface Props {
 // 元件分類定義
 const componentCategories = [
     {
+        name: 'Apex Arc (建築設計)',
+        components: [
+
+            { type: 'arch_stats', icon: LayoutGrid, label: '建築數據', description: '公司介紹與數據展示' },
+            { type: 'arch_services', icon: LayoutGrid, label: '建築服務', description: '橫向捲動服務卡片' },
+            { type: 'arch_portfolio', icon: LayoutGrid, label: '建築作品', description: '拼圖式作品展示' },
+        ]
+    },
+    {
         name: '圖片元件',
         components: [
             { type: 'hero', icon: Image, label: 'Hero Banner', description: '大型橫幅圖片' },
@@ -66,6 +75,10 @@ const componentCategories = [
             { type: 'image_text', icon: LayoutGrid, label: '圖文組合', description: '圖片+文字' },
             { type: 'image_grid', icon: LayoutGrid, label: '圖片組合', description: '多圖網格' },
             { type: 'image_testimonials', icon: MessageSquareQuote, label: '動態見證牆', description: '客戶好評與見證' },
+            { type: 'hero_composition', icon: Image, label: '現代 Hero', description: '高質感圖文 Hero' },
+            { type: 'image_card_grid', icon: LayoutGrid, label: '圖片卡片網格', description: '展示目的地或分類' },
+            { type: 'magazine_grid', icon: LayoutGrid, label: '雜誌排版', description: '圖文並茂的雜誌佈局' },
+            { type: 'testimonial_showcase', icon: MessageSquareQuote, label: '見證展示', description: '豐富的客戶見證展示' },
         ]
     },
     {
@@ -76,6 +89,7 @@ const componentCategories = [
             { type: 'text_columns', icon: LayoutGrid, label: '文字組合', description: '多欄文字' },
             { type: 'features', icon: LayoutGrid, label: '特色區塊', description: '特色/服務' },
             { type: 'faq', icon: MessageSquare, label: 'FAQ 問答', description: '常見問答' },
+            { type: 'newsletter_banner', icon: MessageSquare, label: '訂閱 Banner', description: '電子報訂閱區塊' },
         ]
     },
     {
