@@ -42,6 +42,7 @@ export interface ComponentConfig {
     label: string
     icon: string | ComponentType<any> // Updated to allow ComponentType for icons
     category: 'basic' | 'media' | 'product' | 'interactive'
+    tier: 'free' | 'growth' // Added tier property
     defaultProps: Record<string, any>
 }
 
@@ -52,6 +53,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: 'Hero Banner',
         icon: '🎯',
         category: 'basic',
+        tier: 'free',
         defaultProps: {
             title: '',
             subtitle: '',
@@ -65,6 +67,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '文字區塊',
         icon: '📝',
         category: 'basic',
+        tier: 'free',
         defaultProps: {
             title: '',
             subtitle: '',
@@ -77,6 +80,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '多欄文字',
         icon: '📊',
         category: 'basic',
+        tier: 'free',
         defaultProps: {
             columnCount: 3,
             columns: []
@@ -87,6 +91,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '特色區塊',
         icon: '✨',
         category: 'basic',
+        tier: 'free',
         defaultProps: {
             title: '',
             items: []
@@ -97,6 +102,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: 'FAQ',
         icon: '❓',
         category: 'basic',
+        tier: 'free',
         defaultProps: {
             title: '常見問題',
             items: []
@@ -109,6 +115,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '輪播圖',
         icon: '🎠',
         category: 'media',
+        tier: 'free',
         defaultProps: {
             images: [],
             autoplay: true,
@@ -120,6 +127,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '圖文組合',
         icon: '🖼️',
         category: 'media',
+        tier: 'free',
         defaultProps: {
             layout: 'left',
             imageUrl: '',
@@ -132,6 +140,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '圖片網格',
         icon: '🔲',
         category: 'media',
+        tier: 'free',
         defaultProps: {
             columns: 3,
             gap: 16,
@@ -145,6 +154,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '商品列表',
         icon: '📦',
         category: 'product',
+        tier: 'free',
         defaultProps: {
             title: '精選商品',
             productIds: [],
@@ -156,6 +166,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '分類商品',
         icon: '🏷️',
         category: 'product',
+        tier: 'free',
         defaultProps: {
             title: '商品分類',
             category: '',
@@ -167,6 +178,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '商品輪播',
         icon: '🛒',
         category: 'product',
+        tier: 'free',
         defaultProps: {
             title: '熱門商品',
             productIds: [],
@@ -175,12 +187,13 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         }
     },
 
-    // === 進階互動元件 ===
+    // === 進階互動元件 (Growth Tier) ===
     showcase_slider: {
         editor: ShowcaseSliderEditor,
         label: 'Showcase Slider',
         icon: '🎬',
         category: 'interactive',
+        tier: 'free',
         defaultProps: {
             slides: [],
             autoplay: true,
@@ -193,6 +206,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '視差滾動圖庫',
         icon: '🪜',
         category: 'interactive',
+        tier: 'free',
         defaultProps: {
             title: 'Our Portfolio',
             subtitle: '',
@@ -213,6 +227,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '動態文字',
         icon: '✨',
         category: 'interactive',
+        tier: 'free',
         defaultProps: {
             text: 'YOUR TEXT HERE',
             fontSizeDesktop: 8,
@@ -235,6 +250,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '跑馬燈',
         icon: '📢',
         category: 'interactive',
+        tier: 'growth',
         defaultProps: {
             text: 'WELCOME TO OUR STORE',
             speed: 30,
@@ -250,6 +266,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '圖片跑馬燈',
         icon: '🎠',
         category: 'media',
+        tier: 'growth',
         defaultProps: {
             images: [
                 {
@@ -282,6 +299,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '動態見證牆',
         icon: 'message-square',
         category: 'media',
+        tier: 'free',
         defaultProps: {
             testimonials: [
                 {
@@ -302,6 +320,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '3D 跑馬燈',
         icon: 'layout-grid',
         category: 'interactive',
+        tier: 'growth',
         defaultProps: {
             images: [
                 "https://images.unsplash.com/photo-1554080353-a576cf803bda?auto=format&fit=crop&w=1000&q=80",
@@ -326,6 +345,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '滑動卡片',
         icon: '📱',
         category: 'interactive',
+        tier: 'growth',
         defaultProps: {
             items: [
                 {
@@ -368,6 +388,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '現代 Hero',
         icon: '🖼️',
         category: 'basic',
+        tier: 'free',
         defaultProps: {
             title: 'Discover the World\'s Hidden Wonders',
             subtitle: 'Find unique moments and hidden gems.',
@@ -388,6 +409,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '圖片卡片網格',
         icon: '🔲',
         category: 'media',
+        tier: 'free',
         defaultProps: {
             title: 'Top Destinations',
             headerButtonText: 'Explore all destinations',
@@ -428,6 +450,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '雜誌排版',
         icon: '📰',
         category: 'media',
+        tier: 'free',
         defaultProps: {
             title: 'Latest Stories',
             headerButtonText: 'Read more articles',
@@ -476,6 +499,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '見證展示',
         icon: '💬',
         category: 'interactive',
+        tier: 'free',
         defaultProps: {
             sectionTitle: "Trekker's Highlights",
             userName: "Maria Angelica",
@@ -498,6 +522,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '訂閱 Banner',
         icon: '📧',
         category: 'basic',
+        tier: 'free',
         defaultProps: {
             title: 'Get Your Travel Inspiration Straight to Your Inbox',
             subtitle: 'Subscribe to receive travel news and exclusive promotions.',
@@ -516,6 +541,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '數據指標',
         icon: '📊',
         category: 'basic',
+        tier: 'free',
         defaultProps: {
             title: "Why Choose Us",
             description: "We bring years of experience and a passion for excellence to every project.",
@@ -535,6 +561,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '滾動卡片',
         icon: '🃏',
         category: 'media',
+        tier: 'free',
         defaultProps: {
             title: "Services we provide",
             services: [
@@ -566,6 +593,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '作品集網格',
         icon: '🔳',
         category: 'media',
+        tier: 'free',
         defaultProps: {
             title: "Selected Works",
             subtitle: "Explore our diverse portfolio of projects.",
@@ -611,6 +639,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: 'Threads 背景',
         icon: Sparkles,
         category: 'interactive',
+        tier: 'growth',
         defaultProps: {
             title: "Interactive Threads",
             description: "Move your mouse to interact with the background.",
@@ -636,6 +665,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '流動選單 (Flowing Menu)',
         icon: '🌊',
         category: 'interactive',
+        tier: 'growth',
         defaultProps: {
             items: [
                 { link: '#', text: 'Mojave', image: 'https://picsum.photos/600/400?random=1' },
@@ -659,6 +689,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: '圖片軌跡 (Image Trail)',
         icon: '✨',
         category: 'interactive',
+        tier: 'growth',
         defaultProps: {
             images: [
                 'https://picsum.photos/id/287/300/300',

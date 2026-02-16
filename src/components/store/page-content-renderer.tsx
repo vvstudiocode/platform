@@ -280,10 +280,6 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 storeSlug={storeSlug}
                 preview={preview}
                 previewDevice={previewDevice}
-                objectFitDesktop={block.props?.objectFitDesktop}
-                objectFitMobile={block.props?.objectFitMobile}
-                aspectRatioDesktop={block.props?.aspectRatioDesktop}
-                aspectRatioMobile={block.props?.aspectRatioMobile}
             />
         case 'parallax_hero':
             return <ParallaxHero

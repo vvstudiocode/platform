@@ -554,11 +554,7 @@ export function ProductCarouselBlock({
     interval = 5,
     storeSlug,
     preview,
-    previewDevice = 'desktop',
-    objectFitDesktop = 'cover',
-    objectFitMobile = 'cover',
-    aspectRatioDesktop = '1/1',
-    aspectRatioMobile = '1/1'
+    previewDevice = 'desktop'
 }: {
     productIds: string[]
     title?: string
@@ -568,10 +564,6 @@ export function ProductCarouselBlock({
     storeSlug: string
     preview?: boolean
     previewDevice?: 'mobile' | 'desktop'
-    objectFitDesktop?: 'cover' | 'contain'
-    objectFitMobile?: 'cover' | 'contain'
-    aspectRatioDesktop?: string
-    aspectRatioMobile?: string
 }) {
     const [products, setProducts] = useState<any[]>([])
     const [currentIndex, setCurrentIndex] = useState(0)
@@ -596,21 +588,34 @@ export function ProductCarouselBlock({
         fetchProducts()
     }, [JSON.stringify(productIds)])
 
+    // 計算每次顯示的商品數量
+    const isMobile = preview && previewDevice === 'mobile'
+    const itemsPerView = isMobile ? 1 : 4
+
+    // 計算最大可滑動的索引（避免出現空白區域）
+    const maxIndex = Math.max(0, products.length - itemsPerView)
+
+    // 檢查是否有足夠的商品可以滑動
+    const canSlide = products.length > itemsPerView
+
     useEffect(() => {
-        if (!autoplay || products.length <= (preview && previewDevice === 'mobile' ? 1 : 4)) return
+        if (!autoplay || !canSlide) return
         const timer = setInterval(() => {
-            setCurrentIndex(prev => (prev + 1) % products.length)
+            setCurrentIndex(prev => {
+                const next = prev + 1
+                return next > maxIndex ? 0 : next
+            })
         }, interval * 1000)
         return () => clearInterval(timer)
-    }, [autoplay, interval, products.length, preview, previewDevice])
+    }, [autoplay, interval, canSlide, maxIndex])
 
 
     const nextSlide = () => {
-        setCurrentIndex(prev => (prev + 1) % products.length)
+        setCurrentIndex(prev => Math.min(prev + 1, maxIndex))
     }
 
     const prevSlide = () => {
-        setCurrentIndex(prev => (prev - 1 + products.length) % products.length)
+        setCurrentIndex(prev => Math.max(prev - 1, 0))
     }
 
     if (loading) return <div className="py-12 text-center text-gray-400">載入輪播中...</div>
@@ -623,7 +628,6 @@ export function ProductCarouselBlock({
         )
     }
 
-    const isMobile = preview && previewDevice === 'mobile'
     const itemWidthClass = isMobile ? 'w-full' : 'w-full md:w-1/2 lg:w-1/4'
 
     return (
@@ -647,26 +651,24 @@ export function ProductCarouselBlock({
                             <ProductCard
                                 product={product}
                                 storeSlug={storeSlug}
-                                fitDesktop={objectFitDesktop}
-                                fitMobile={objectFitMobile}
-                                aspectRatioDesktop={aspectRatioDesktop}
-                                aspectRatioMobile={aspectRatioMobile}
                             />
                         </div>
                     ))}
                 </div>
 
-                {products.length > (isMobile ? 1 : 4) && (
+                {canSlide && (
                     <>
                         <button
                             onClick={(e) => { e.preventDefault(); prevSlide() }}
-                            className="absolute left-0 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white shadow-lg rounded-r-lg text-gray-800 transition-all z-20 backdrop-blur-sm border-y border-r border-gray-100"
+                            disabled={currentIndex === 0}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white shadow-lg rounded-r-lg text-gray-800 transition-all z-20 backdrop-blur-sm border-y border-r border-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                             <ChevronLeft className="w-6 h-6" />
                         </button>
                         <button
                             onClick={(e) => { e.preventDefault(); nextSlide() }}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white shadow-lg rounded-l-lg text-gray-800 transition-all z-20 backdrop-blur-sm border-y border-l border-gray-100"
+                            disabled={currentIndex >= maxIndex}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white shadow-lg rounded-l-lg text-gray-800 transition-all z-20 backdrop-blur-sm border-y border-l border-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                             <ChevronRight className="w-6 h-6" />
                         </button>
@@ -674,19 +676,17 @@ export function ProductCarouselBlock({
                 )}
             </div>
 
-            {
-                products.length > 0 && (
-                    <div className="flex justify-center gap-1.5 mt-2">
-                        {products.map((_, i) => (
-                            <div
-                                key={i}
-                                className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-6 bg-rose-600' : 'w-1.5 bg-gray-300'
-                                    }`}
-                            />
-                        ))}
-                    </div>
-                )
-            }
+            {canSlide && (
+                <div className="flex justify-center gap-1.5 mt-2">
+                    {Array.from({ length: maxIndex + 1 }).map((_, i) => (
+                        <div
+                            key={i}
+                            className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-6 bg-rose-600' : 'w-1.5 bg-gray-300'
+                                }`}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     )
 }

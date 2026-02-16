@@ -1,7 +1,7 @@
 // 商品輪播編輯器
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
-import { SpacingControls, ImageControls, AspectRatioControls } from '../responsive-controls'
+import { SpacingControls } from '../responsive-controls'
 import { AnimationControls } from '../animation-controls'
 import { AlignmentButtons } from '../shared/AlignmentButtons'
 import type { EditorProps } from '../shared/types'
@@ -170,22 +170,6 @@ export function ProductCarouselEditor({ props, onChange, tenantId }: EditorProps
                 paddingY={{
                     desktop: props.paddingYDesktop ?? 64,
                     mobile: props.paddingYMobile ?? 32
-                }}
-                onChange={onChange}
-            />
-
-            <ImageControls
-                objectFit={{
-                    desktop: props.objectFitDesktop || 'cover',
-                    mobile: props.objectFitMobile || 'cover'
-                }}
-                onChange={onChange}
-            />
-
-            <AspectRatioControls
-                aspectRatio={{
-                    desktop: props.aspectRatioDesktop || 'auto',
-                    mobile: props.aspectRatioMobile || 'auto'
                 }}
                 onChange={onChange}
             />

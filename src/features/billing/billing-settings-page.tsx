@@ -107,36 +107,42 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
                                 <CardHeader>
                                     <CardTitle className="text-foreground">{plan.name}</CardTitle>
                                     <div className="text-2xl font-bold text-foreground mt-2">
-                                        NT$ {plan.price_monthly} <span className="text-sm font-normal text-muted-foreground">/月</span>
+                                        {plan.price_monthly === -1 ? (
+                                            <span className="text-muted-foreground text-xl">敬請期待</span>
+                                        ) : (
+                                            <>NT$ {plan.price_monthly} <span className="text-sm font-normal text-muted-foreground">/月</span></>
+                                        )}
                                     </div>
-                                    <p className="text-sm text-muted-foreground">+{plan.transaction_fee_percent}% 手續費</p>
+                                    <p className="text-sm text-muted-foreground">{plan.transaction_fee_percent > 0 ? '+' : ''}{plan.transaction_fee_percent}% 手續費</p>
                                 </CardHeader>
                                 <CardContent className="flex-1 space-y-4">
                                     <div className="space-y-2 text-sm text-muted-foreground">
-                                        {plan.name === '免費方案' && (
+                                        {plan.name === 'Starter 入門版' && (
                                             <>
-                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 輕鬆開始線上事業</div>
+                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 無限商品上架</div>
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> {plan.storage_limit_mb} MB 儲存空間</div>
-                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 基礎電商功能</div>
+                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 基礎網站元件</div>
+                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 基礎銷售報表</div>
                                             </>
                                         )}
-                                        {plan.name === '成長方案' && (
+                                        {plan.name === 'Growth 進階版' && (
                                             <>
-                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 解鎖完整品牌工具</div>
-                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 會員功能</div>
-                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> LINE Bot 自動回覆</div>
+                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 無限商品上架</div>
+                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 解鎖互動特效元件</div>
+                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 會員分級制度</div>
+                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> LINE Bot 下單自動回覆整合</div>
+                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 自訂網域綁定</div>
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> {plan.storage_limit_mb >= 1024 ? `${plan.storage_limit_mb / 1024} GB` : `${plan.storage_limit_mb} MB`} 儲存空間</div>
-                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 更低的交易手續費</div>
                                             </>
                                         )}
-                                        {plan.name === '專業方案' && (
+                                        {plan.name === 'Roadmap 未來擴充' && (
                                             <>
-                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 專為高流量品牌打造</div>
-                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> {plan.storage_limit_mb >= 1024 ? `${plan.storage_limit_mb / 1024} GB` : `${plan.storage_limit_mb} MB`} 儲存空間</div>
-                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 最低手續費與優先客服</div>
+                                                <div className="flex items-center gap-2 text-muted-foreground"><Check className="h-4 w-4 text-muted-foreground shrink-0" /> 自動化金流 (ECPay / LINE Pay)</div>
+                                                <div className="flex items-center gap-2 text-muted-foreground"><Check className="h-4 w-4 text-muted-foreground shrink-0" /> 超商物流整合 (7-11 / 全家)</div>
+                                                <div className="flex items-center gap-2 text-muted-foreground"><Check className="h-4 w-4 text-muted-foreground shrink-0" /> 行銷模組（GA4/GSC）</div>
                                             </>
                                         )}
-                                        {!['免費方案', '成長方案', '專業方案'].includes(plan.name) && (
+                                        {!['Starter 入門版', 'Growth 進階版', 'Roadmap 未來擴充'].includes(plan.name) && (
                                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                                 <Check className="h-4 w-4 text-primary shrink-0" />
                                                 <span>{plan.storage_limit_mb >= 1024 ? `${plan.storage_limit_mb / 1024} GB` : `${plan.storage_limit_mb} MB`} 儲存空間</span>

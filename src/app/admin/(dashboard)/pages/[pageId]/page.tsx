@@ -27,6 +27,9 @@ export default async function EditPagePage({ params }: Props) {
         .eq('id', page.tenant_id || '')
         .single()
 
+    // Mock subscription plan until DB is ready
+    const subscriptionPlan: 'free' | 'growth' = 'free'
+
     const boundUpdatePage = updatePage.bind(null, pageId)
 
     return (
@@ -53,6 +56,7 @@ export default async function EditPagePage({ params }: Props) {
             storeSlug={tenant?.slug}
             storeName={tenant?.name}
             footerSettings={tenant?.footer_settings}
+            subscriptionPlan={subscriptionPlan}
         />
     )
 }

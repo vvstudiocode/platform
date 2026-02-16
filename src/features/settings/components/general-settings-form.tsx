@@ -306,6 +306,41 @@ export function GeneralSettingsForm({ tenant, updateAction }: Props) {
                 </div>
             </CollapsibleSection>
 
+            {/* SEO & 分析 */}
+            <CollapsibleSection title="SEO & 分析">
+                <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">串接 Google 服務以追蹤網站流量與搜尋引擎收錄。</p>
+
+                    <div>
+                        <Label htmlFor="ga4_measurement_id">Google Analytics 4 評估 ID</Label>
+                        <Input
+                            id="ga4_measurement_id"
+                            name="ga4_measurement_id"
+                            defaultValue={settings.analytics?.ga4_measurement_id || ''}
+                            placeholder="G-XXXXXXXXXX"
+                            className="bg-background font-mono"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                            請至 <a href="https://analytics.google.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">Google Analytics</a> 取得評估 ID（格式為 G- 開頭）。
+                        </p>
+                    </div>
+
+                    <div>
+                        <Label htmlFor="gsc_verification_code">Google Search Console 驗證碼</Label>
+                        <Input
+                            id="gsc_verification_code"
+                            name="gsc_verification_code"
+                            defaultValue={settings.analytics?.gsc_verification_code || ''}
+                            placeholder="驗證碼 (meta tag content 值)"
+                            className="bg-background font-mono"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                            請至 <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer" className="text-primary underline">Search Console</a> 選擇「HTML 標記」驗證方式，複製 content 值。
+                        </p>
+                    </div>
+                </div>
+            </CollapsibleSection>
+
             {/* 頁尾設定 (來自 Admin & App) */}
             <CollapsibleSection title="頁尾設定">
                 <div className="space-y-4">

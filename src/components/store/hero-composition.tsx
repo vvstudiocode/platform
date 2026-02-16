@@ -42,10 +42,66 @@ export function HeroComposition({
             }}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+                {/* Mobile Layout - 完全垂直排列 */}
+                <div className={isMobile ? 'block' : 'block lg:hidden'}>
                     {/* Text Content */}
-                    <div className="max-w-2xl mb-8 lg:mb-0">
-                        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 mb-6 leading-tight">
+                    <div className="max-w-2xl mb-12">
+                        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-6 leading-[1.1]">
+                            {title || "Discover the World's Hidden Wonders"}
+                        </h1>
+                        <p className="text-lg text-gray-600 mb-8 max-w-lg leading-relaxed">
+                            {description || subtitle || "Find the unique moments and hidden gems that ignite unforgettable experiences."}
+                        </p>
+                        {buttonText && (
+                            <div className="mb-12">
+                                <Link
+                                    href={buttonUrl || '#'}
+                                    className="inline-flex items-center justify-center px-8 py-4 bg-gray-900 text-white text-base font-medium rounded-full hover:bg-gray-800 transition-all transform hover:-translate-y-0.5 shadow-lg active:scale-95"
+                                >
+                                    {buttonText}
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Mobile Images */}
+                    <div className="relative w-full space-y-6">
+                        {/* Main Image */}
+                        <div className="relative w-full aspect-[3/4] rounded-3xl overflow-hidden shadow-xl">
+                            <img
+                                src={img1}
+                                alt="Hero Main"
+                                className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                        </div>
+
+                        {/* Secondary Images Grid */}
+                        <div className="grid grid-cols-2 gap-4 h-48 sm:h-64">
+                            <div className="relative rounded-2xl overflow-hidden shadow-lg">
+                                <img
+                                    src={img2}
+                                    alt="Hero Secondary 1"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            <div className="relative rounded-2xl overflow-hidden shadow-lg">
+                                <img
+                                    src={img3}
+                                    alt="Hero Secondary 2"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Desktop Layout - 左右分欄 */}
+                <div className={isMobile ? 'hidden' : 'hidden lg:grid lg:grid-cols-2 gap-12 items-center'}>
+                    {/* Text Content - Left */}
+                    <div className="max-w-2xl">
+                        <h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 mb-6 leading-[1.1]">
                             {title || "Discover the World's Hidden Wonders"}
                         </h1>
                         <p className="text-lg text-gray-600 mb-8 max-w-lg leading-relaxed">
@@ -54,7 +110,7 @@ export function HeroComposition({
                         {buttonText && (
                             <Link
                                 href={buttonUrl || '#'}
-                                className="inline-flex items-center justify-center px-8 py-3 bg-gray-900 text-white text-base font-medium rounded-full hover:bg-gray-800 transition-all transform hover:-translate-y-0.5 shadow-lg"
+                                className="inline-flex items-center justify-center px-8 py-4 bg-gray-900 text-white text-base font-medium rounded-full hover:bg-gray-800 transition-all transform hover:-translate-y-0.5 shadow-lg active:scale-95"
                             >
                                 {buttonText}
                                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -62,10 +118,9 @@ export function HeroComposition({
                         )}
                     </div>
 
-                    {/* Image Composition - Desktop */}
-                    <div className={`relative h-[500px] ${isMobile ? 'hidden' : 'hidden lg:block'}`}>
+                    {/* Image Composition - Right */}
+                    <div className="relative h-[500px]">
                         <div className="absolute -top-20 -right-20 w-96 h-96 bg-gray-100 rounded-full blur-3xl opacity-50 -z-10"></div>
-
                         <div className="grid grid-cols-2 gap-4 h-full">
                             <div className="col-span-1 h-full pt-12">
                                 <div className="h-full w-full rounded-2xl overflow-hidden shadow-xl bg-gray-200 relative group">
@@ -76,7 +131,6 @@ export function HeroComposition({
                                     />
                                 </div>
                             </div>
-
                             <div className="col-span-1 grid grid-rows-2 gap-4 h-full pb-12">
                                 <div className="h-full w-full rounded-2xl overflow-hidden shadow-xl bg-gray-200 relative group">
                                     <img
@@ -93,17 +147,6 @@ export function HeroComposition({
                                     />
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Image Composition - Mobile */}
-                    <div className={`relative h-[300px] w-full mt-8 ${isMobile ? 'block' : 'block lg:hidden'}`}>
-                        <div className="h-full w-full rounded-2xl overflow-hidden shadow-xl bg-gray-200 relative group">
-                            <img
-                                src={img1}
-                                alt="Hero Mobile"
-                                className="w-full h-full object-cover"
-                            />
                         </div>
                     </div>
                 </div>

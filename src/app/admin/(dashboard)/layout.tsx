@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import type { Metadata } from 'next'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
+import { getAllPlans } from '@/features/billing/actions'
 
 export async function generateMetadata(): Promise<Metadata> {
     const supabase = await createClient()
@@ -115,9 +116,7 @@ export default async function AdminLayout({
     ]
 
     // 取得所有方案資料以對照名稱與限制
-    const { data: plans } = await supabase
-        .from('plans')
-        .select('id, name, storage_limit_mb')
+    const plans = await getAllPlans()
 
     // 取得目前商店的方案資訊
     const { data: tenantPlan } = await supabase
@@ -126,10 +125,10 @@ export default async function AdminLayout({
         .eq('id', hqStore?.id || '')
         .single()
 
-    const currentPlan = plans?.find(p => p.id === tenantPlan?.plan_id) || plans?.find(p => p.name === '免費方案')
+    const currentPlan = plans?.find(p => p.id === tenantPlan?.plan_id) || plans?.find(p => p.id === 'starter')
 
     const usageData = {
-        planName: currentPlan?.name || '免費方案',
+        planName: currentPlan?.name || 'Starter 入門版',
         storageUsageMb: tenantPlan?.storage_usage_mb || 0,
         storageLimitMb: currentPlan?.storage_limit_mb || 1000,
         nextBillingAt: tenantPlan?.next_billing_at

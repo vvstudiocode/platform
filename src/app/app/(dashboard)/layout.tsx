@@ -34,6 +34,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 
+import { getAllPlans } from '@/features/billing/actions'
+
 export default async function AppLayout({
     children,
 }: {
@@ -92,14 +94,12 @@ export default async function AppLayout({
     ]
 
     // 取得所有方案資料以對照名稱與限制
-    const { data: plans } = await supabase
-        .from('plans')
-        .select('id, name, storage_limit_mb')
+    const plans = await getAllPlans()
 
-    const currentPlan = plans?.find(p => p.id === store.plan_id) || plans?.find(p => p.name === '免費方案')
+    const currentPlan = plans?.find(p => p.id === store.plan_id) || plans?.find(p => p.id === 'starter')
 
     const usageData = {
-        planName: currentPlan?.name || '免費方案',
+        planName: currentPlan?.name || 'Starter 入門版',
         storageUsageMb: store.storage_usage_mb || 0,
         storageLimitMb: currentPlan?.storage_limit_mb || 1000,
         nextBillingAt: store.next_billing_at

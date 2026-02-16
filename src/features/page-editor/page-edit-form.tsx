@@ -1,13 +1,15 @@
 'use client'
 
 import { useActionState, useState, useEffect } from 'react'
-import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Box, Sparkles, MessageSquareQuote } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Box, Sparkles, MessageSquareQuote, Lock } from 'lucide-react'
 import { useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { getDefaultProps as getRegistryDefaultProps, getComponentEditor, componentRegistry } from '@/components/page-editor/registry'
+import { getDefaultProps as getRegistryDefaultProps, getComponentEditor, componentRegistry, getComponentConfig } from '@/components/page-editor/registry'
+import { UpsellModal } from './upsell-modal'
+import { PreviewModal } from './preview-modal'
 import { ImageMarqueeEditor } from '@/components/page-editor/editors/ImageMarqueeEditor' // Direct import if registry is not updated or to be safe? 
 // Wait, PageEditForm uses `getComponentEditor(type)`. 
 // I should update `src/components/page-editor/registry.ts` instead of importing here?
@@ -52,6 +54,7 @@ interface Props {
     storeName?: string
     footerSettings?: any
     tenantId?: string
+    subscriptionPlan?: 'free' | 'growth'
 }
 
 // 元件分類定義
@@ -112,7 +115,7 @@ const componentCategories = [
 const allComponentTypes = componentCategories.flatMap(cat => cat.components)
 
 
-export function PageEditForm({ page, updateAction, updatePageContentAction, basePath, storeSlug, tenantId, storeName, footerSettings }: Props) {
+export function PageEditForm({ page, updateAction, updatePageContentAction, basePath, storeSlug, tenantId, storeName, footerSettings, subscriptionPlan = 'free' }: Props) {
     // State for settings
     const [title, setTitle] = useState(page.title)
     const [slug, setSlug] = useState(page.slug)
@@ -142,6 +145,10 @@ export function PageEditForm({ page, updateAction, updatePageContentAction, base
     const [showMobilePreview, setShowMobilePreview] = useState(false)
     const [isSaved, setIsSaved] = useState(false)
     const [settingsCollapsed, setSettingsCollapsed] = useState(true)  // 頁面設定預設收合
+    const [upsellOpen, setUpsellOpen] = useState(false)
+    const [upsellFeatureName, setUpsellFeatureName] = useState('')
+    const [previewModalOpen, setPreviewModalOpen] = useState(false)
+    const [previewComponentType, setPreviewComponentType] = useState<string | null>(null)
     const componentListRef = useRef<HTMLDivElement>(null)
 
     // 滾動到選中的元件
@@ -196,6 +203,16 @@ export function PageEditForm({ page, updateAction, updatePageContentAction, base
     }, [showAddModal])
 
     const addComponent = (type: string) => {
+        const config = getComponentConfig(type)
+        const isGrowthOnly = config?.tier === 'growth'
+        const isFreePlan = subscriptionPlan === 'free'
+
+        if (isGrowthOnly && isFreePlan) {
+            setUpsellFeatureName(config?.label || '進階元件')
+            setUpsellOpen(true)
+            return
+        }
+
         const newComponent: PageComponent = {
             id: crypto.randomUUID(),
             type,
@@ -660,21 +677,50 @@ export function PageEditForm({ page, updateAction, updatePageContentAction, base
                                     <div key={category.name}>
                                         <h4 className="text-sm font-semibold text-muted-foreground mb-3">{category.name}</h4>
                                         <div className="grid grid-cols-2 gap-3">
-                                            {category.components.map((ct) => (
-                                                <button
-                                                    key={ct.type}
-                                                    onClick={() => addComponent(ct.type)}
-                                                    className="flex items-start gap-3 p-4 bg-muted/50 hover:bg-accent rounded-lg text-left transition-colors group border border-border hover:border-accent"
-                                                >
-                                                    <div className="p-2 bg-muted group-hover:bg-background rounded-lg transition-colors">
-                                                        <ct.icon className="h-5 w-5 text-foreground" />
+                                            {category.components.map((ct) => {
+                                                const config = getComponentConfig(ct.type)
+                                                const isLocked = config?.tier === 'growth' && subscriptionPlan === 'free'
+
+                                                return (
+                                                    <div
+                                                        key={ct.type}
+                                                        onClick={() => addComponent(ct.type)}
+                                                        className={`relative flex items-start gap-3 p-4 rounded-lg text-left transition-colors group border cursor-pointer select-none ${isLocked
+                                                            ? 'bg-muted/30 border-border opacity-70 hover:bg-muted/50'
+                                                            : 'bg-muted/50 hover:bg-accent border-border hover:border-accent'
+                                                            }`}
+                                                        role="button"
+                                                    >
+                                                        <button
+                                                            className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md opacity-0 group-hover:opacity-100 transition-all z-10"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                setPreviewComponentType(ct.type)
+                                                                setPreviewModalOpen(true)
+                                                            }}
+                                                            title="預覽此元件"
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                        </button>
+                                                        <div className={`p-2 rounded-lg transition-colors relative ${isLocked ? 'bg-muted' : 'bg-muted group-hover:bg-background'
+                                                            }`}>
+                                                            <ct.icon className="h-5 w-5 text-foreground" />
+                                                            {isLocked && (
+                                                                <div className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 rounded-full p-0.5 shadow-sm">
+                                                                    <Lock className="h-2.5 w-2.5" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <div className="font-medium text-foreground">{ct.label}</div>
+                                                                {isLocked && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-800 rounded-full font-medium border border-yellow-200">Growth</span>}
+                                                            </div>
+                                                            <div className="text-xs text-muted-foreground">{ct.description}</div>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="font-medium text-foreground mb-1">{ct.label}</div>
-                                                        <div className="text-xs text-muted-foreground">{ct.description}</div>
-                                                    </div>
-                                                </button>
-                                            ))}
+                                                )
+                                            })}
                                         </div>
                                     </div>
                                 ))}
@@ -717,6 +763,18 @@ export function PageEditForm({ page, updateAction, updatePageContentAction, base
                     </div>
                 </div>
             )}
+            <UpsellModal
+                open={upsellOpen}
+                onOpenChange={setUpsellOpen}
+                featureName={upsellFeatureName}
+            />
+            <PreviewModal
+                open={previewModalOpen}
+                onOpenChange={setPreviewModalOpen}
+                componentType={previewComponentType}
+                storeSlug={storeSlug}
+                tenantId={tenantId}
+            />
         </div>
     )
 }

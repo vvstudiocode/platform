@@ -31,6 +31,10 @@ const settingsSchema = z.object({
     payment_credit_card: z.boolean().nullish(),
     payment_bank_transfer: z.boolean().nullish(),
 
+    // Analytics (GA4 & GSC)
+    ga4_measurement_id: z.string().regex(/^G-[A-Z0-9]+$/, 'GA4 ID 格式錯誤 (應為 G-XXXXXXXXXX)').nullish().or(z.literal('')),
+    gsc_verification_code: z.string().max(100, '驗證碼過長').nullish().or(z.literal('')),
+
     // Footer
     footer_line: z.string().nullish(),
     footer_facebook: z.string().nullish(),
@@ -84,6 +88,9 @@ export async function updateGeneralSettings(
         payment_credit_card: formData.get('payment_credit_card') === 'on',
         payment_bank_transfer: formData.get('payment_bank_transfer') === 'on',
 
+        ga4_measurement_id: formData.get('ga4_measurement_id'),
+        gsc_verification_code: formData.get('gsc_verification_code'),
+
         footer_line: formData.get('footer_line'),
         footer_facebook: formData.get('footer_facebook'),
         footer_instagram: formData.get('footer_instagram'),
@@ -110,6 +117,7 @@ export async function updateGeneralSettings(
         shipping_pickup_name, shipping_711_name, shipping_home_name,
         free_shipping_threshold,
         payment_credit_card, payment_bank_transfer,
+        ga4_measurement_id, gsc_verification_code,
         footer_line, footer_facebook, footer_instagram, footer_threads,
         footer_youtube, footer_email, footer_phone, footer_address,
         footer_about, footer_copyright
@@ -132,9 +140,12 @@ export async function updateGeneralSettings(
         shipping_pickup_name, shipping_711_name, shipping_home_name,
         free_shipping_threshold,
         payment_methods: {
-            // Ensure these are explicitly booleans, even if Zod or FormData is weird
             credit_card: Boolean(payment_credit_card),
             bank_transfer: Boolean(payment_bank_transfer)
+        },
+        analytics: {
+            ga4_measurement_id: ga4_measurement_id || null,
+            gsc_verification_code: gsc_verification_code || null,
         }
     }
 

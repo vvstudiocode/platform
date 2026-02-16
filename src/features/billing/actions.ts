@@ -158,13 +158,33 @@ export async function getBillingHistory(tenantId: string) {
 
 // Get All Plans
 export async function getAllPlans() {
-    const supabase = await createClient()
-    const { data } = await supabase
-        .from('plans')
-        .select('*')
-        .order('price_monthly', { ascending: true })
-
-    return data || []
+    // Return hardcoded plans to match the new pricing structure
+    return [
+        {
+            id: 'starter',
+            name: 'Starter 入門版',
+            price_monthly: 0,
+            transaction_fee_percent: 0,
+            storage_limit_mb: 50,
+            description: '適合剛開始經營的品牌'
+        },
+        {
+            id: 'growth',
+            name: 'Growth 進階版',
+            price_monthly: 299,
+            transaction_fee_percent: 0,
+            storage_limit_mb: 1024,
+            description: '適合高速成長的品牌'
+        },
+        {
+            id: 'roadmap',
+            name: 'Roadmap 未來擴充',
+            price_monthly: -1, // Special value for 'Commig Soon'
+            transaction_fee_percent: 0,
+            storage_limit_mb: 0,
+            description: '敬請期待更多強大功能'
+        }
+    ]
 }
 
 // Get Transaction Count
