@@ -318,7 +318,7 @@ export function LineSettingsForm({
                             <div className="flex items-center justify-between p-4 bg-muted/20">
                                 <div>
                                     <p className="font-medium text-foreground">群組喊單功能 (+1)</p>
-                                    <p className="text-xs text-muted-foreground mt-0.5">啟用後，客人在 LINE 群組中輸入商品編號+數量即可加入購物車。</p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">啟用後，客人在 LINE 群組或官方帳號中輸入商品編號+數量即可加入購物車。回覆會以私訊方式傳送給客人。</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -335,8 +335,9 @@ export function LineSettingsForm({
                             <div className="p-4 border-t border-border space-y-3">
                                 <p className="text-sm font-medium text-foreground">使用方式</p>
                                 <p className="text-sm text-muted-foreground">
-                                    客人在 LINE 群組中，輸入<strong>「商品編號 + 數量」</strong>即可將商品加入購物車。
+                                    客人在 LINE 群組或官方帳號 1對1 聊天中，輸入<strong>「商品編號 + 數量」</strong>即可將商品加入購物車。
                                     系統會使用後台的商品編號（如 <code className="bg-muted px-1.5 py-0.5 rounded text-xs">p000001</code>）自動比對。
+                                    <strong>購物車資訊會以私訊方式回覆給客人</strong>，不會在群組中顯示。
                                 </p>
 
                                 <div className="bg-muted/30 rounded-lg p-3 space-y-2">
@@ -360,17 +361,17 @@ export function LineSettingsForm({
                                 <div className="bg-muted/30 rounded-lg p-3 space-y-2">
                                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">流程說明</p>
                                     <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                                        <li>客人在群組輸入 <code className="bg-muted px-1 py-0.5 rounded text-xs">p000001+1</code></li>
+                                        <li>客人在群組或 1對1 聊天中輸入 <code className="bg-muted px-1 py-0.5 rounded text-xs">p000001+1</code></li>
                                         <li>Bot 自動比對商品編號，找到對應商品</li>
-                                        <li>若商品<strong>無規格</strong>→ 直接加入購物車，Bot 回覆確認</li>
-                                        <li>若商品<strong>有規格</strong>（顏色/尺寸）→ Bot 送出互動卡片讓客人選擇</li>
+                                        <li>若商品<strong>無規格</strong>→ 直接加入購物車，Bot <strong>私訊</strong>客人確認</li>
+                                        <li>若商品<strong>有規格</strong>（顏色/尺寸）→ Bot <strong>私訊</strong>客人互動卡片讓客人選擇</li>
                                         <li>客人到網站購物車完成結帳</li>
                                     </ol>
                                 </div>
 
                                 <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
                                     <p className="text-xs text-amber-700 dark:text-amber-400">
-                                        ⚠️ <strong>注意：</strong>客人需先綁定 LINE 帳號與會員帳號，才能使用喊單功能。未綁定的客人輸入指令時，Bot 會提示綁定。
+                                        ⚠️ <strong>注意：</strong>私訊功能需消耗 LINE 推播訊息額度。客人需先加入 LINE 官方帳號好友才能收到私訊。在群組中啟用此功能需開啟上方開關。
                                     </p>
                                 </div>
                             </div>

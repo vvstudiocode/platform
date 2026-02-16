@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
 
         // 8. Redirect to cart hydration page (bridges DB cart → localStorage → checkout)
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `http://localhost:3000`
-        const redirectUrl = `${siteUrl}/store/${storeSlug}/line-cart?tenant_id=${tenantId}`
+        const redirectUrl = `${siteUrl}/store/${storeSlug}/line-cart?tenant_id=${tenantId}&user_id=${userId}`
 
         return NextResponse.redirect(redirectUrl)
 

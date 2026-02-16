@@ -399,6 +399,7 @@ async function handleTextMessage(
 ) {
     const text = event.message.text.trim()
     const lineUserId = event.source.userId
+    const isGroupContext = event.source.type === 'group' || event.source.type === 'room'
 
     console.log('[LINE +1] Received text message:', { text, lineUserId, sourceType: event.source.type })
 
@@ -414,13 +415,10 @@ async function handleTextMessage(
 
     console.log('[LINE +1] Group ordering enabled:', groupOrderingEnabled, 'Source type:', event.source.type)
 
-    // Only process +1 in group context and if enabled
-    if (!groupOrderingEnabled) {
+    // If in group, only process when group ordering is enabled
+    // If in 1-on-1 chat (user source), always allow ordering
+    if (isGroupContext && !groupOrderingEnabled) {
         console.log('[LINE +1] SKIP: Group ordering is disabled')
-        return
-    }
-    if (event.source.type !== 'group' && event.source.type !== 'room') {
-        console.log('[LINE +1] SKIP: Not in group/room, source type:', event.source.type)
         return
     }
 
@@ -459,8 +457,9 @@ async function handleTextMessage(
     const customer = await getOrCreateCustomer(adminClient, client, tenantId, lineUserId)
 
     if (!customer) {
-        await client.replyMessage({
-            replyToken: event.replyToken,
+        // Always push error messages privately to the user
+        await client.pushMessage({
+            to: lineUserId,
             messages: [{
                 type: 'text',
                 text: `❌ 系統錯誤，無法處理您的訂單。請稍後再試。`
@@ -475,8 +474,8 @@ async function handleTextMessage(
         (product.options as any[]).length > 0
 
     if (hasVariants) {
-        // Send Flex Message for variant selection
-        await sendVariantSelector(client, event.replyToken, product, quantity, customer.id)
+        // Send variant selector as private message to user
+        await sendVariantSelector(client, lineUserId, product, quantity, customer.id)
     } else {
         // Simple product - add directly to cart
         await addToCart(adminClient, tenantId, customer.id, product.id, null, quantity)
@@ -495,8 +494,9 @@ async function handleTextMessage(
             customer.isNew
         )
 
-        await client.replyMessage({
-            replyToken: event.replyToken,
+        // Always send as private message (DM) to the customer
+        await client.pushMessage({
+            to: lineUserId,
             messages: [flexMessage],
         })
     }
@@ -549,8 +549,9 @@ async function handlePostback(
             customer.isNew
         )
 
-        await client.replyMessage({
-            replyToken: event.replyToken,
+        // Always send as private message (DM) to the customer
+        await client.pushMessage({
+            to: lineUserId,
             messages: [flexMessage],
         })
     }
@@ -562,7 +563,7 @@ async function handlePostback(
 
 async function sendVariantSelector(
     client: any,
-    replyToken: string,
+    lineUserId: string,
     product: any,
     quantity: number,
     customerId: string
@@ -658,8 +659,9 @@ async function sendVariantSelector(
             : bubbles[0],
     }
 
-    await client.replyMessage({
-        replyToken,
+    // Send as private message (DM) to the customer
+    await client.pushMessage({
+        to: lineUserId,
         messages: [flexMessage],
     })
 }

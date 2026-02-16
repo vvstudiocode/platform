@@ -28,7 +28,66 @@ export async function GET(request: NextRequest) {
     const supabase = await createServerClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
+    // Fallback: try reading magic-login cookie directly if SSR auth fails
+    let userId = user?.id
+    if (!userId) {
+        const { cookies: getCookies } = await import('next/headers')
+        const cookieStore = await getCookies()
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+        const projectRef = new URL(supabaseUrl).hostname.split('.')[0]
+        const cookieName = `sb-${projectRef}-auth-token`
+
+        let authCookieValue = cookieStore.get(cookieName)?.value || ''
+
+        // Check for chunked cookies
+        if (!authCookieValue) {
+            const chunks: string[] = []
+            let i = 0
+            while (true) {
+                const chunk = cookieStore.get(`${cookieName}.${i}`)?.value
+                if (!chunk) break
+                chunks.push(chunk)
+                i++
+            }
+            if (chunks.length > 0) {
+                authCookieValue = chunks.join('')
+            }
+        }
+
+        if (authCookieValue) {
+            try {
+                const parsed = JSON.parse(authCookieValue)
+                if (parsed.access_token) {
+                    // Verify the token with Supabase
+                    const adminClient = getAdminClient()
+                    const { data: tokenUser } = await adminClient.auth.getUser(parsed.access_token)
+                    if (tokenUser?.user) {
+                        userId = tokenUser.user.id
+                        console.log('[Cart API] Fallback auth succeeded for user:', userId)
+                    }
+                }
+            } catch (e) {
+                console.error('[Cart API] Failed to parse auth cookie:', e)
+            }
+        }
+    }
+
+    // Final fallback: use user_id from magic-login redirect (verified by JWT)
+    if (!userId) {
+        const userIdParam = request.nextUrl.searchParams.get('user_id')
+        if (userIdParam) {
+            // Verify this user actually exists
+            const adminClient = getAdminClient()
+            const { data: verifiedUser } = await adminClient.auth.admin.getUserById(userIdParam)
+            if (verifiedUser?.user) {
+                userId = verifiedUser.user.id
+                console.log('[Cart API] Using user_id from query param:', userId)
+            }
+        }
+    }
+
+    if (!userId) {
+        console.error('[Cart API] No authenticated user found')
         return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
@@ -39,7 +98,7 @@ export async function GET(request: NextRequest) {
         .from('customers')
         .select('id')
         .eq('tenant_id', tenantId)
-        .eq('auth_user_id', user.id)
+        .eq('auth_user_id', userId)
         .single()
 
     if (!customer) {

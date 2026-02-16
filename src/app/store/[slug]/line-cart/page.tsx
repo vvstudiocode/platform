@@ -15,6 +15,7 @@ export default function LineCartPage({ params }: { params: Promise<{ slug: strin
     const router = useRouter()
     const searchParams = useSearchParams()
     const tenantId = searchParams.get('tenant_id')
+    const userIdParam = searchParams.get('user_id')
     const { addItem, clearCart, setStoreSlug, items } = useCart()
     const [status, setStatus] = useState('載入購物車中...')
     const [hydrated, setHydrated] = useState(false)
@@ -30,11 +31,18 @@ export default function LineCartPage({ params }: { params: Promise<{ slug: strin
             try {
                 setStatus('正在同步您的購物車...')
 
-                const res = await fetch(`/api/cart/line?tenant_id=${tenantId}`)
+                let url = `/api/cart/line?tenant_id=${tenantId}`
+                if (userIdParam) url += `&user_id=${userIdParam}`
+
+                const res = await fetch(url)
                 if (!res.ok) {
                     console.error('[Cart Hydrate] API error:', res.status)
-                    setStatus('購物車同步失敗，正在為您跳轉...')
-                    setTimeout(() => router.replace(`/store/${slug}/checkout`), 1500)
+                    if (res.status === 401) {
+                        setStatus('登入連結已過期，請回 LINE 重新點擊結帳按鈕')
+                    } else {
+                        setStatus('購物車同步失敗，正在為您跳轉...')
+                    }
+                    setTimeout(() => router.replace(`/store/${slug}`), 2500)
                     return
                 }
 
