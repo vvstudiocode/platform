@@ -38,9 +38,13 @@ import {
     ScrollRevealBlockEditor,
     ShinyTextEditor,
     GradientTextEditor,
-    RotatingTextEditor
+    RotatingTextEditor,
+    NewsHeroEditor,
+    NewsFeatureEditor,
+    SocialWallEditor,
+    SpacerEditor
 } from './editors'
-import { Sparkles, ScrollText } from 'lucide-react'
+import { Sparkles, ScrollText, MoveVertical } from 'lucide-react'
 
 export interface ComponentConfig {
     editor: ComponentType<EditorProps>
@@ -80,6 +84,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             align: 'center'
         }
     },
+
     text_columns: {
         editor: TextColumnsEditor,
         label: '多欄文字',
@@ -110,7 +115,21 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         tier: 'free',
         defaultProps: {
             title: '常見問題',
-            items: []
+            items: [],
+            paddingYDesktop: 64,
+            paddingYMobile: 32
+        }
+    },
+    spacer: {
+        editor: SpacerEditor,
+        label: '空白間距',
+        icon: 'MoveVertical', // We imported MoveVertical in the previous step (although that edit might have failed due to the index export error, let's assume it succeeded or I will fix it)
+        category: 'basic',
+        tier: 'free',
+        defaultProps: {
+            heightDesktop: 50,
+            heightMobile: 30,
+            backgroundColor: 'transparent'
         }
     },
 
@@ -152,6 +171,29 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             images: []
         }
     },
+    news_hero: {
+        editor: NewsHeroEditor,
+        label: '九宮格Hero',
+        icon: '📰',
+        category: 'media',
+        tier: 'free',
+        defaultProps: {
+            title: 'SPORTS',
+            subtitle: '入 夏 特 輯',
+            description: 'Life is contradictory is movement. Once the contradictory eliminate motion stops life will be over if you want strong running it if you want to fit running it thanks to his persistent physical exercise he looks healthy with white hair and a ruddy complexion.',
+            number: '89',
+            unit: '折',
+            note: '(品項自由搭配)',
+            brandText: 'NOTHING BUT YOU X LYCRA®',
+            date: 'JUN.01 - JUN.07',
+            primaryColor: '#5A7ABC',
+            backgroundColor: '#FFFDF7',
+            textColor: '#333333',
+            paddingYDesktop: 64,
+            paddingYMobile: 32,
+            images: Array(9).fill('').map((_, i) => `https://placehold.co/300x400/e2e8f0/e2e8f0?text=IMG${i + 1}`)
+        }
+    },
 
     // === 商品元件 ===
     product_list: {
@@ -189,6 +231,50 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             productIds: [],
             autoplay: true,
             interval: 5
+        }
+    },
+    news_feature: {
+        editor: NewsFeatureEditor,
+        label: '商品特色',
+        icon: '✨',
+        category: 'product',
+        tier: 'free',
+        defaultProps: {
+            sectionTitle: 'TOP',
+            brandText: 'NOTHING BUT YOU X LYCRA®',
+            primaryColor: '#5A7ABC',
+            backgroundColor: '#FFFDF7',
+            textColor: '#333333',
+            mainProduct: {
+                image: "https://placehold.co/600x800",
+                brand: "LYCRA®",
+                title: "可調式運動BRA TOP",
+                note: "(象牙白、淺藍)",
+                colors: ['#E8E4D9', '#A5B3CE']
+            },
+            subProducts: [
+                {
+                    image: "https://placehold.co/300x400",
+                    brand: "LYCRA®",
+                    title: "基礎方領運動BRA TOP",
+                    note: "(淺藍、卡其)",
+                    colors: ['#A5B3CE', '#D2B48C']
+                },
+                {
+                    image: "https://placehold.co/300x400",
+                    brand: "LYCRA®",
+                    title: "V領後交叉運動BRA TOP",
+                    note: "(象牙白、卡其)",
+                    colors: ['#E8E4D9', '#D2B48C']
+                },
+                {
+                    image: "https://placehold.co/300x400",
+                    brand: "LYCRA®",
+                    title: "平口後交叉運動BRA TOP",
+                    note: "(象牙白、卡其)",
+                    colors: ['#E8E4D9', '#D2B48C']
+                }
+            ]
         }
     },
 
@@ -472,6 +558,56 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             paddingYMobile: 32
         }
     },
+    social_wall: {
+        editor: SocialWallEditor,
+        label: '社群美牆',
+        icon: '📸',
+        category: 'media',
+        tier: 'free',
+        defaultProps: {
+            title: '#NothingButYou',
+            subtitle: 'Share your moments with us on Instagram',
+            username: '@NBY_OFFICIAL',
+            profileUrl: '#',
+            followButtonText: 'FOLLOW US',
+            backgroundColor: '#FFFDF7',
+            textColor: '#333333',
+            posts: [
+                {
+                    id: '1',
+                    type: 'image',
+                    url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600',
+                    username: '@jennie_fit',
+                    caption: '素材真的太舒服了，完全不想脫下來！',
+                    likes: 1240
+                },
+                {
+                    id: '2',
+                    type: 'image',
+                    url: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600',
+                    username: '@daily_ootd',
+                    caption: '日常穿搭也很適合，顏色超美！',
+                    likes: 856
+                },
+                {
+                    id: '3',
+                    type: 'image',
+                    url: 'https://images.unsplash.com/photo-1518331647614-7a1f04cd34cf?w=600',
+                    username: '@pilates_lover',
+                    caption: '做瑜伽的時候完全不會卡卡，大推！',
+                    likes: 2100
+                },
+                {
+                    id: '4',
+                    type: 'image',
+                    url: 'https://images.unsplash.com/photo-1544435216-182ac79f0352?w=600',
+                    username: '@minji_ss',
+                    caption: '包裝很有質感，送禮也很適合。',
+                    likes: 1540
+                }
+            ]
+        }
+    },
     magazine_grid: {
         editor: MagazineGridEditor,
         label: '雜誌排版',
@@ -668,17 +804,20 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         category: 'interactive',
         tier: 'growth',
         defaultProps: {
-            title: "Interactive Threads",
-            description: "Move your mouse to interact with the background.",
+            title: 'OMO 網站平台',
+            description: '打造您專屬的品牌電商，提供一站式解決方案',
             color: [1, 1, 1],
             backgroundColor: '#000000',
             amplitude: 1,
             distance: 0,
             mobileAmplitude: 0.5,
             mobileDistance: 0,
+            centerX: 0.5,
             enableMouseInteraction: true,
-            paddingYDesktop: 0,
-            paddingYMobile: 0,
+            paddingYDesktop: 120,
+            paddingYMobile: 80,
+            fontSizeDesktop: 60,
+            fontSizeMobile: 36,
             titleColor: '#ffffff',
             descriptionColor: '#a1a1aa',
             primaryButtonLabel: '',

@@ -131,9 +131,9 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 解鎖互動特效元件</div>
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 會員分級制度</div>
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> LINE Bot 下單自動回覆整合</div>
+                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 行銷模組（GA4/GSC）</div>
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 自訂網域綁定</div>
                                                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> {plan.storage_limit_mb >= 1024 ? `${plan.storage_limit_mb / 1024} GB` : `${plan.storage_limit_mb} MB`} 儲存空間</div>
-                                                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-primary shrink-0" /> 行銷模組（GA4/GSC）</div>
                                             </>
                                         )}
                                         {plan.name === 'Roadmap 未來擴充' && (

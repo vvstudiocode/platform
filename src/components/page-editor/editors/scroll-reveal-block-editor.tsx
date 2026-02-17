@@ -105,7 +105,27 @@ export function ScrollRevealBlockEditor({ props, onChange }: EditorProps) {
                 Add Section
             </Button>
 
+            <div className="space-y-2">
+                <Label>Block Background Color</Label>
+                <div className="flex gap-2">
+                    <Input
+                        type="color"
+                        value={props.backgroundColor || '#ffffff'}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        className="w-12 h-9 p-1 cursor-pointer"
+                    />
+                    <Input
+                        type="text"
+                        value={props.backgroundColor || ''}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        placeholder="#ffffff"
+                        className="flex-1"
+                    />
+                </div>
+            </div>
+
             <SpacingControls
+
                 paddingY={{
                     desktop: props.paddingYDesktop ?? 0,
                     mobile: props.paddingYMobile ?? 0

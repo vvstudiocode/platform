@@ -7,9 +7,11 @@ import Image from "next/image";
 export const ThreeDMarquee = ({
     images,
     className,
+    backgroundColor
 }: {
     images: string[];
     className?: string;
+    backgroundColor?: string;
 }) => {
     // Filter out valid images
     const validImages = images.filter((img) => img && img.trim() !== "");
@@ -28,6 +30,7 @@ export const ThreeDMarquee = ({
                 "relative flex h-[600px] w-full items-center justify-center overflow-hidden md:h-[800px]",
                 className
             )}
+            style={{ backgroundColor: backgroundColor }}
         >
             <div
                 className="relative flex h-full w-full items-center justify-center gap-4 overflow-hidden [perspective:1000px] [transform-style:preserve-3d]"

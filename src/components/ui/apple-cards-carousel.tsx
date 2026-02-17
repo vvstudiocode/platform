@@ -28,7 +28,7 @@ export const CarouselContext = createContext<{
     currentIndex: 0,
 });
 
-export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
+export const Carousel = ({ items, initialScroll = 0, isMobile = false }: CarouselProps & { isMobile?: boolean }) => {
     const carouselRef = React.useRef<HTMLDivElement>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -46,8 +46,10 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
 
     const handleCardClose = (index: number) => {
         if (carouselRef.current) {
-            const cardWidth = isMobile() ? 230 : 384; // (md:w-96)
-            const gap = isMobile() ? 4 : 8;
+            const mobile = isMobile || checkIsMobile();
+            const cardWidth = mobile ? (isMobile ? 270 : window.innerWidth * 0.70) : 384;
+            // If forced mobile (editor), use 270px. If actual mobile, use 70vw.
+            const gap = mobile ? 4 : 8;
             const scrollPosition = (cardWidth + gap) * (index + 1);
             carouselRef.current.scrollTo({
                 left: scrollPosition,
@@ -57,9 +59,11 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
         }
     };
 
-    const isMobile = () => {
+    const checkIsMobile = () => {
         return typeof window !== "undefined" && window.innerWidth < 768;
     };
+
+
 
     return (
         <CarouselContext.Provider
@@ -109,17 +113,21 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
 
 export const Card = ({
     card,
+    index,
     layout = false,
+    isMobile = false,
 }: {
     card: Card;
-    index: number; // Keep index for potential future use or if it's implicitly used by parent
+    index: number;
     layout?: boolean;
+    isMobile?: boolean;
 }) => {
     return (
         <motion.div
             layoutId={layout ? `card-${card.title}` : undefined}
             className={cn(
-                "rounded-3xl bg-gray-100 dark:bg-neutral-900 h-80 w-60 md:h-[30rem] md:w-96 overflow-hidden flex flex-col items-start justify-start relative z-10 shrink-0",
+                "rounded-3xl bg-gray-100 dark:bg-neutral-900 overflow-hidden flex flex-col items-start justify-start relative z-10 shrink-0",
+                isMobile ? "h-80 w-[270px]" : "h-80 w-[70vw] md:h-[30rem] md:w-96"
             )}
         >
             <div className="absolute h-full top-0 inset-x-0 bg-gradient-to-b from-black/50 via-transparent to-transparent z-30 pointer-events-none" />
@@ -191,14 +199,18 @@ export function AppleCardsCarousel({
     items,
     paddingYDesktop = 0,
     paddingYMobile = 0,
+    backgroundColor,
+    isMobile = false
 }: {
     items: Card[];
     paddingYDesktop?: number;
     paddingYMobile?: number;
+    backgroundColor?: string;
+    isMobile?: boolean;
 }) {
 
     const cards = items.map((card, index) => (
-        <Card key={card.src} card={card} index={index} />
+        <Card key={card.src} card={card} index={index} isMobile={isMobile} />
     ));
 
     return (
@@ -207,18 +219,19 @@ export function AppleCardsCarousel({
             style={{
                 paddingTop: paddingYMobile,
                 paddingBottom: paddingYMobile,
+                backgroundColor: backgroundColor
             }}
         >
             <style jsx>{`
                 @media (min-width: 768px) {
                     .apple-carousel-container {
-                        padding-top: ${paddingYDesktop}px !important;
-                        padding-bottom: ${paddingYDesktop}px !important;
+                        padding-top: ${isMobile ? paddingYMobile : paddingYDesktop}px !important;
+                        padding-bottom: ${isMobile ? paddingYMobile : paddingYDesktop}px !important;
                     }
                 }
             `}</style>
             <div className="apple-carousel-container" style={{ paddingTop: paddingYMobile, paddingBottom: paddingYMobile }}>
-                <Carousel items={cards} />
+                <Carousel items={cards} isMobile={isMobile} />
             </div>
         </div>
     );

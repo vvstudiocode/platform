@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input'
 import { SpacingControls } from '../responsive-controls'
 import { AnimationControls } from '../animation-controls'
 import { ImageInput } from '../image-input'
+import { AlignmentButtons } from '../shared/AlignmentButtons'
 import type { EditorProps } from '../shared/types'
 
 export function HeroEditor({ props, onChange }: EditorProps) {
@@ -15,6 +16,10 @@ export function HeroEditor({ props, onChange }: EditorProps) {
             <div>
                 <label className="block text-sm text-muted-foreground mb-1">副標題</label>
                 <Input placeholder="副標題" value={props.subtitle || ''} onChange={(e) => onChange({ subtitle: e.target.value })} />
+            </div>
+            <div>
+                <label className="block text-sm text-muted-foreground mb-1">文字對齊</label>
+                <AlignmentButtons value={props.align || 'center'} onChange={(val) => onChange({ align: val })} />
             </div>
             <div>
                 <label className="block text-sm text-muted-foreground mb-1">背景圖片網址</label>
@@ -34,6 +39,25 @@ export function HeroEditor({ props, onChange }: EditorProps) {
                     <Input placeholder="https://..." value={props.buttonUrl || ''} onChange={(e) => onChange({ buttonUrl: e.target.value })} />
                 </div>
             </div>
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">背景顏色</label>
+                <div className="flex gap-2">
+                    <Input
+                        type="color"
+                        value={props.backgroundColor || '#ffffff'}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        className="w-12 h-9 p-1 cursor-pointer"
+                    />
+                    <Input
+                        type="text"
+                        value={props.backgroundColor || ''}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        placeholder="#ffffff"
+                        className="flex-1"
+                    />
+                </div>
+            </div>
+
 
             <SpacingControls
                 paddingY={{

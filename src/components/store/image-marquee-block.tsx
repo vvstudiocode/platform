@@ -14,6 +14,7 @@ interface ImageMarqueeBlockProps {
     scaleOnHover?: boolean
     paddingYDesktop?: number
     paddingYMobile?: number
+    isMobile?: boolean
 }
 
 export function ImageMarqueeBlock({
@@ -27,7 +28,8 @@ export function ImageMarqueeBlock({
     fadeOut = false,
     scaleOnHover = false,
     paddingYDesktop = 64,
-    paddingYMobile = 32
+    paddingYMobile = 32,
+    isMobile = false
 }: ImageMarqueeBlockProps) {
     const validImages = images.filter((img) => img.url && img.url.trim() !== "")
 
@@ -45,7 +47,7 @@ export function ImageMarqueeBlock({
         <>
             {/* Desktop version */}
             <div
-                className="hidden md:block w-full"
+                className={`w-full ${isMobile ? 'hidden' : 'hidden md:block'}`}
                 style={{
                     backgroundColor,
                     paddingTop: `${paddingYDesktop}px`,
@@ -63,12 +65,13 @@ export function ImageMarqueeBlock({
                     fadeOutColor={backgroundColor}
                     scaleOnHover={scaleOnHover}
                     ariaLabel="圖片輪播"
+                    className="overflow-hidden"
                 />
             </div>
 
             {/* Mobile version */}
             <div
-                className="md:hidden w-full"
+                className={`w-full ${isMobile ? 'block' : 'md:hidden'}`}
                 style={{
                     backgroundColor,
                     paddingTop: `${paddingYMobile}px`,
@@ -86,6 +89,7 @@ export function ImageMarqueeBlock({
                     fadeOutColor={backgroundColor}
                     scaleOnHover={scaleOnHover}
                     ariaLabel="圖片輪播"
+                    className="overflow-hidden"
                 />
             </div>
         </>

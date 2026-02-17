@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 interface ImageCard {
     title: string
@@ -19,6 +20,7 @@ interface ImageCardGridProps {
     paddingYDesktop?: number
     paddingYMobile?: number
     isMobile?: boolean
+    backgroundColor?: string
 }
 
 export function ImageCardGrid({
@@ -29,7 +31,8 @@ export function ImageCardGrid({
     columns = 4,
     paddingYDesktop = 64,
     paddingYMobile = 32,
-    isMobile = false
+    isMobile = false,
+    backgroundColor
 }: ImageCardGridProps) {
 
     // Grid class logic
@@ -46,11 +49,17 @@ export function ImageCardGrid({
 
     return (
         <section
-            className="w-full bg-white"
+            className={cn(
+                "w-full",
+                isMobile ? "" : "py-[var(--py-mobile)] md:py-[var(--py-desktop)]"
+            )}
             style={{
-                paddingTop: `${paddingYMobile}px`,
-                paddingBottom: `${paddingYMobile}px`
-            }}
+                backgroundColor: backgroundColor,
+                paddingTop: isMobile ? `${paddingYMobile}px` : undefined,
+                paddingBottom: isMobile ? `${paddingYMobile}px` : undefined,
+                '--py-desktop': `${paddingYDesktop}px`,
+                '--py-mobile': `${paddingYMobile}px`,
+            } as any}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
@@ -90,14 +99,6 @@ export function ImageCardGrid({
                     ))}
                 </div>
             </div>
-            {!isMobile && <style jsx>{`
-                @media (min-width: 1024px) {
-                    section {
-                        padding-top: ${paddingYDesktop}px !important;
-                        padding-bottom: ${paddingYDesktop}px !important;
-                    }
-                }
-            `}</style>}
         </section>
     )
 }

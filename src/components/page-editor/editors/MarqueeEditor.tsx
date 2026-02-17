@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EditorProps } from "../shared/types"
-import { SpacingControls } from "../responsive-controls"
+import { SpacingControls, FontSizeControls } from "../responsive-controls"
 
 export function MarqueeEditor({ props, onChange }: EditorProps) {
     const {
@@ -12,7 +12,8 @@ export function MarqueeEditor({ props, onChange }: EditorProps) {
         pauseOnHover = true,
         backgroundColor = "#000000",
         textColor = "#FFFFFF",
-        fontSize = 16,
+        fontSizeDesktop = 60,
+        fontSizeMobile = 36,
         paddingYDesktop = 64,
         paddingYMobile = 32
     } = props || {}
@@ -27,11 +28,11 @@ export function MarqueeEditor({ props, onChange }: EditorProps) {
     return (
         <div className="space-y-6">
             <div className="space-y-2">
-                <Label>跑馬燈文字</Label>
+                <Label>跑馬燈內容</Label>
                 <Input
                     value={text}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('text', e.target.value)}
-                    placeholder="請輸入文字..."
+                    placeholder="輸入跑馬燈文字"
                 />
             </div>
 
@@ -41,6 +42,21 @@ export function MarqueeEditor({ props, onChange }: EditorProps) {
                     const newProps = { ...props, ...updates }
                     onChange(newProps)
                 }}
+            />
+
+            <FontSizeControls
+                fontSize={{ desktop: fontSizeDesktop, mobile: fontSizeMobile }}
+                onChange={(updates) => {
+                    const newProps = { ...props, ...updates }
+                    // Also update legacy fontSize for backward compatibility if needed,
+                    // though we use fontSizeDesktop/Mobile primarily now.
+                    if (updates.fontSizeDesktop) {
+                        newProps.fontSize = updates.fontSizeDesktop
+                    }
+                    onChange(newProps)
+                }}
+                min={12}
+                max={200}
             />
 
             <div className="grid grid-cols-2 gap-4">
@@ -80,20 +96,6 @@ export function MarqueeEditor({ props, onChange }: EditorProps) {
                 </div>
             </div>
 
-            <div className="space-y-2">
-                <div className="flex justify-between">
-                    <Label>字體大小 ({fontSize}px)</Label>
-                </div>
-                <input
-                    type="range"
-                    min={12}
-                    max={100}
-                    step={1}
-                    value={fontSize}
-                    onChange={(e) => handleChange('fontSize', Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-            </div>
 
             <div className="space-y-2">
                 <div className="flex justify-between">
@@ -106,7 +108,7 @@ export function MarqueeEditor({ props, onChange }: EditorProps) {
                     step={1}
                     value={speed}
                     onChange={(e) => handleChange('speed', Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
                 />
             </div>
 
@@ -121,19 +123,6 @@ export function MarqueeEditor({ props, onChange }: EditorProps) {
                         <SelectItem value="right">向右</SelectItem>
                     </SelectContent>
                 </Select>
-            </div>
-
-            <div className="flex items-center justify-between">
-                <Label htmlFor="pause-hover">懸停暫停</Label>
-                <div className="flex items-center h-6">
-                    <input
-                        id="pause-hover"
-                        type="checkbox"
-                        checked={pauseOnHover}
-                        onChange={(e) => handleChange('pauseOnHover', e.target.checked)}
-                        className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                    />
-                </div>
             </div>
         </div>
     )

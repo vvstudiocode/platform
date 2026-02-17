@@ -11,9 +11,10 @@ interface ImageInputProps {
     value: string
     onChange: (value: string) => void
     placeholder?: string
+    className?: string
 }
 
-export function ImageInput({ value, onChange, placeholder = '圖片網址' }: ImageInputProps) {
+export function ImageInput({ value, onChange, placeholder = '圖片網址', className }: ImageInputProps) {
     const [uploading, setUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -48,7 +49,7 @@ export function ImageInput({ value, onChange, placeholder = '圖片網址' }: Im
     }
 
     return (
-        <div className="space-y-2">
+        <div className={`space-y-2 ${className || ''}`}>
             <div className="flex gap-2">
                 <Input
                     value={value || ''}

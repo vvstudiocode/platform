@@ -15,13 +15,15 @@ interface ScrollRevealBlockProps {
     className?: string
     paddingYDesktop?: number
     paddingYMobile?: number
+    backgroundColor?: string
 }
 
 export function ScrollRevealBlock({
     items = [],
     className,
     paddingYDesktop = 0,
-    paddingYMobile = 0
+    paddingYMobile = 0,
+    backgroundColor
 }: ScrollRevealBlockProps) {
     if (!items.length) return null
 
@@ -30,7 +32,8 @@ export function ScrollRevealBlock({
             className={cn(styles.scrollRevealContainer, className)}
             style={{
                 '--padding-y-desktop': `${paddingYDesktop}px`,
-                '--padding-y-mobile': `${paddingYMobile}px`
+                '--padding-y-mobile': `${paddingYMobile}px`,
+                backgroundColor: backgroundColor
             } as React.CSSProperties}
         >
             {items.map((item, index) => (
@@ -38,7 +41,7 @@ export function ScrollRevealBlock({
                     key={item.id}
                     className={styles.section}
                     style={{
-                        backgroundColor: item.backgroundColor,
+                        backgroundColor: item.backgroundColor || backgroundColor,
                         zIndex: index + 1
                     }}
                 >

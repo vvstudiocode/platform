@@ -218,3 +218,57 @@ export function AspectRatioControls({ aspectRatio, onChange }: {
         </div>
     )
 }
+
+export function FontSizeControls({
+    fontSize,
+    onChange,
+    min = 12,
+    max = 120,
+    step = 1,
+    unit = 'px',
+    label = '字體大小'
+}: {
+    fontSize: { desktop: number; mobile: number },
+    onChange: (updates: { fontSizeDesktop?: number; fontSizeMobile?: number }) => void,
+    min?: number,
+    max?: number,
+    step?: number,
+    unit?: string,
+    label?: string
+}) {
+    const [mode, setMode] = useState<'desktop' | 'mobile'>('desktop')
+    const isDesktop = mode === 'desktop'
+    const value = isDesktop ? (fontSize?.desktop ?? 40) : (fontSize?.mobile ?? 32)
+
+    return (
+        <div className="space-y-2 bg-muted/50 p-3 rounded-lg border border-border">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Label className="text-xs font-semibold text-muted-foreground">
+                        {label}
+                    </Label>
+                    <span className="text-[10px] px-1.5 py-0.5 bg-background rounded border border-border text-muted-foreground min-w-[3rem] text-center">
+                        {value}{unit}
+                    </span>
+                </div>
+                <DeviceToggles mode={mode} setMode={setMode} />
+            </div>
+
+            <input
+                type="range"
+                min={min}
+                max={max}
+                step={step}
+                value={value}
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onChange={(e) => {
+                    const val = parseFloat(e.target.value)
+                    onChange(isDesktop ? { fontSizeDesktop: val } : { fontSizeMobile: val })
+                }}
+                className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary block"
+            />
+        </div>
+    )
+}

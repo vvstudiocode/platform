@@ -16,6 +16,7 @@ interface ScrollableCardsProps {
     paddingYDesktop?: number
     paddingYMobile?: number
     isMobile?: boolean
+    backgroundColor?: string
 }
 
 export function ScrollableCards({
@@ -42,7 +43,8 @@ export function ScrollableCards({
     ],
     paddingYDesktop = 64,
     paddingYMobile = 32,
-    isMobile = false
+    isMobile = false,
+    backgroundColor
 }: ScrollableCardsProps) {
     const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -61,7 +63,8 @@ export function ScrollableCards({
             className="w-full"
             style={{
                 paddingTop: `${isMobile ? paddingYMobile : paddingYDesktop}px`,
-                paddingBottom: `${isMobile ? paddingYMobile : paddingYDesktop}px`
+                paddingBottom: `${isMobile ? paddingYMobile : paddingYDesktop}px`,
+                backgroundColor: backgroundColor
             }}
         >
             <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-end mb-8">

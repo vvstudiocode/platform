@@ -13,6 +13,7 @@ interface BeforeAfterSliderProps {
     className?: string
     paddingYDesktop?: number
     paddingYMobile?: number
+    backgroundColor?: string
 }
 
 export function BeforeAfterSlider({
@@ -24,7 +25,8 @@ export function BeforeAfterSlider({
     orientation = 'horizontal', // currently only horizontal supported
     className,
     paddingYDesktop = 0,
-    paddingYMobile = 0
+    paddingYMobile = 0,
+    backgroundColor
 }: BeforeAfterSliderProps) {
     const [sliderPosition, setSliderPosition] = useState(50)
     const [isResizing, setIsResizing] = useState(false)
@@ -64,7 +66,8 @@ export function BeforeAfterSlider({
             style={{
                 paddingTop: `${paddingYMobile}px`,
                 paddingBottom: `${paddingYMobile}px`,
-                ['--padding-desktop' as any]: `${paddingYDesktop}px`
+                ['--padding-desktop' as any]: `${paddingYDesktop}px`,
+                backgroundColor: backgroundColor
             }}
         >
             <style jsx>{`

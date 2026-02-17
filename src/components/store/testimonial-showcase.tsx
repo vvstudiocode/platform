@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 import { Star, Image as ImageIcon, Play } from 'lucide-react'
 
 interface TestimonialShowcaseProps {
@@ -27,6 +28,7 @@ interface TestimonialShowcaseProps {
     paddingYDesktop?: number
     paddingYMobile?: number
     isMobile?: boolean
+    backgroundColor?: string
 }
 
 export function TestimonialShowcase({
@@ -44,16 +46,23 @@ export function TestimonialShowcase({
     image2Text,
     paddingYDesktop = 64,
     paddingYMobile = 32,
-    isMobile = false
+    isMobile = false,
+    backgroundColor
 }: TestimonialShowcaseProps) {
 
     return (
         <section
-            className="w-full bg-white overflow-hidden"
+            className={cn(
+                "w-full overflow-hidden",
+                isMobile ? "" : "py-[var(--py-mobile)] md:py-[var(--py-desktop)]"
+            )}
             style={{
-                paddingTop: `${paddingYMobile}px`,
-                paddingBottom: `${paddingYMobile}px`
-            }}
+                backgroundColor: backgroundColor || '#ffffff',
+                paddingTop: isMobile ? `${paddingYMobile}px` : undefined,
+                paddingBottom: isMobile ? `${paddingYMobile}px` : undefined,
+                '--py-desktop': `${paddingYDesktop}px`,
+                '--py-mobile': `${paddingYMobile}px`,
+            } as any}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
@@ -138,14 +147,6 @@ export function TestimonialShowcase({
                     </div>
                 </div>
             </div>
-            {!isMobile && <style jsx>{`
-                @media (min-width: 1024px) {
-                    section {
-                        padding-top: ${paddingYDesktop}px !important;
-                        padding-bottom: ${paddingYDesktop}px !important;
-                    }
-                }
-            `}</style>}
         </section>
     )
 }

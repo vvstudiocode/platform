@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 interface NewsletterBannerProps {
     title?: string
@@ -14,6 +15,7 @@ interface NewsletterBannerProps {
     isMobile?: boolean
     overlayOpacity?: number
     buttonUrl?: string
+    backgroundColor?: string
 }
 
 export function NewsletterBanner({
@@ -26,16 +28,23 @@ export function NewsletterBanner({
     paddingYMobile = 64,
     isMobile = false,
     overlayOpacity = 0.5,
-    buttonUrl
+    buttonUrl,
+    backgroundColor
 }: NewsletterBannerProps) {
 
     return (
         <section
-            className="relative overflow-hidden w-full bg-gray-900"
+            className={cn(
+                "relative overflow-hidden w-full bg-gray-900",
+                isMobile ? "" : "py-[var(--py-mobile)] md:py-[var(--py-desktop)]"
+            )}
             style={{
-                paddingTop: `${paddingYMobile}px`,
-                paddingBottom: `${paddingYMobile}px`
-            }}
+                backgroundColor: backgroundColor,
+                paddingTop: isMobile ? `${paddingYMobile}px` : undefined,
+                paddingBottom: isMobile ? `${paddingYMobile}px` : undefined,
+                '--py-desktop': `${paddingYDesktop}px`,
+                '--py-mobile': `${paddingYMobile}px`,
+            } as any}
         >
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
@@ -86,15 +95,6 @@ export function NewsletterBanner({
                     </p>
                 )}
             </div>
-
-            {!isMobile && <style jsx>{`
-                @media (min-width: 1024px) {
-                    section {
-                        padding-top: ${paddingYDesktop}px !important;
-                        padding-bottom: ${paddingYDesktop}px !important;
-                    }
-                }
-            `}</style>}
         </section>
     )
 }

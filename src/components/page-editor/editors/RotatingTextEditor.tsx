@@ -3,10 +3,9 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { AlignLeft, AlignCenter, AlignRight, Monitor, Smartphone, Play, Plus, X } from 'lucide-react'
 import type { EditorProps } from '../shared/types'
-import { SpacingControls } from '../responsive-controls'
+import { SpacingControls, FontSizeControls } from '../responsive-controls'
 
 export function RotatingTextEditor({ props, onChange }: EditorProps) {
-    const [fontSizeMode, setFontSizeMode] = useState<'desktop' | 'mobile'>('desktop')
 
     const fontWeights = [
         { value: 400, label: '正常' },
@@ -145,70 +144,16 @@ export function RotatingTextEditor({ props, onChange }: EditorProps) {
 
             </div>
 
-            {/* 字體大小 */}
-            <div className="space-y-2 bg-muted/50 p-3 rounded-lg border border-border">
-                <div className="flex items-center justify-between">
-                    <Label className="text-xs font-semibold text-muted-foreground">
-                        字體大小
-                    </Label>
-                    <div className="flex items-center gap-1 bg-background rounded border border-border">
-                        <button
-                            type="button"
-                            onClick={() => setFontSizeMode('desktop')}
-                            className={`p-1.5 rounded transition-colors ${fontSizeMode === 'desktop'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                            title="桌面版"
-                        >
-                            <Monitor className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setFontSizeMode('mobile')}
-                            className={`p-1.5 rounded transition-colors ${fontSizeMode === 'mobile'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                            title="手機版"
-                        >
-                            <Smartphone className="h-3.5 w-3.5" />
-                        </button>
-                    </div>
-                </div>
-
-                {fontSizeMode === 'desktop' ? (
-                    <div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                            <span>{props.fontSizeDesktop || 16}px</span>
-                        </div>
-                        <input
-                            type="range"
-                            min="12"
-                            max="100"
-                            step="1"
-                            value={props.fontSizeDesktop || 16}
-                            onChange={(e) => onChange({ fontSizeDesktop: Number(e.target.value) })}
-                            className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary block"
-                        />
-                    </div>
-                ) : (
-                    <div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                            <span>{props.fontSizeMobile || 14}px</span>
-                        </div>
-                        <input
-                            type="range"
-                            min="10"
-                            max="60"
-                            step="1"
-                            value={props.fontSizeMobile || 14}
-                            onChange={(e) => onChange({ fontSizeMobile: Number(e.target.value) })}
-                            className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary block"
-                        />
-                    </div>
-                )}
-            </div>
+            <FontSizeControls
+                fontSize={{
+                    desktop: props.fontSizeDesktop ?? 16,
+                    mobile: props.fontSizeMobile ?? 14
+                }}
+                onChange={onChange}
+                min={12}
+                max={100}
+                label="字體大小"
+            />
 
             {/* 字體粗細與對齊 */}
             <div className="grid grid-cols-2 gap-4">

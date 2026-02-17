@@ -81,7 +81,27 @@ export function ProductCategoryEditor({ props, onChange, tenantId }: EditorProps
                 }}
                 onChange={onChange}
             />
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">背景顏色</label>
+                <div className="flex gap-2">
+                    <Input
+                        type="color"
+                        value={props.backgroundColor || '#ffffff'}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        className="w-12 h-9 p-1 cursor-pointer"
+                    />
+                    <Input
+                        type="text"
+                        value={props.backgroundColor || ''}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        placeholder="#ffffff"
+                        className="flex-1"
+                    />
+                </div>
+            </div>
+
             <SpacingControls
+
                 paddingY={{
                     desktop: props.paddingYDesktop ?? 64,
                     mobile: props.paddingYMobile ?? 32

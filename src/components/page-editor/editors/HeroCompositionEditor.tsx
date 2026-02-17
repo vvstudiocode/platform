@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { SpacingControls } from '../responsive-controls'
+import { SpacingControls, FontSizeControls } from '../responsive-controls'
 import { ImageInput } from '../image-input'
 import type { EditorProps } from '../shared/types'
 
@@ -34,6 +34,17 @@ export function HeroCompositionEditor({ props, onChange }: EditorProps) {
                     rows={3}
                 />
             </div>
+
+            <FontSizeControls
+                fontSize={{
+                    desktop: props.fontSizeDesktop ?? 48,
+                    mobile: props.fontSizeMobile ?? 36
+                }}
+                onChange={onChange}
+                min={24}
+                max={120}
+                label="標題字體大小"
+            />
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -82,7 +93,27 @@ export function HeroCompositionEditor({ props, onChange }: EditorProps) {
                 </div>
             </div>
 
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">背景顏色</label>
+                <div className="flex gap-2">
+                    <Input
+                        type="color"
+                        value={props.backgroundColor || '#ffffff'}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        className="w-12 h-9 p-1 cursor-pointer"
+                    />
+                    <Input
+                        type="text"
+                        value={props.backgroundColor || ''}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        placeholder="#ffffff"
+                        className="flex-1"
+                    />
+                </div>
+            </div>
+
             <SpacingControls
+
                 paddingY={{
                     desktop: props.paddingYDesktop ?? 64,
                     mobile: props.paddingYMobile ?? 32

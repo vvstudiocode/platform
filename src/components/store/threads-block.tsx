@@ -15,11 +15,14 @@ interface ThreadsBlockProps {
     distance?: number
     mobileAmplitude?: number
     mobileDistance?: number
+    centerX?: number
     enableMouseInteraction?: boolean
     paddingYDesktop?: number
     paddingYMobile?: number
     isMobile?: boolean
     // New Props
+    fontSizeDesktop?: number
+    fontSizeMobile?: number
     titleColor?: string
     descriptionColor?: string
     primaryButtonLabel?: string
@@ -37,10 +40,13 @@ export function ThreadsBlock({
     distance = 0,
     mobileAmplitude,
     mobileDistance,
+    centerX = 0.5,
     enableMouseInteraction = true,
     paddingYDesktop = 0,
     paddingYMobile = 0,
     isMobile: propIsMobile = false,
+    fontSizeDesktop = 60,
+    fontSizeMobile = 36,
     titleColor = '#ffffff',
     descriptionColor = '#a1a1aa', // zinc-400
     primaryButtonLabel,
@@ -77,6 +83,7 @@ export function ThreadsBlock({
     // Explicitly fallback to desktop values only if mobile values are undefined
     const effectiveAmplitude = (isEffectiveMobile && mobileAmplitude !== undefined) ? mobileAmplitude : amplitude
     const effectiveDistance = (isEffectiveMobile && mobileDistance !== undefined) ? mobileDistance : distance
+    const effectiveFontSize = isEffectiveMobile ? fontSizeMobile : fontSizeDesktop
 
     const paddingY = isEffectiveMobile ? paddingYMobile : paddingYDesktop
 
@@ -95,6 +102,7 @@ export function ThreadsBlock({
                     color={color}
                     amplitude={effectiveAmplitude}
                     distance={effectiveDistance}
+                    centerX={centerX}
                     enableMouseInteraction={enableMouseInteraction}
                 />
             </div>
@@ -102,8 +110,12 @@ export function ThreadsBlock({
             <div className="relative z-10 max-w-4xl mx-auto px-4 text-center pointer-events-none">
                 {title && (
                     <h2
-                        className="font-display text-4xl md:text-6xl font-bold mb-6 tracking-tight"
-                        style={{ color: titleColor }}
+                        className="font-display font-bold mb-6 tracking-tight"
+                        style={{
+                            color: titleColor,
+                            fontSize: `${effectiveFontSize}px`,
+                            lineHeight: 1.1
+                        }}
                     >
                         {title}
                     </h2>

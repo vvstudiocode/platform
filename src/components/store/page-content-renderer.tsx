@@ -20,6 +20,7 @@ import { ImageCardGrid } from '../store/image-card-grid'
 import { MagazineGrid } from '../store/magazine-grid'
 import { TestimonialShowcase } from '../store/testimonial-showcase'
 import { NewsletterBanner } from '../store/newsletter-banner'
+import { Spacer } from '../store/spacer'
 
 import { StatsGrid } from '../store/stats-grid'
 import { ScrollableCards } from '../store/scrollable-cards'
@@ -125,7 +126,7 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
     // 定義哪些區塊應該是全寬的
     const isFullWidthBlock = (type: string) => {
         // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
-        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after', 'scroll_reveal', 'shiny_text', 'gradient_text', 'rotating_text'].includes(type)
+        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after', 'scroll_reveal', 'shiny_text', 'gradient_text', 'rotating_text', 'spacer'].includes(type)
     }
 
     return (
@@ -143,12 +144,15 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
             {content.map((block, index) => {
                 const fullWidth = isFullWidthBlock(block.type)
 
+                // Spacer 元件不套用預設 padding,只使用自己的高度
+                const isSpacer = block.type === 'spacer'
+
                 return (
                     <div
                         key={`${block.id || index}-${JSON.stringify(block.props?.animation)}`}
                         id={`preview-${block.id}`}
                         className={`scroll-mt-32 transition-all duration-300 w-full ${
-                            // 只有被選中時才顯示外框，且要確保外框可見
+                            // 只有被選中時才顯示外框,且要確保外框可見
                             block.id === selectedId
                                 ? 'relative z-10 ring-2 ring-rose-500 ring-offset-4 ring-offset-white'
                                 : ''
@@ -158,10 +162,12 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
                                 ? ''
                                 : 'max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8'
                             } ${
-                            // 垂直間距
-                            preview && previewDevice === 'mobile'
-                                ? 'py-[var(--py-mobile)]'
-                                : 'py-[var(--py-mobile)] md:py-[var(--py-desktop)]'
+                            // 垂直間距 - Spacer 元件不套用 padding
+                            isSpacer
+                                ? ''
+                                : (preview && previewDevice === 'mobile'
+                                    ? 'py-[var(--py-mobile)]'
+                                    : 'py-[var(--py-mobile)] md:py-[var(--py-desktop)]')
                             }`}
                         style={{
                             '--py-desktop': `${block.props?.paddingYDesktop ?? 64}px`,
@@ -481,6 +487,14 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 paddingYDesktop={block.props?.paddingYDesktop}
                 paddingYMobile={block.props?.paddingYMobile}
                 overlayOpacity={block.props?.overlayOpacity}
+                isMobile={preview && previewDevice === 'mobile'}
+            />
+
+        case 'spacer':
+            return <Spacer
+                heightDesktop={block.props?.heightDesktop}
+                heightMobile={block.props?.heightMobile}
+                backgroundColor={block.props?.backgroundColor}
                 isMobile={preview && previewDevice === 'mobile'}
             />
 

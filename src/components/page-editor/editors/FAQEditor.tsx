@@ -3,10 +3,18 @@ import { Trash2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useListEditor } from '../shared/useListEditor'
 import type { EditorProps } from '../shared/types'
+import { SpacingControls } from '../responsive-controls'
 
 export function FAQEditor({ props, onChange }: EditorProps) {
-    const { add, remove, update, items } = useListEditor(
-        props.items || [],
+    const {
+        title = '常見問題',
+        items = [],
+        paddingYDesktop = 64,
+        paddingYMobile = 32
+    } = props || {}
+
+    const { add, remove, update, items: listItems } = useListEditor(
+        items,
         'items',
         onChange
     )
@@ -15,8 +23,16 @@ export function FAQEditor({ props, onChange }: EditorProps) {
         <div className="space-y-3">
             <div>
                 <label className="block text-sm text-muted-foreground mb-1">區塊標題</label>
-                <Input placeholder="常見問題" value={props.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+                <Input placeholder="常見問題" value={title} onChange={(e) => onChange({ ...props, title: e.target.value })} />
             </div>
+
+            <SpacingControls
+                paddingY={{ desktop: paddingYDesktop, mobile: paddingYMobile }}
+                onChange={(updates) => {
+                    onChange({ ...props, ...updates })
+                }}
+            />
+
             <div className="space-y-2">
                 <label className="block text-sm text-muted-foreground">問答項目</label>
                 {items.map((item: any, index: number) => (

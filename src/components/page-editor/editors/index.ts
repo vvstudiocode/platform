@@ -40,4 +40,8 @@ export { ScrollRevealBlockEditor } from './scroll-reveal-block-editor'
 export { ShinyTextEditor } from './ShinyTextEditor'
 export { GradientTextEditor } from './GradientTextEditor'
 export { RotatingTextEditor } from './RotatingTextEditor'
+export { NewsHeroEditor } from './NewsHeroEditor'
+export { NewsFeatureEditor } from './NewsFeatureEditor'
+export { SocialWallEditor } from './SocialWallEditor'
+export { SpacerEditor } from './SpacerEditor'
 

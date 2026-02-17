@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input'
 import { ResponsiveControls, SpacingControls, ImageControls, AspectRatioControls } from '../responsive-controls'
 import { AnimationControls } from '../animation-controls'
 import { AlignmentButtons } from '../shared/AlignmentButtons'
+import { SortableProductList } from '../shared/SortableProductList'
 import type { EditorProps } from '../shared/types'
 
 export function ProductListEditor({ props, onChange, tenantId }: EditorProps) {
@@ -84,6 +85,13 @@ export function ProductListEditor({ props, onChange, tenantId }: EditorProps) {
                 onChange={onChange}
             />
 
+            {/* 可排序的已選商品列表 */}
+            <SortableProductList
+                value={selectedIds}
+                products={products}
+                onChange={(ids) => onChange({ productIds: ids })}
+            />
+
             {/* 商品選擇區 */}
             <div className="border border-border rounded-lg overflow-hidden">
                 <div className="p-3 bg-muted border-b border-border">
@@ -146,7 +154,27 @@ export function ProductListEditor({ props, onChange, tenantId }: EditorProps) {
                     )}
                 </div>
             </div>
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">背景顏色</label>
+                <div className="flex gap-2">
+                    <Input
+                        type="color"
+                        value={props.backgroundColor || '#ffffff'}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        className="w-12 h-9 p-1 cursor-pointer"
+                    />
+                    <Input
+                        type="text"
+                        value={props.backgroundColor || ''}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        placeholder="#ffffff"
+                        className="flex-1"
+                    />
+                </div>
+            </div>
+
             <SpacingControls
+
                 paddingY={{
                     desktop: props.paddingYDesktop ?? 64,
                     mobile: props.paddingYMobile ?? 32

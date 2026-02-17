@@ -3,16 +3,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { Palette, MousePointer2, Move, Smartphone, Monitor, Type } from "lucide-react"
-
-interface ThreadsBlockEditorProps {
-    props: any
-    onChange: (props: any) => void
-    tenantId?: string
-}
+import { Palette, MousePointer2, Smartphone, Monitor, Type } from "lucide-react"
+import { SpacingControls, FontSizeControls } from "../responsive-controls"
+import type { EditorProps } from "../shared/types"
 
 // Helper component for responsive range sliders
-function ResponsiveRangeControl({
+function ResponsiveSlider({
     label,
     value,
     onChange,
@@ -47,7 +43,7 @@ function ResponsiveRangeControl({
                         type="button"
                         onClick={() => setMode('desktop')}
                         className={`p-1.5 rounded transition-colors ${isDesktop ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                        title="Desktop"
+                        title="桌面版"
                     >
                         <Monitor className="h-3.5 w-3.5" />
                     </button>
@@ -55,7 +51,7 @@ function ResponsiveRangeControl({
                         type="button"
                         onClick={() => setMode('mobile')}
                         className={`p-1.5 rounded transition-colors ${!isDesktop ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                        title="Mobile"
+                        title="手機版"
                     >
                         <Smartphone className="h-3.5 w-3.5" />
                     </button>
@@ -68,6 +64,9 @@ function ResponsiveRangeControl({
                 max={max}
                 step={step}
                 value={currentValue}
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
                 onChange={(e) => {
                     const val = parseFloat(e.target.value)
                     onChange(isDesktop ? { desktop: val } : { mobile: val })
@@ -95,30 +94,13 @@ function rgbToHex(r: number, g: number, b: number): string {
     return "#" + toHex(r) + toHex(g) + toHex(b);
 }
 
-export function ThreadsBlockEditor({ props, onChange }: ThreadsBlockEditorProps) {
+export function ThreadsBlockEditor({ props, onChange }: EditorProps) {
     const handleChange = (key: string, value: any) => {
-        onChange({ ...props, [key]: value })
+        onChange({ [key]: value })
     }
 
-    // Default values if undefined
-    const enableMouse = props.enableMouseInteraction !== false // default true
-
-    // Settings
-    const amplitude = props.amplitude ?? 1
-    const mobileAmplitude = props.mobileAmplitude ?? amplitude
-
-    const distance = props.distance ?? 0
-    const mobileDistance = props.mobileDistance ?? distance
-
-    const paddingYDesktop = props.paddingYDesktop ?? 0
-    const paddingYMobile = props.paddingYMobile ?? 0
-
-    // Colors
     const color = props.color ?? [1, 1, 1]
     const hexColor = rgbToHex(color[0], color[1], color[2])
-    const bgColor = props.backgroundColor ?? '#000000'
-    const titleColor = props.titleColor ?? '#ffffff'
-    const descriptionColor = props.descriptionColor ?? '#a1a1aa'
 
     return (
         <div className="space-y-6">
@@ -130,38 +112,45 @@ export function ThreadsBlockEditor({ props, onChange }: ThreadsBlockEditorProps)
 
                 <div className="space-y-3">
                     <div className="space-y-1.5">
-                        <Label htmlFor="title" className="text-xs text-muted-foreground">標題</Label>
+                        <Label className="text-xs text-muted-foreground">標題</Label>
                         <Input
-                            id="title"
                             value={props.title || ''}
                             onChange={(e) => handleChange('title', e.target.value)}
                             placeholder="輸入標題..."
-                            className="bg-background"
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <Label htmlFor="description" className="text-xs text-muted-foreground">描述</Label>
+                        <Label className="text-xs text-muted-foreground">描述</Label>
                         <Textarea
-                            id="description"
                             value={props.description || ''}
                             onChange={(e) => handleChange('description', e.target.value)}
                             placeholder="輸入描述..."
-                            className="bg-background min-h-[80px]"
+                            className="min-h-[80px]"
                         />
                     </div>
                 </div>
 
-                {/* Button Settings */}
-                <div className="space-y-3 pt-2">
-                    <Label className="text-xs font-medium text-muted-foreground">按鈕設定</Label>
+                <div className="pt-2">
+                    <FontSizeControls
+                        label="標題字體大小"
+                        fontSize={{
+                            desktop: props.fontSizeDesktop ?? 60,
+                            mobile: props.fontSizeMobile ?? 36
+                        }}
+                        onChange={onChange}
+                        min={12}
+                        max={120}
+                    />
+                </div>
 
+                <div className="space-y-4 pt-2">
+                    <Label className="text-xs font-medium text-muted-foreground">按鈕設定</Label>
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <Label className="text-[10px] text-muted-foreground">主按鈕文字</Label>
                             <Input
                                 value={props.primaryButtonLabel || ''}
                                 onChange={(e) => handleChange('primaryButtonLabel', e.target.value)}
-                                placeholder="按鈕文字"
                                 className="h-8 text-xs"
                             />
                         </div>
@@ -170,19 +159,16 @@ export function ThreadsBlockEditor({ props, onChange }: ThreadsBlockEditorProps)
                             <Input
                                 value={props.primaryButtonLink || ''}
                                 onChange={(e) => handleChange('primaryButtonLink', e.target.value)}
-                                placeholder="/path"
                                 className="h-8 text-xs font-mono"
                             />
                         </div>
                     </div>
-
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <Label className="text-[10px] text-muted-foreground">次按鈕文字</Label>
                             <Input
                                 value={props.secondaryButtonLabel || ''}
                                 onChange={(e) => handleChange('secondaryButtonLabel', e.target.value)}
-                                placeholder="按鈕文字"
                                 className="h-8 text-xs"
                             />
                         </div>
@@ -191,7 +177,6 @@ export function ThreadsBlockEditor({ props, onChange }: ThreadsBlockEditorProps)
                             <Input
                                 value={props.secondaryButtonLink || ''}
                                 onChange={(e) => handleChange('secondaryButtonLink', e.target.value)}
-                                placeholder="/path"
                                 className="h-8 text-xs font-mono"
                             />
                         </div>
@@ -207,111 +192,112 @@ export function ThreadsBlockEditor({ props, onChange }: ThreadsBlockEditorProps)
 
                 <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                        <Label htmlFor="bgColor" className="text-xs text-muted-foreground">背景顏色</Label>
+                        <Label className="text-xs text-muted-foreground">背景顏色</Label>
                         <div className="flex gap-2">
-                            <div className="relative w-8 h-8 rounded-md overflow-hidden border border-input shrink-0">
-                                <Input
-                                    type="color"
-                                    id="bgColor"
-                                    value={bgColor}
-                                    onChange={(e) => handleChange('backgroundColor', e.target.value)}
-                                    className="absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 p-0 cursor-pointer border-none"
-                                />
-                            </div>
                             <Input
-                                type="text"
-                                value={bgColor}
+                                type="color"
+                                value={props.backgroundColor || '#000000'}
                                 onChange={(e) => handleChange('backgroundColor', e.target.value)}
-                                placeholder="#000000"
-                                className="flex-1 font-mono uppercase text-xs h-8"
+                                className="w-8 h-8 p-0 cursor-pointer border-none shrink-0 rounded"
+                            />
+                            <Input
+                                value={props.backgroundColor || '#000000'}
+                                onChange={(e) => handleChange('backgroundColor', e.target.value)}
+                                className="flex-1 font-mono uppercase text-[10px] h-8"
                             />
                         </div>
                     </div>
-
                     <div className="space-y-1.5">
-                        <Label htmlFor="lineColor" className="text-xs text-muted-foreground">線條顏色</Label>
+                        <Label className="text-xs text-muted-foreground">線條顏色</Label>
                         <div className="flex gap-2">
-                            <div className="relative w-8 h-8 rounded-md overflow-hidden border border-input shrink-0">
-                                <Input
-                                    type="color"
-                                    id="lineColor"
-                                    value={hexColor}
-                                    onChange={(e) => handleChange('color', hexToRgb(e.target.value))}
-                                    className="absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 p-0 cursor-pointer border-none"
-                                />
-                            </div>
                             <Input
-                                type="text"
+                                type="color"
                                 value={hexColor}
                                 onChange={(e) => handleChange('color', hexToRgb(e.target.value))}
-                                placeholder="#FFFFFF"
-                                className="flex-1 font-mono uppercase text-xs h-8"
+                                className="w-8 h-8 p-0 cursor-pointer border-none shrink-0 rounded"
+                            />
+                            <Input
+                                value={hexColor}
+                                onChange={(e) => handleChange('color', hexToRgb(e.target.value))}
+                                className="flex-1 font-mono uppercase text-[10px] h-8"
                             />
                         </div>
                     </div>
-
                     <div className="space-y-1.5">
-                        <Label htmlFor="titleColor" className="text-xs text-muted-foreground">標題顏色</Label>
+                        <Label className="text-xs text-muted-foreground">標題顏色</Label>
                         <div className="flex gap-2">
-                            <div className="relative w-8 h-8 rounded-md overflow-hidden border border-input shrink-0">
-                                <Input
-                                    type="color"
-                                    id="titleColor"
-                                    value={titleColor}
-                                    onChange={(e) => handleChange('titleColor', e.target.value)}
-                                    className="absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 p-0 cursor-pointer border-none"
-                                />
-                            </div>
                             <Input
-                                type="text"
-                                value={titleColor}
+                                type="color"
+                                value={props.titleColor || '#ffffff'}
                                 onChange={(e) => handleChange('titleColor', e.target.value)}
-                                placeholder="#FFFFFF"
-                                className="flex-1 font-mono uppercase text-xs h-8"
+                                className="w-8 h-8 p-0 cursor-pointer border-none shrink-0 rounded"
                             />
-                        </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <Label htmlFor="descColor" className="text-xs text-muted-foreground">描述顏色</Label>
-                        <div className="flex gap-2">
-                            <div className="relative w-8 h-8 rounded-md overflow-hidden border border-input shrink-0">
-                                <Input
-                                    type="color"
-                                    id="descColor"
-                                    value={descriptionColor}
-                                    onChange={(e) => handleChange('descriptionColor', e.target.value)}
-                                    className="absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 p-0 cursor-pointer border-none"
-                                />
-                            </div>
                             <Input
-                                type="text"
-                                value={descriptionColor}
-                                onChange={(e) => handleChange('descriptionColor', e.target.value)}
-                                placeholder="#A1A1AA"
-                                className="flex-1 font-mono uppercase text-xs h-8"
+                                value={props.titleColor || '#ffffff'}
+                                onChange={(e) => handleChange('titleColor', e.target.value)}
+                                className="flex-1 font-mono uppercase text-[10px] h-8"
                             />
                         </div>
                     </div>
-
+                    <div className="space-y-1.5">
+                        <Label className="text-xs text-muted-foreground">描述顏色</Label>
+                        <div className="flex gap-2">
+                            <Input
+                                type="color"
+                                value={props.descriptionColor || '#a1a1aa'}
+                                onChange={(e) => handleChange('descriptionColor', e.target.value)}
+                                className="w-8 h-8 p-0 cursor-pointer border-none shrink-0 rounded"
+                            />
+                            <Input
+                                value={props.descriptionColor || '#a1a1aa'}
+                                onChange={(e) => handleChange('descriptionColor', e.target.value)}
+                                className="flex-1 font-mono uppercase text-[10px] h-8"
+                            />
+                        </div>
+                    </div>
                 </div>
 
-                <div className="flex items-center justify-between py-2">
-                    <Label htmlFor="enableMouse" className="flex items-center gap-2 cursor-pointer text-sm font-normal">
-                        <MousePointer2 className="w-4 h-4 text-muted-foreground" />
+                <div className="flex items-center justify-between py-2 border-y border-border/50">
+                    <Label className="flex items-center gap-2 cursor-pointer text-xs font-normal">
+                        <MousePointer2 className="w-3.5 h-3.5 text-muted-foreground" />
                         滑鼠互動效果
                     </Label>
                     <Switch
-                        id="enableMouse"
-                        checked={enableMouse}
+                        checked={props.enableMouseInteraction !== false}
                         onCheckedChange={(checked) => handleChange('enableMouseInteraction', checked)}
                     />
                 </div>
 
                 <div className="space-y-4">
-                    <ResponsiveRangeControl
+                    <div className="space-y-3 bg-muted/30 p-3 rounded-lg border border-border">
+                        <div className="flex items-center justify-between">
+                            <Label className="text-xs font-medium text-foreground">
+                                動畫水平位置 (Center X)
+                            </Label>
+                            <span className="text-[10px] px-1.5 py-0.5 bg-background rounded border border-border text-muted-foreground min-w-[2.5rem] text-center">
+                                {props.centerX ?? 0.5}
+                            </span>
+                        </div>
+                        <input
+                            type="range"
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            value={props.centerX ?? 0.5}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
+                            onChange={(e) => handleChange('centerX', parseFloat(e.target.value))}
+                            className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary block"
+                        />
+                    </div>
+
+                    <ResponsiveSlider
                         label="波動幅度 (Amplitude)"
-                        value={{ desktop: amplitude, mobile: mobileAmplitude }}
+                        value={{
+                            desktop: props.amplitude ?? 1,
+                            mobile: props.mobileAmplitude ?? (props.amplitude ?? 1)
+                        }}
                         onChange={({ desktop, mobile }) => {
                             if (desktop !== undefined) handleChange('amplitude', desktop)
                             if (mobile !== undefined) handleChange('mobileAmplitude', mobile)
@@ -321,9 +307,12 @@ export function ThreadsBlockEditor({ props, onChange }: ThreadsBlockEditorProps)
                         step={0.1}
                     />
 
-                    <ResponsiveRangeControl
+                    <ResponsiveSlider
                         label="線條間距 (Distance)"
-                        value={{ desktop: distance, mobile: mobileDistance }}
+                        value={{
+                            desktop: props.distance ?? 0,
+                            mobile: props.mobileDistance ?? (props.distance ?? 0)
+                        }}
                         onChange={({ desktop, mobile }) => {
                             if (desktop !== undefined) handleChange('distance', desktop)
                             if (mobile !== undefined) handleChange('mobileDistance', mobile)
@@ -333,16 +322,12 @@ export function ThreadsBlockEditor({ props, onChange }: ThreadsBlockEditorProps)
                         step={0.1}
                     />
 
-                    <ResponsiveRangeControl
-                        label="垂直間距 (Padding Y)"
-                        value={{ desktop: paddingYDesktop, mobile: paddingYMobile }}
-                        onChange={({ desktop, mobile }) => {
-                            if (desktop !== undefined) handleChange('paddingYDesktop', desktop)
-                            if (mobile !== undefined) handleChange('paddingYMobile', mobile)
+                    <SpacingControls
+                        paddingY={{
+                            desktop: props.paddingYDesktop ?? 0,
+                            mobile: props.paddingYMobile ?? 0
                         }}
-                        min={0}
-                        max={300}
-                        step={8}
+                        onChange={onChange}
                     />
                 </div>
             </div>

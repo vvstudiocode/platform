@@ -288,7 +288,10 @@ export function ProductListBlock({
     objectFitDesktop = 'cover',
     objectFitMobile = 'cover',
     aspectRatioDesktop = '1/1',
-    aspectRatioMobile = '1/1'
+    aspectRatioMobile = '1/1',
+    backgroundColor,
+    paddingYDesktop = 64,
+    paddingYMobile = 32
 }: {
     productIds: string[]
     title?: string
@@ -306,6 +309,9 @@ export function ProductListBlock({
     objectFitMobile?: 'cover' | 'contain'
     aspectRatioDesktop?: string
     aspectRatioMobile?: string
+    backgroundColor?: string
+    paddingYDesktop?: number
+    paddingYMobile?: number
 }) {
     const [products, setProducts] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -387,13 +393,29 @@ export function ProductListBlock({
         className += `md:grid md:gap-6 ${colClass} `
     }
 
+    const isMobilePreview = preview && previewDevice === 'mobile'
+
     return (
-        <div className="py-8 space-y-6">
-            {title && <h2 className={`text-3xl font-bold text-gray-900 ${getTitleClass(titleAlign)}`}>{title}</h2>}
-            <div className={className}>
-                {products.map((product) => (
-                    <ProductCard key={product.id} product={product} storeSlug={storeSlug} />
-                ))}
+        <div
+            className={cn(
+                "space-y-6 w-full",
+                isMobilePreview ? "" : "py-[var(--py-mobile)] md:py-[var(--py-desktop)]"
+            )}
+            style={{
+                backgroundColor: backgroundColor,
+                paddingTop: isMobilePreview ? `${paddingYMobile}px` : undefined,
+                paddingBottom: isMobilePreview ? `${paddingYMobile}px` : undefined,
+                '--py-desktop': `${paddingYDesktop}px`,
+                '--py-mobile': `${paddingYMobile}px`,
+            } as any}
+        >
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+                {title && <h2 className={`text-3xl font-bold text-gray-900 ${getTitleClass(titleAlign)}`}>{title}</h2>}
+                <div className={className}>
+                    {products.map((product) => (
+                        <ProductCard key={product.id} product={product} storeSlug={storeSlug} />
+                    ))}
+                </div>
             </div>
         </div>
     )
@@ -418,7 +440,10 @@ export function ProductCategoryBlock({
     objectFitDesktop = 'cover',
     objectFitMobile = 'cover',
     aspectRatioDesktop = '1/1',
-    aspectRatioMobile = '1/1'
+    aspectRatioMobile = '1/1',
+    backgroundColor,
+    paddingYDesktop = 64,
+    paddingYMobile = 32
 }: {
     category: string
     title?: string
@@ -438,6 +463,9 @@ export function ProductCategoryBlock({
     objectFitMobile?: 'cover' | 'contain'
     aspectRatioDesktop?: string
     aspectRatioMobile?: string
+    backgroundColor?: string
+    paddingYDesktop?: number
+    paddingYMobile?: number
 }) {
     const [products, setProducts] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -520,26 +548,42 @@ export function ProductCategoryBlock({
         className += `md:grid md:gap-6 ${colClass} `
     }
 
+    const isMobilePreview = preview && previewDevice === 'mobile'
+
     return (
-        <div className="py-8 space-y-6">
-            {title && <h2 className={`text-3xl font-bold text-gray-900 ${getTitleClass(titleAlign)}`}>{title}</h2>}
-            <div className={className}>
-                {products.map((product) => (
-                    <ProductCard
-                        key={product.id}
-                        product={product}
-                        storeSlug={storeSlug}
-                        fitDesktop={objectFitDesktop}
-                        fitMobile={objectFitMobile}
-                        aspectRatioDesktop={aspectRatioDesktop}
-                        aspectRatioMobile={aspectRatioMobile}
-                    />
-                ))}
-            </div>
-            <div className="text-center">
-                <Link href={`/store/${storeSlug}/products?category=${category}`} className="inline-block px-6 py-2 border border-gray-900 text-gray-900 rounded-full hover:bg-gray-900 hover:text-white transition-colors">
-                    查看更多
-                </Link>
+        <div
+            className={cn(
+                "space-y-6 w-full",
+                isMobilePreview ? "" : "py-[var(--py-mobile)] md:py-[var(--py-desktop)]"
+            )}
+            style={{
+                backgroundColor: backgroundColor,
+                paddingTop: isMobilePreview ? `${paddingYMobile}px` : undefined,
+                paddingBottom: isMobilePreview ? `${paddingYMobile}px` : undefined,
+                '--py-desktop': `${paddingYDesktop}px`,
+                '--py-mobile': `${paddingYMobile}px`,
+            } as any}
+        >
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+                {title && <h2 className={`text-3xl font-bold text-gray-900 ${getTitleClass(titleAlign)}`}>{title}</h2>}
+                <div className={className}>
+                    {products.map((product) => (
+                        <ProductCard
+                            key={product.id}
+                            product={product}
+                            storeSlug={storeSlug}
+                            fitDesktop={objectFitDesktop}
+                            fitMobile={objectFitMobile}
+                            aspectRatioDesktop={aspectRatioDesktop}
+                            aspectRatioMobile={aspectRatioMobile}
+                        />
+                    ))}
+                </div>
+                <div className="text-center">
+                    <Link href={`/store/${storeSlug}/products?category=${category}`} className="inline-block px-6 py-2 border border-gray-900 text-gray-900 rounded-full hover:bg-gray-900 hover:text-white transition-colors">
+                        查看更多
+                    </Link>
+                </div>
             </div>
         </div>
     )
@@ -554,7 +598,10 @@ export function ProductCarouselBlock({
     interval = 5,
     storeSlug,
     preview,
-    previewDevice = 'desktop'
+    previewDevice = 'desktop',
+    backgroundColor,
+    paddingYDesktop = 64,
+    paddingYMobile = 32
 }: {
     productIds: string[]
     title?: string
@@ -564,6 +611,9 @@ export function ProductCarouselBlock({
     storeSlug: string
     preview?: boolean
     previewDevice?: 'mobile' | 'desktop'
+    backgroundColor?: string
+    paddingYDesktop?: number
+    paddingYMobile?: number
 }) {
     const [products, setProducts] = useState<any[]>([])
     const [currentIndex, setCurrentIndex] = useState(0)
@@ -630,52 +680,67 @@ export function ProductCarouselBlock({
 
     const itemWidthClass = isMobile ? 'w-full' : 'w-full md:w-1/2 lg:w-1/4'
 
-    return (
-        <div className="py-8 space-y-6 group relative">
-            <div className={`px-1 ${getTitleClass(titleAlign)}`}>
-                {title && <h2 className="text-3xl font-bold text-gray-900">{title}</h2>}
-            </div>
+    const isMobilePreview = preview && previewDevice === 'mobile'
 
-            <div className="relative overflow-hidden -mx-4 px-4 py-4">
-                <div
-                    className="flex transition-transform duration-500 ease-out will-change-transform"
-                    style={{
-                        transform: `translateX(-${currentIndex * (isMobile ? 100 : 25)}%)`
-                    }}
-                >
-                    {products.map((product) => (
-                        <div
-                            key={product.id}
-                            className={`flex-shrink-0 px-3 ${itemWidthClass} transition-opacity duration-300`}
-                        >
-                            <ProductCard
-                                product={product}
-                                storeSlug={storeSlug}
-                            />
-                        </div>
-                    ))}
+    return (
+        <div
+            className={cn(
+                "space-y-6 group relative",
+                isMobilePreview ? "" : "py-[var(--py-mobile)] md:py-[var(--py-desktop)]"
+            )}
+            style={{
+                backgroundColor: backgroundColor,
+                paddingTop: isMobilePreview ? `${paddingYMobile}px` : undefined,
+                paddingBottom: isMobilePreview ? `${paddingYMobile}px` : undefined,
+                '--py-desktop': `${paddingYDesktop}px`,
+                '--py-mobile': `${paddingYMobile}px`,
+            } as any}
+        >
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+                <div className={`px-1 ${getTitleClass(titleAlign)}`}>
+                    {title && <h2 className="text-3xl font-bold text-gray-900">{title}</h2>}
                 </div>
 
-                {canSlide && (
-                    <>
-                        <button
-                            onClick={(e) => { e.preventDefault(); prevSlide() }}
-                            disabled={currentIndex === 0}
-                            className="absolute left-0 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white shadow-lg rounded-r-lg text-gray-800 transition-all z-20 backdrop-blur-sm border-y border-r border-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                            <ChevronLeft className="w-6 h-6" />
-                        </button>
-                        <button
-                            onClick={(e) => { e.preventDefault(); nextSlide() }}
-                            disabled={currentIndex >= maxIndex}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white shadow-lg rounded-l-lg text-gray-800 transition-all z-20 backdrop-blur-sm border-y border-l border-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                            <ChevronRight className="w-6 h-6" />
-                        </button>
-                    </>
-                )}
-            </div>
+                <div className="relative overflow-hidden -mx-4 px-4 py-4">
+                    <div
+                        className="flex transition-transform duration-500 ease-out will-change-transform"
+                        style={{
+                            transform: `translateX(-${currentIndex * (isMobile ? 100 : 25)}%)`
+                        }}
+                    >
+                        {products.map((product) => (
+                            <div
+                                key={product.id}
+                                className={`flex-shrink-0 px-3 ${itemWidthClass} transition-opacity duration-300`}
+                            >
+                                <ProductCard
+                                    product={product}
+                                    storeSlug={storeSlug}
+                                />
+                            </div>
+                        ))}
+                    </div>
 
+                    {!isMobile && (
+                        <>
+                            <button
+                                onClick={prevSlide}
+                                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+                                disabled={currentIndex === 0}
+                            >
+                                <ChevronLeft className="w-6 h-6" />
+                            </button>
+                            <button
+                                onClick={nextSlide}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+                                disabled={currentIndex >= maxIndex}
+                            >
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
             {canSlide && (
                 <div className="flex justify-center gap-1.5 mt-2">
                     {Array.from({ length: maxIndex + 1 }).map((_, i) => (

@@ -1,13 +1,14 @@
 'use client'
 
 import { useActionState, useState, useEffect } from 'react'
-import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Box, Sparkles, MessageSquareQuote, Lock, RotateCw } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Box, Sparkles, MessageSquareQuote, Lock, RotateCw, MoveVertical } from 'lucide-react'
 import { useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { getDefaultProps as getRegistryDefaultProps, getComponentEditor, componentRegistry, getComponentConfig } from '@/components/page-editor/registry'
+import { templates, type TemplateComponent } from '@/components/page-editor/templates'
 import { UpsellModal } from './upsell-modal'
 import { PreviewModal } from './preview-modal'
 import { ImageMarqueeEditor } from '@/components/page-editor/editors/ImageMarqueeEditor' // Direct import if registry is not updated or to be safe? 
@@ -75,6 +76,8 @@ const componentCategories = [
             { type: 'testimonial_showcase', icon: MessageSquareQuote, label: '見證展示', description: '豐富的客戶見證展示' },
             { type: 'scrollable_cards', icon: LayoutGrid, label: '滾動卡片', description: '橫向捲動服務卡片' },
             { type: 'portfolio_grid', icon: LayoutGrid, label: '作品集網格', description: '拼圖式作品展示' },
+            { type: 'social_wall', icon: Image, label: '社群美牆', description: 'Instagram 風格貼文牆' },
+            { type: 'news_hero', icon: Image, label: '九宮格Hero', description: '活動首頁 Hero' },
         ]
     },
     {
@@ -90,6 +93,7 @@ const componentCategories = [
             { type: 'shiny_text', icon: Sparkles, label: '閃亮文字', description: '金屬光澤文字效果' },
             { type: 'gradient_text', icon: Sparkles, label: '漸變文字', description: '漸層色彩文字效果' },
             { type: 'rotating_text', icon: RotateCw, label: '輪替文字', description: '輪替文字效果' },
+            { type: 'spacer', icon: MoveVertical, label: '空白間距', description: '調整元件間距' },
         ]
     },
     {
@@ -98,6 +102,7 @@ const componentCategories = [
             { type: 'product_list', icon: LayoutGrid, label: '商品列表', description: '精選商品' },
             { type: 'product_category', icon: LayoutGrid, label: '商品分類', description: '分類商品' },
             { type: 'product_carousel', icon: LayoutGrid, label: '商品輪播', description: '商品輪播' },
+            { type: 'news_feature', icon: Sparkles, label: '商品特色', description: '新聞/活動特色區塊' },
         ]
     },
     {
@@ -157,6 +162,7 @@ export function PageEditForm({ page, updateAction, updatePageContentAction, base
     const [upsellFeatureName, setUpsellFeatureName] = useState('')
     const [previewModalOpen, setPreviewModalOpen] = useState(false)
     const [previewComponentType, setPreviewComponentType] = useState<string | null>(null)
+    const [addModalTab, setAddModalTab] = useState<'components' | 'templates'>('components')
     const componentListRef = useRef<HTMLDivElement>(null)
 
     // 滾動到選中的元件
@@ -225,6 +231,30 @@ export function PageEditForm({ page, updateAction, updatePageContentAction, base
             id: crypto.randomUUID(),
             type,
             props: getDefaultProps(type),
+        }
+        setComponents([...components, newComponent])
+        setShowAddModal(false)
+    }
+
+    const addTemplate = (templateId: string) => {
+        const template = templates.find(t => t.id === templateId)
+        if (!template) return
+
+        const newComponents = template.components.map(c => ({
+            id: crypto.randomUUID(),
+            type: c.type,
+            props: { ...getDefaultProps(c.type), ...c.props } // Merge defaults with template props
+        }))
+
+        setComponents([...components, ...newComponents])
+        setShowAddModal(false)
+    }
+
+    const addTemplateComponent = (comp: TemplateComponent, templateId: string) => {
+        const newComponent: PageComponent = {
+            id: crypto.randomUUID(),
+            type: comp.type,
+            props: { ...getDefaultProps(comp.type), ...comp.props }
         }
         setComponents([...components, newComponent])
         setShowAddModal(false)
@@ -669,70 +699,148 @@ export function PageEditForm({ page, updateAction, updatePageContentAction, base
                 </div>
             </div>
 
+
             {/* 新增元件彈窗 - 兩欄分類顯示 */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
                     <div className="bg-card rounded-xl border border-border w-full max-w-4xl max-h-[90vh] flex flex-col shadow-xl">
                         <div className="flex items-center justify-between p-6 border-b border-border">
-                            <h3 className="text-xl font-bold text-foreground">選擇元件類型</h3>
+                            <div className="flex items-center gap-6">
+                                <h3 className="text-xl font-bold text-foreground">新增內容</h3>
+                                <div className="flex bg-muted p-1 rounded-lg">
+                                    <button
+                                        onClick={() => setAddModalTab('components')}
+                                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${addModalTab === 'components'
+                                            ? 'bg-background text-foreground shadow-sm'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                            }`}
+                                    >
+                                        元件庫
+                                    </button>
+                                    <button
+                                        onClick={() => setAddModalTab('templates')}
+                                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${addModalTab === 'templates'
+                                            ? 'bg-background text-foreground shadow-sm'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                            }`}
+                                    >
+                                        風格套版
+                                    </button>
+                                </div>
+                            </div>
                             <button onClick={() => setShowAddModal(false)} className="p-2 text-muted-foreground hover:text-foreground transition-colors">
                                 <X className="h-6 w-6" />
                             </button>
                         </div>
                         <div className="p-6 overflow-y-auto scrollbar-hide">
-                            <div className="space-y-8">
-                                {componentCategories.map((category) => (
-                                    <div key={category.name}>
-                                        <h4 className="text-sm font-semibold text-muted-foreground mb-3">{category.name}</h4>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {category.components.map((ct) => {
-                                                const config = getComponentConfig(ct.type)
-                                                const isLocked = config?.tier === 'growth' && subscriptionPlan === 'free'
+                            {addModalTab === 'components' ? (
+                                <div className="space-y-8">
+                                    {componentCategories.map((category) => (
+                                        <div key={category.name}>
+                                            <h4 className="text-sm font-semibold text-muted-foreground mb-3">{category.name}</h4>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {category.components.map((ct) => {
+                                                    const config = getComponentConfig(ct.type)
+                                                    const isLocked = config?.tier === 'growth' && subscriptionPlan === 'free'
 
-                                                return (
-                                                    <div
-                                                        key={ct.type}
-                                                        onClick={() => addComponent(ct.type)}
-                                                        className={`relative flex items-start gap-3 p-4 rounded-lg text-left transition-colors group border cursor-pointer select-none ${isLocked
-                                                            ? 'bg-muted/30 border-border opacity-70 hover:bg-muted/50'
-                                                            : 'bg-muted/50 hover:bg-accent border-border hover:border-accent'
-                                                            }`}
-                                                        role="button"
-                                                    >
-                                                        <button
-                                                            className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md opacity-0 group-hover:opacity-100 transition-all z-10"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                setPreviewComponentType(ct.type)
-                                                                setPreviewModalOpen(true)
-                                                            }}
-                                                            title="預覽此元件"
+                                                    return (
+                                                        <div
+                                                            key={ct.type}
+                                                            onClick={() => addComponent(ct.type)}
+                                                            className={`relative flex items-start gap-3 p-4 rounded-lg text-left transition-colors group border cursor-pointer select-none ${isLocked
+                                                                ? 'bg-muted/30 border-border opacity-70 hover:bg-muted/50'
+                                                                : 'bg-muted/50 hover:bg-accent border-border hover:border-accent'
+                                                                }`}
+                                                            role="button"
                                                         >
-                                                            <Eye className="w-4 h-4" />
-                                                        </button>
-                                                        <div className={`p-2 rounded-lg transition-colors relative ${isLocked ? 'bg-muted' : 'bg-muted group-hover:bg-background'
-                                                            }`}>
-                                                            <ct.icon className="h-5 w-5 text-foreground" />
-                                                            {isLocked && (
-                                                                <div className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 rounded-full p-0.5 shadow-sm">
-                                                                    <Lock className="h-2.5 w-2.5" />
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <div className="font-medium text-foreground">{ct.label}</div>
-                                                                {isLocked && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-800 rounded-full font-medium border border-yellow-200">Growth</span>}
+                                                            <button
+                                                                className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md opacity-0 group-hover:opacity-100 transition-all z-10"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    setPreviewComponentType(ct.type)
+                                                                    setPreviewModalOpen(true)
+                                                                }}
+                                                                title="預覽此元件"
+                                                            >
+                                                                <Eye className="w-4 h-4" />
+                                                            </button>
+                                                            <div className={`p-2 rounded-lg transition-colors relative ${isLocked ? 'bg-muted' : 'bg-muted group-hover:bg-background'
+                                                                }`}>
+                                                                <ct.icon className="h-5 w-5 text-foreground" />
+                                                                {isLocked && (
+                                                                    <div className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 rounded-full p-0.5 shadow-sm">
+                                                                        <Lock className="h-2.5 w-2.5" />
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                            <div className="text-xs text-muted-foreground">{ct.description}</div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <div className="font-medium text-foreground">{ct.label}</div>
+                                                                    {isLocked && <span className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-800 rounded-full font-medium border border-yellow-200">Growth</span>}
+                                                                </div>
+                                                                <div className="text-xs text-muted-foreground">{ct.description}</div>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                )
-                                            })}
+                                                    )
+                                                })}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 gap-6">
+                                    {templates.map((template) => (
+                                        <div key={template.id} className="bg-muted/30 border border-border rounded-xl p-6">
+                                            <div className="flex items-start justify-between mb-6">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <span className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider bg-primary/10 text-primary rounded-full">
+                                                            {template.category}
+                                                        </span>
+                                                        <h4 className="text-lg font-bold text-foreground">{template.name}</h4>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground">{template.description}</p>
+                                                </div>
+                                                <Button
+                                                    onClick={() => addTemplate(template.id)}
+                                                    className="shrink-0"
+                                                >
+                                                    <Sparkles className="h-4 w-4 mr-2" />
+                                                    全部套用
+                                                </Button>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">包含元件 (可單選)</h5>
+                                                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                                                    {template.components.map((comp, idx) => {
+                                                        const registryInfo = getComponentConfig(comp.type)
+                                                        const Icon = registryInfo?.icon || Box
+
+                                                        return (
+                                                            <button
+                                                                key={idx}
+                                                                onClick={() => addTemplateComponent(comp, template.id)}
+                                                                className="flex items-center gap-3 p-3 bg-background border border-border rounded-lg hover:border-primary hover:bg-accent/50 transition-all text-left group"
+                                                            >
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="text-sm font-medium text-foreground truncate">
+                                                                        {comp.label || registryInfo?.label}
+                                                                    </div>
+                                                                    <div className="text-xs text-muted-foreground truncate">
+                                                                        {registryInfo?.label}
+                                                                    </div>
+                                                                </div>
+                                                                <Plus className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                            </button>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

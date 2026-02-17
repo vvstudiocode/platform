@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 
@@ -15,6 +16,9 @@ interface HeroCompositionProps {
     paddingYDesktop?: number
     paddingYMobile?: number
     isMobile?: boolean
+    backgroundColor?: string
+    fontSizeDesktop?: number
+    fontSizeMobile?: number
 }
 
 export function HeroComposition({
@@ -26,7 +30,10 @@ export function HeroComposition({
     description,
     paddingYDesktop = 64,
     paddingYMobile = 32,
-    isMobile = false
+    isMobile = false,
+    backgroundColor,
+    fontSizeDesktop = 48,
+    fontSizeMobile = 36
 }: HeroCompositionProps) {
     // Default placeholders
     const img1 = images[0] || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop"
@@ -35,18 +42,29 @@ export function HeroComposition({
 
     return (
         <section
-            className="relative overflow-hidden w-full"
+            className={cn(
+                "relative overflow-hidden w-full",
+                isMobile ? "" : "py-[var(--py-mobile)] md:py-[var(--py-desktop)]"
+            )}
             style={{
-                paddingTop: `${paddingYMobile}px`,
-                paddingBottom: `${paddingYMobile}px`
-            }}
+                backgroundColor: backgroundColor,
+                paddingTop: isMobile ? `${paddingYMobile}px` : undefined,
+                paddingBottom: isMobile ? `${paddingYMobile}px` : undefined,
+                '--py-desktop': `${paddingYDesktop}px`,
+                '--py-mobile': `${paddingYMobile}px`,
+                '--title-fs-desktop': `${fontSizeDesktop}px`,
+                '--title-fs-mobile': `${fontSizeMobile}px`,
+            } as any}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 {/* Mobile Layout - 完全垂直排列 */}
                 <div className={isMobile ? 'block' : 'block lg:hidden'}>
                     {/* Text Content */}
                     <div className="max-w-2xl mb-12">
-                        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-6 leading-[1.1]">
+                        <h1
+                            className="font-bold tracking-tight text-gray-900 mb-6 leading-[1.1]"
+                            style={{ fontSize: isMobile ? `var(--title-fs-mobile)` : `var(--title-fs-mobile)` }}
+                        >
                             {title || "Discover the World's Hidden Wonders"}
                         </h1>
                         <p className="text-lg text-gray-600 mb-8 max-w-lg leading-relaxed">
@@ -101,7 +119,10 @@ export function HeroComposition({
                 <div className={isMobile ? 'hidden' : 'hidden lg:grid lg:grid-cols-2 gap-12 items-center'}>
                     {/* Text Content - Left */}
                     <div className="max-w-2xl">
-                        <h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 mb-6 leading-[1.1]">
+                        <h1
+                            className="font-bold tracking-tight text-gray-900 mb-6 leading-[1.1]"
+                            style={{ fontSize: `var(--title-fs-desktop)` }}
+                        >
                             {title || "Discover the World's Hidden Wonders"}
                         </h1>
                         <p className="text-lg text-gray-600 mb-8 max-w-lg leading-relaxed">
@@ -120,7 +141,7 @@ export function HeroComposition({
 
                     {/* Image Composition - Right */}
                     <div className="relative h-[500px]">
-                        <div className="absolute -top-20 -right-20 w-96 h-96 bg-gray-100 rounded-full blur-3xl opacity-50 -z-10"></div>
+                        <div className="absolute -top-20 -right-20 w-96 h-96 bg-gray-200/20 rounded-full blur-3xl opacity-30 -z-10"></div>
                         <div className="grid grid-cols-2 gap-4 h-full">
                             <div className="col-span-1 h-full pt-12">
                                 <div className="h-full w-full rounded-2xl overflow-hidden shadow-xl bg-gray-200 relative group">
@@ -151,15 +172,6 @@ export function HeroComposition({
                     </div>
                 </div>
             </div>
-            {/* Desktop Styling override */}
-            {!isMobile && <style jsx>{`
-                @media (min-width: 1024px) {
-                    section {
-                        padding-top: ${paddingYDesktop}px !important;
-                        padding-bottom: ${paddingYDesktop}px !important;
-                    }
-                }
-            `}</style>}
         </section>
     )
 }

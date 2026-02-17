@@ -1,4 +1,5 @@
 import { Trash2 } from 'lucide-react'
+import { Input } from '@/components/ui/input'
 import { SpacingControls } from '../responsive-controls'
 import { ImageInput } from '../image-input'
 import { useListEditor } from '../shared/useListEditor'
@@ -54,7 +55,27 @@ export function ThreeDMarqueeEditor({ props, onChange }: EditorProps) {
 
             </div>
 
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">背景顏色</label>
+                <div className="flex gap-2">
+                    <Input
+                        type="color"
+                        value={props.backgroundColor || '#ffffff'}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        className="w-12 h-9 p-1 cursor-pointer"
+                    />
+                    <Input
+                        type="text"
+                        value={props.backgroundColor || ''}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        placeholder="#ffffff"
+                        className="flex-1"
+                    />
+                </div>
+            </div>
+
             <SpacingControls
+
                 paddingY={{
                     desktop: props.paddingYDesktop ?? 0,
                     mobile: props.paddingYMobile ?? 0

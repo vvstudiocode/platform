@@ -27,6 +27,7 @@ uniform vec3 uColor;
 uniform float uAmplitude;
 uniform float uDistance;
 uniform vec2 uMouse;
+uniform float uCenterX;
 
 #define PI 3.1415926538
 
@@ -59,11 +60,14 @@ float pixel(float count, vec2 resolution) {
     return (1.0 / max(resolution.x, resolution.y)) * count;
 }
 
-float lineFn(vec2 st, float width, float perc, float offset, vec2 mouse, float time, float amplitude, float distance) {
+float lineFn(vec2 st, float width, float perc, float offset, vec2 mouse, float time, float amplitude, float distance, float centerX) {
     float split_offset = (perc * 0.4);
     float split_point = 0.1 + split_offset;
 
-    float amplitude_normal = smoothstep(split_point, 0.7, st.x);
+    // Adjust amplitude_normal to be centered around centerX
+    float distToCenter = abs(st.x - centerX);
+    float amplitude_normal = smoothstep(0.5, 0.2, distToCenter);
+    
     float amplitude_strength = 0.5;
     float finalAmplitude = amplitude_normal * amplitude_strength
                            * amplitude * (1.0 + (mouse.y - 0.5) * 0.2);
@@ -112,7 +116,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
             uMouse,
             iTime,
             uAmplitude,
-            uDistance
+            uDistance,
+            uCenterX
         ));
     }
 
@@ -129,6 +134,7 @@ interface ThreadsProps {
     color?: [number, number, number]
     amplitude?: number
     distance?: number
+    centerX?: number
     enableMouseInteraction?: boolean
     className?: string
 }
@@ -137,6 +143,7 @@ const Threads = ({
     color = [1, 1, 1], // RGB values 0-1
     amplitude = 1,
     distance = 0,
+    centerX = 0.5,
     enableMouseInteraction = true,
     className = ''
 }: ThreadsProps) => {
@@ -177,6 +184,7 @@ const Threads = ({
                 uColor: { value: new Color(...color) },
                 uAmplitude: { value: amplitude },
                 uDistance: { value: distance },
+                uCenterX: { value: centerX },
                 uMouse: { value: new Float32Array([0.5, 0.5]) }
             }
         });
@@ -267,6 +275,7 @@ const Threads = ({
             programRef.current.uniforms.uColor.value = new Color(...color);
             programRef.current.uniforms.uAmplitude.value = amplitude;
             programRef.current.uniforms.uDistance.value = distance;
+            programRef.current.uniforms.uCenterX.value = centerX;
             // enableMouseInteraction is handled logic-wise or we could pass a uniform
             // For now, the loop uses local mouse vars. 
             // If we really want to disable mouse influence visually instantly:
@@ -275,7 +284,7 @@ const Threads = ({
                 programRef.current.uniforms.uMouse.value[1] = 0.5;
             }
         }
-    }, [color, amplitude, distance, enableMouseInteraction]);
+    }, [color, amplitude, distance, centerX, enableMouseInteraction]);
 
     return <div ref={containerRef} className={`w-full h-full relative ${className}`} />;
 };

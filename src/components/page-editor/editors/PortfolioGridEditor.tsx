@@ -25,6 +25,7 @@ export function PortfolioGridEditor({ props, onChange }: EditorProps) {
                     title: 'New Project',
                     category: 'Category',
                     link: '#',
+                    buttonText: '了解更多',
                     isWide: false
                 }
             ]
@@ -91,7 +92,7 @@ export function PortfolioGridEditor({ props, onChange }: EditorProps) {
                                 <div className="space-y-2">
                                     <label className="text-xs text-muted-foreground">標題</label>
                                     <Input
-                                        value={item.title}
+                                        value={item.title || ''}
                                         onChange={(e) => updateItem(index, 'title', e.target.value)}
                                         placeholder="標題"
                                     />
@@ -99,20 +100,30 @@ export function PortfolioGridEditor({ props, onChange }: EditorProps) {
                                 <div className="space-y-2">
                                     <label className="text-xs text-muted-foreground">分類</label>
                                     <Input
-                                        value={item.category}
+                                        value={item.category || ''}
                                         onChange={(e) => updateItem(index, 'category', e.target.value)}
                                         placeholder="例如: Residential"
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-xs text-muted-foreground">連結</label>
-                                <Input
-                                    value={item.link}
-                                    onChange={(e) => updateItem(index, 'link', e.target.value)}
-                                    placeholder="#"
-                                />
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-2">
+                                    <label className="text-xs text-muted-foreground">連結</label>
+                                    <Input
+                                        value={item.link || ''}
+                                        onChange={(e) => updateItem(index, 'link', e.target.value)}
+                                        placeholder="#"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs text-muted-foreground">按鈕文字</label>
+                                    <Input
+                                        value={item.buttonText || ''}
+                                        onChange={(e) => updateItem(index, 'buttonText', e.target.value)}
+                                        placeholder="了解更多"
+                                    />
+                                </div>
                             </div>
 
                             <div className="flex items-center space-x-2 pt-1">
@@ -135,24 +146,54 @@ export function PortfolioGridEditor({ props, onChange }: EditorProps) {
                     <Switch
                         id="show-view-all"
                         checked={props.showViewAll !== false}
-                        onCheckedChange={(checked) => onChange({ showViewAll: checked })}
+                        onCheckedChange={(checked) => onChange({ ...props, showViewAll: checked })}
                     />
                     <label htmlFor="show-view-all" className="text-sm cursor-pointer font-medium">
-                        顯示「查看更多」卡片
+                        顯示「查看更多」卡片及按鈕
                     </label>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium">下方按鈕文字</label>
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">下方按鈕文字</label>
+                        <Input
+                            value={props.viewAllText || ''}
+                            onChange={(e) => onChange({ ...props, viewAllText: e.target.value })}
+                            placeholder="See More Projects"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">「查看更多」連結</label>
+                        <Input
+                            value={props.viewAllUrl || ''}
+                            onChange={(e) => onChange({ ...props, viewAllUrl: e.target.value })}
+                            placeholder="/portfolio"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <label className="block text-sm text-muted-foreground">背景顏色</label>
+                <div className="flex gap-2">
                     <Input
-                        value={props.viewAllText || ''}
-                        onChange={(e) => onChange({ viewAllText: e.target.value })}
-                        placeholder="See More Projects"
+                        type="color"
+                        value={props.backgroundColor || '#ffffff'}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        className="w-12 h-9 p-1 cursor-pointer"
+                    />
+                    <Input
+                        type="text"
+                        value={props.backgroundColor || ''}
+                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                        placeholder="#ffffff"
+                        className="flex-1"
                     />
                 </div>
             </div>
 
             <SpacingControls
+
                 paddingY={{
                     desktop: props.paddingYDesktop ?? 64,
                     mobile: props.paddingYMobile ?? 32
