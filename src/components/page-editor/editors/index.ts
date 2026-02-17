@@ -37,3 +37,7 @@ export { FlowingMenuBlockEditor } from './FlowingMenuBlockEditor'
 export { ImageTrailEditor } from './ImageTrailEditor'
 export { BeforeAfterEditor } from './before-after-editor'
 export { ScrollRevealBlockEditor } from './scroll-reveal-block-editor'
+export { ShinyTextEditor } from './ShinyTextEditor'
+export { GradientTextEditor } from './GradientTextEditor'
+export { RotatingTextEditor } from './RotatingTextEditor'
+

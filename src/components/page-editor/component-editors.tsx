@@ -23,5 +23,9 @@ export {
     ImageTrailEditor
 } from './editors'
 
+export { ShinyTextEditor } from './editors/ShinyTextEditor'
+export { GradientTextEditor } from './editors/GradientTextEditor'
+export { RotatingTextEditor } from './editors/RotatingTextEditor'
+
 // 保留 AlignmentButtons 的匯出以維持向後相容
 export { AlignmentButtons } from './shared/AlignmentButtons'

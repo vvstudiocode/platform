@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, useEffect } from 'react'
-import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Box, Sparkles, MessageSquareQuote, Lock } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Box, Sparkles, MessageSquareQuote, Lock, RotateCw } from 'lucide-react'
 import { useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -87,6 +87,9 @@ const componentCategories = [
             { type: 'faq', icon: MessageSquare, label: 'FAQ 問答', description: '常見問答' },
             { type: 'newsletter_banner', icon: MessageSquare, label: '訂閱 Banner', description: '電子報訂閱區塊' },
             { type: 'stats_grid', icon: LayoutGrid, label: '數據指標', description: '公司介紹與數據展示' },
+            { type: 'shiny_text', icon: Sparkles, label: '閃亮文字', description: '金屬光澤文字效果' },
+            { type: 'gradient_text', icon: Sparkles, label: '漸變文字', description: '漸層色彩文字效果' },
+            { type: 'rotating_text', icon: RotateCw, label: '輪替文字', description: '輪替文字效果' },
         ]
     },
     {
@@ -115,6 +118,9 @@ const componentCategories = [
 
 // 平鋪所有元件（用於查找）
 const allComponentTypes = componentCategories.flatMap(cat => cat.components)
+
+// Import Sparkles safely
+const SparklesIcon = Sparkles
 
 
 export function PageEditForm({ page, updateAction, updatePageContentAction, basePath, storeSlug, tenantId, storeName, footerSettings, subscriptionPlan = 'free' }: Props) {

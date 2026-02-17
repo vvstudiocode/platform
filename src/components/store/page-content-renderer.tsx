@@ -29,6 +29,9 @@ import { FlowingMenuBlock } from '../store/flowing-menu-block'
 import { ImageTrailBlock } from '../store/image-trail-block'
 import { BeforeAfterSlider } from '../store/before-after-slider'
 import { ScrollRevealBlock } from '../store/scroll-reveal-block'
+import ShinyText from '../store/shiny-text'
+import GradientText from '../store/gradient-text'
+import RotatingText from '../store/rotating-text'
 import dynamic from 'next/dynamic'
 
 // Inline LoadingState
@@ -122,7 +125,7 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
     // 定義哪些區塊應該是全寬的
     const isFullWidthBlock = (type: string) => {
         // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
-        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after', 'scroll_reveal'].includes(type)
+        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after', 'scroll_reveal', 'shiny_text', 'gradient_text', 'rotating_text'].includes(type)
     }
 
     return (
@@ -210,6 +213,7 @@ function getAnimationDelay(delay?: string) {
 function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { block: PageComponent; storeSlug: string; tenantId: string; preview: boolean; previewDevice: 'mobile' | 'desktop' }) {
     // 兼容新舊格式的取值函數
     const getVal = (key: string) => block.props?.[key] ?? (block as any)[key]
+    const isMobile = preview && previewDevice === 'mobile'
 
     switch (block.type) {
         case 'hero':
@@ -566,6 +570,65 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
         case 'scroll_reveal':
             return <ScrollRevealBlock
                 items={block.props?.items}
+            />
+        case 'shiny_text':
+            return <ShinyText
+                text={block.props?.text}
+                disabled={block.props?.disabled}
+                speed={block.props?.speed}
+                color={block.props?.color}
+                shineColor={block.props?.shineColor}
+                spread={block.props?.spread}
+                yoyo={block.props?.yoyo}
+                pauseOnHover={block.props?.pauseOnHover}
+                direction={block.props?.direction}
+                delay={block.props?.delay}
+                fontSizeDesktop={block.props?.fontSizeDesktop}
+                fontSizeMobile={block.props?.fontSizeMobile}
+                fontWeight={block.props?.fontWeight}
+                textAlign={block.props?.textAlign}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+            />
+        case 'gradient_text':
+            return <GradientText
+                colors={block.props?.colors}
+                animationSpeed={block.props?.animationSpeed}
+                showBorder={block.props?.showBorder}
+                direction={block.props?.direction}
+                pauseOnHover={block.props?.pauseOnHover}
+                yoyo={block.props?.yoyo}
+                className={`
+                    ${block.props?.textAlign === 'left' ? 'mr-auto ml-0' : block.props?.textAlign === 'right' ? 'ml-auto mr-0' : 'mx-auto'}
+                `}
+            >
+                <div style={{
+                    fontSize: `${isMobile ? block.props?.fontSizeMobile : block.props?.fontSizeDesktop}px`,
+                    paddingTop: `${isMobile ? block.props?.paddingYMobile : block.props?.paddingYDesktop}px`,
+                    paddingBottom: `${isMobile ? block.props?.paddingYMobile : block.props?.paddingYDesktop}px`,
+                }}>
+                    {block.props?.text}
+                </div>
+            </GradientText>
+        case 'rotating_text':
+            return <RotatingText
+                texts={block.props?.texts}
+                prefix={block.props?.prefix}
+                rotationInterval={block.props?.rotationInterval}
+                splitBy={block.props?.splitBy}
+                staggerFrom={block.props?.staggerFrom}
+                mainClassName={`
+                    ${block.props?.textAlign === 'left' ? 'justify-start' : block.props?.textAlign === 'right' ? 'justify-end' : 'justify-center'}
+                    rounded-lg overflow-hidden
+                `}
+                style={{
+                    fontSize: `${isMobile ? block.props?.fontSizeMobile : block.props?.fontSizeDesktop}px`,
+                    fontWeight: block.props?.fontWeight,
+                    color: block.props?.color,
+                    backgroundColor: block.props?.backgroundColor,
+                    paddingTop: `${isMobile ? block.props?.paddingYMobile : block.props?.paddingYDesktop}px`,
+                    paddingBottom: `${isMobile ? block.props?.paddingYMobile : block.props?.paddingYDesktop}px`,
+                }}
             />
         default:
             return null

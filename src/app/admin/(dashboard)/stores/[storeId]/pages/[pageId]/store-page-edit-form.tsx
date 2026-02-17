@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Save, MessageSquareQuote, Sparkles } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Save, MessageSquareQuote, Sparkles, RotateCw } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,7 +20,10 @@ import {
     ImageMarqueeEditor,
     ImageTestimonialsEditor,
     FlowingMenuBlockEditor,
-    ImageTrailEditor
+    ImageTrailEditor,
+    ShinyTextEditor,
+    GradientTextEditor,
+    RotatingTextEditor
 } from '@/components/page-editor/component-editors'
 import { SpacingControls, ImageControls, AspectRatioControls } from '@/components/page-editor/responsive-controls'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
@@ -70,6 +73,9 @@ const componentCategories = [
             { type: 'text_columns', icon: LayoutGrid, label: '文字組合', description: '多欄文字' },
             { type: 'features', icon: LayoutGrid, label: '特色區塊', description: '特色/服務' },
             { type: 'faq', icon: MessageSquare, label: 'FAQ 問答', description: '常見問答' },
+            { type: 'shiny_text', icon: Sparkles, label: '閃亮文字', description: '金屬光澤文字效果' },
+            { type: 'gradient_text', icon: Sparkles, label: '漸變文字', description: '漸層色彩文字效果' },
+            { type: 'rotating_text', icon: RotateCw, label: '輪替文字', description: '輪替文字效果' },
         ]
     },
     {
@@ -757,6 +763,54 @@ function getDefaultProps(type: string): Record<string, any> {
                 paddingYDesktop: 0,
                 paddingYMobile: 0
             }
+        case 'animated_text':
+            return {
+                text: 'OMO網站平台',
+                fontSizeDesktop: 8,
+                fontSizeMobile: 10,
+                fontWeight: 900,
+                textColor: '#1C1C1C',
+                backgroundColor: '#FED75A',
+                animationType: 'split-chars',
+                animationDuration: 1,
+                animationDelay: 0.05,
+                textAlign: 'center',
+                fullWidth: true,
+                height: 'auto',
+                paddingYDesktop: 64,
+                paddingYMobile: 32
+            }
+        case 'gradient_text':
+            return {
+                text: 'OMO網站平台',
+                colors: ['#5227FF', '#FF9FFC', '#B19EEF'],
+                animationSpeed: 8,
+                showBorder: false,
+                direction: 'horizontal',
+                pauseOnHover: false,
+                yoyo: true,
+                fontSizeDesktop: 16,
+                fontSizeMobile: 14,
+                textAlign: 'center',
+                paddingYDesktop: 64,
+                paddingYMobile: 32
+            }
+        case 'rotating_text':
+            return {
+                prefix: 'OMO網站平台',
+                texts: ['is very good', 'is amazing', 'is powerful'],
+                rotationInterval: 2000,
+                splitBy: 'characters',
+                staggerFrom: 'last',
+                fontSizeDesktop: 40,
+                fontSizeMobile: 24,
+                fontWeight: 800,
+                textAlign: 'center',
+                color: '#000000',
+                backgroundColor: '#cyan-300',
+                paddingYDesktop: 64,
+                paddingYMobile: 32
+            }
         default:
             return {}
     }
@@ -796,6 +850,12 @@ function ComponentEditor({ type, props, onChange, tenantId }: { type: string; pr
             return <FlowingMenuBlockEditor props={props} onChange={onChange} />
         case 'image-trail-block':
             return <ImageTrailEditor props={props} onChange={onChange} tenantId={tenantId} />
+        case 'shiny_text':
+            return <ShinyTextEditor props={props} onChange={onChange} />
+        case 'gradient_text':
+            return <GradientTextEditor props={props} onChange={onChange} />
+        case 'rotating_text':
+            return <RotatingTextEditor props={props} onChange={onChange} />
         default:
             return (
                 <div className="text-zinc-500 text-sm">

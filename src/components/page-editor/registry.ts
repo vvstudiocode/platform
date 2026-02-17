@@ -35,7 +35,10 @@ import {
     FlowingMenuBlockEditor,
     ImageTrailEditor,
     BeforeAfterEditor,
-    ScrollRevealBlockEditor
+    ScrollRevealBlockEditor,
+    ShinyTextEditor,
+    GradientTextEditor,
+    RotatingTextEditor
 } from './editors'
 import { Sparkles, ScrollText } from 'lucide-react'
 
@@ -231,7 +234,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         category: 'interactive',
         tier: 'free',
         defaultProps: {
-            text: 'YOUR TEXT HERE',
+            text: 'OMO網站平台',
             fontSizeDesktop: 8,
             fontSizeMobile: 10,
             fontWeight: 900,
@@ -243,6 +246,28 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             textAlign: 'center',
             fullWidth: true,
             height: 'auto',
+            paddingYDesktop: 64,
+            paddingYMobile: 32
+        }
+    },
+    rotating_text: {
+        editor: RotatingTextEditor,
+        label: '輪替文字',
+        icon: '🔄',
+        category: 'interactive',
+        tier: 'free',
+        defaultProps: {
+            prefix: 'OMO網站平台',
+            texts: ['is very good', 'is amazing', 'is powerful'],
+            rotationInterval: 2000,
+            splitBy: 'characters',
+            staggerFrom: 'last',
+            fontSizeDesktop: 40,
+            fontSizeMobile: 24,
+            fontWeight: 800,
+            textAlign: 'center',
+            color: '#000000',
+            backgroundColor: '#cyan-300',
             paddingYDesktop: 64,
             paddingYMobile: 32
         }
@@ -753,6 +778,51 @@ export const componentRegistry: Record<string, ComponentConfig> = {
                     backgroundColor: '#f0f4e8'
                 }
             ]
+        }
+    },
+    shiny_text: {
+        editor: ShinyTextEditor,
+        label: '閃亮文字 (Shiny Text)',
+        icon: '✨',
+        category: 'interactive',
+        tier: 'free',
+        defaultProps: {
+            text: 'OMO網站平台',
+            speed: 2,
+            disabled: false,
+            color: '#b5b5b5',
+            shineColor: '#ffffff',
+            spread: 120,
+            direction: 'left',
+            yoyo: false,
+            pauseOnHover: false,
+            fontSizeDesktop: 16,
+            fontSizeMobile: 14,
+            fontWeight: 400,
+            textAlign: 'center',
+            paddingYDesktop: 64,
+            paddingYMobile: 32
+        }
+    },
+    gradient_text: {
+        editor: GradientTextEditor,
+        label: '漸變文字 (Gradient Text)',
+        icon: '🌈',
+        category: 'basic',
+        tier: 'free',
+        defaultProps: {
+            text: 'OMO網站平台',
+            colors: ['#5227FF', '#FF9FFC', '#B19EEF'],
+            animationSpeed: 8,
+            showBorder: false,
+            direction: 'horizontal',
+            pauseOnHover: false,
+            yoyo: true,
+            fontSizeDesktop: 16,
+            fontSizeMobile: 14,
+            textAlign: 'center',
+            paddingYDesktop: 64,
+            paddingYMobile: 32
         }
     }
 }
