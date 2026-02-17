@@ -44,4 +44,5 @@ export { NewsHeroEditor } from './NewsHeroEditor'
 export { NewsFeatureEditor } from './NewsFeatureEditor'
 export { SocialWallEditor } from './SocialWallEditor'
 export { SpacerEditor } from './SpacerEditor'
+export { Carousel3DEditor } from './Carousel3DEditor'
 

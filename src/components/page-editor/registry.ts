@@ -42,7 +42,8 @@ import {
     NewsHeroEditor,
     NewsFeatureEditor,
     SocialWallEditor,
-    SpacerEditor
+    SpacerEditor,
+    Carousel3DEditor
 } from './editors'
 import { Sparkles, ScrollText, MoveVertical } from 'lucide-react'
 
@@ -494,6 +495,32 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             ],
             paddingYDesktop: 0,
             paddingYMobile: 0,
+        }
+    },
+    carousel_3d: {
+        editor: Carousel3DEditor,
+        label: '3D 圓環輪播',
+        icon: '🎡',
+        category: 'interactive',
+        tier: 'growth',
+        defaultProps: {
+            images: [
+                { url: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800', alt: '精品珠飾' },
+                { url: 'https://images.unsplash.com/photo-1573408339375-f99b29ff7011?w=800', alt: '經典鑽戒' },
+                { url: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800', alt: '優雅耳環' },
+                { url: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800', alt: '精緻手鍊' },
+                { url: 'https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?w=800', alt: '亮眼項鍊' },
+                { url: 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=800', alt: '純淨鑽石' },
+                { url: 'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=800', alt: '時尚配飾' },
+                { url: 'https://images.unsplash.com/photo-1515562085055-8a96608199ca?w=800', alt: '珠寶組合' },
+            ],
+            autoRotate: true,
+            rotationDuration: '32s',
+            cardWidth: '17.5em',
+            perspective: '35em',
+            gap: '0.5em',
+            paddingYDesktop: 64,
+            paddingYMobile: 32
         }
     },
     hero_composition: {

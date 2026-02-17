@@ -33,6 +33,7 @@ import { ScrollRevealBlock } from '../store/scroll-reveal-block'
 import ShinyText from '../store/shiny-text'
 import GradientText from '../store/gradient-text'
 import RotatingText from '../store/rotating-text'
+import { Carousel3D } from '../store/carousel-3d'
 import dynamic from 'next/dynamic'
 
 // Inline LoadingState
@@ -126,7 +127,7 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
     // 定義哪些區塊應該是全寬的
     const isFullWidthBlock = (type: string) => {
         // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
-        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after', 'scroll_reveal', 'shiny_text', 'gradient_text', 'rotating_text', 'spacer'].includes(type)
+        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after', 'scroll_reveal', 'shiny_text', 'gradient_text', 'rotating_text', 'spacer', 'carousel_3d'].includes(type)
     }
 
     return (
@@ -644,6 +645,17 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                     paddingBottom: `${isMobile ? block.props?.paddingYMobile : block.props?.paddingYDesktop}px`,
                 }}
             />
+        case 'carousel_3d':
+            return <Carousel3D
+                images={block.props?.images || []}
+                autoRotate={block.props?.autoRotate}
+                rotationDuration={block.props?.rotationDuration}
+                cardWidth={block.props?.cardWidth}
+                perspective={block.props?.perspective}
+                gap={block.props?.gap}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+            />
         default:
             return null
     }
@@ -910,9 +922,15 @@ function ImageTextBlock({ block, preview, previewDevice }: { block: PageComponen
     const fitDesktop = block.props?.objectFitDesktop || 'cover'
     const fitMobile = block.props?.objectFitMobile || 'cover'
 
+    // 手機版:圖片在左→圖片在上(flex-col),圖片在右→圖片在下(flex-col-reverse)
+    // 桌面版:根據 layout 決定左右(flex-row 或 flex-row-reverse)
+    const isMobile = preview && previewDevice === 'mobile'
+    const flexDirection = layout === 'right'
+        ? (isMobile ? 'flex-col-reverse' : 'flex-col-reverse md:flex-row-reverse')
+        : (isMobile ? 'flex-col' : 'flex-col md:flex-row')
+
     return (
-        <div className={`flex flex-col md:flex-row gap-8 items-center ${layout === 'right' ? 'md:flex-row-reverse' : ''
-            }`}>
+        <div className={`flex ${flexDirection} gap-8 items-center`}>
             {/* 圖片 */}
             {imageUrl && (
                 <div className="w-full md:w-1/2">
@@ -971,58 +989,123 @@ function TextColumnsBlock({ block }: { block: PageComponent }) {
 // 4. 圖片組合
 function ImageGridBlock({ block, preview, previewDevice }: { block: PageComponent; preview?: boolean; previewDevice?: 'mobile' | 'desktop' }) {
     const images = block.props?.images ?? []
-    const columns = block.props?.columns ?? 3
-    const gap = block.props?.gap ?? 16
+
+    // Helper to get responsive values
+    const getVal = (prop: string, defaultVal: any) => block.props?.[prop] ?? defaultVal
+
+    const columnsDesktop = getVal('columnsDesktop', getVal('columns', 3))
+    const columnsMobile = getVal('columnsMobile', 1)
+
+    const gapDesktop = getVal('gapDesktop', getVal('gap', 16))
+    const gapMobile = getVal('gapMobile', 16)
+
+    // Generate unique ID for scoping styles
+    const uniqueId = `grid-${block.id || Math.random().toString(36).substring(2, 9)}`
+
+    // 根據預覽裝置決定使用的欄位數
+    const gridColsClass = preview && previewDevice === 'mobile'
+        ? `grid-cols-${columnsMobile}`
+        : `grid-cols-${columnsMobile} md:grid-cols-${columnsDesktop}`
 
     return (
-        <div
-            className={`grid grid-cols-1 md:grid-cols-${columns}`}
-            style={{ gap: `${gap}px` }}
-        >
-            {images.map((img: any, i: number) => (
-                <div
-                    key={i}
-                    className={`relative rounded-lg overflow-hidden bg-gray-100 ${block.props && previewDevice === 'mobile' && preview
-                        ? 'aspect-[var(--aspect-mobile)]'
-                        : 'aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)]'
-                        }`}
-                    style={{
-                        '--aspect-desktop': block.props?.aspectRatioDesktop || '1/1',
-                        '--aspect-mobile': block.props?.aspectRatioMobile || '1/1',
-                    } as React.CSSProperties}
-                >
-                    {img.link ? (
-                        <Link href={img.link}>
-                            <img
-                                src={img.url}
-                                alt={img.alt || ''}
-                                className="w-full h-full transition-transform duration-300 object-[var(--fit-mobile)] md:object-[var(--fit-desktop)]"
+        <div id={uniqueId} className={`grid ${gridColsClass}`}>
+            <style>
+                {`
+                #${uniqueId} { gap: ${gapMobile}px; }
+                @media (min-width: 768px) { #${uniqueId} { gap: ${gapDesktop}px; } }
+                `}
+            </style>
+
+            {images.map((img: any, i: number) => {
+                // Text Overlay Props
+                const hasText = !!img.text
+                const textSize = img.textSize ?? 16
+                const textColor = img.textColor ?? '#ffffff'
+                const overlayColor = img.overlayColor ?? '#000000'
+                const overlayOpacity = (img.overlayOpacity ?? 0) / 100
+                const maskOpacity = (img.maskOpacity ?? 0) / 100
+
+                // Alignment
+                const vAlign = img.textVerticalAlign === 'top' ? 'items-start' :
+                    img.textVerticalAlign === 'bottom' ? 'items-end' : 'items-center'
+                const hAlign = img.textHorizontalAlign === 'left' ? 'justify-start' :
+                    img.textHorizontalAlign === 'right' ? 'justify-end' : 'justify-center'
+                const textAlign = img.textHorizontalAlign || 'center'
+
+                return (
+                    <div
+                        key={i}
+                        className={`relative rounded-lg overflow-hidden bg-gray-100 group ${block.props && previewDevice === 'mobile' && preview
+                            ? 'aspect-[var(--aspect-mobile)]'
+                            : 'aspect-[var(--aspect-mobile)] md:aspect-[var(--aspect-desktop)]'
+                            }`}
+                        style={{
+                            '--aspect-desktop': block.props?.aspectRatioDesktop || '1/1',
+                            '--aspect-mobile': block.props?.aspectRatioMobile || '1/1',
+                        } as React.CSSProperties}
+                    >
+                        {/* Image Layer */}
+                        {img.link ? (
+                            <Link href={img.link} className="block w-full h-full">
+                                <BlockImage img={img} block={block} preview={preview} previewDevice={previewDevice} />
+                            </Link>
+                        ) : (
+                            <BlockImage img={img} block={block} preview={preview} previewDevice={previewDevice} />
+                        )}
+
+                        {/* Mask Overlay (Background for text readability) */}
+                        {maskOpacity > 0 && (
+                            <div
+                                className="absolute inset-0 pointer-events-none transition-opacity duration-300"
                                 style={{
-                                    '--fit-desktop': block.props?.objectFitDesktop || 'cover',
-                                    '--fit-mobile': block.props?.objectFitMobile || 'cover',
-                                } as React.CSSProperties}
+                                    backgroundColor: overlayColor,
+                                    opacity: maskOpacity
+                                }}
                             />
-                        </Link>
-                    ) : (
-                        <img
-                            src={img.url}
-                            alt={img.alt || ''}
-                            className={`w-full h-full object-[var(--fit-mobile)] ${block.props && previewDevice === 'mobile' && preview
-                                ? ''
-                                : 'md:object-[var(--fit-desktop)]'
-                                }`}
-                            style={{
-                                '--fit-desktop': block.props?.objectFitDesktop || 'cover',
-                                '--fit-mobile': block.props?.objectFitMobile || 'cover',
-                                objectFit: (block.props && previewDevice === 'mobile' && preview)
-                                    ? (block.props?.objectFitMobile || 'cover')
-                                    : (block.props?.objectFitDesktop || 'cover'),
-                            } as React.CSSProperties}
-                        />
-                    )}
-                </div>
-            ))}
+                        )}
+
+                        {/* Text Overlay */}
+                        {hasText && (
+                            <div className={`absolute inset-0 p-4 flex ${vAlign} ${hAlign} pointer-events-none`}>
+                                <div
+                                    style={{
+                                        fontSize: `${textSize}px`,
+                                        color: textColor,
+                                        textAlign: textAlign,
+                                        width: '100%'
+                                    }}
+                                    className="font-medium"
+                                >
+                                    {img.text.split('\n').map((line: string, i: number) => (
+                                        <div key={i}>{line}</div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )
+            })}
         </div>
+    )
+}
+
+function BlockImage({ img, block, preview, previewDevice }: { img: any, block: any, preview?: boolean, previewDevice?: any }) {
+    return (
+        <img
+            src={img.url}
+            alt={img.alt || ''}
+            className={`w-full h-full transition-transform duration-300 group-hover:scale-105 object-[var(--fit-mobile)] ${block.props && previewDevice === 'mobile' && preview
+                ? ''
+                : 'md:object-[var(--fit-desktop)]'
+                }`}
+            style={{
+                '--fit-desktop': block.props?.objectFitDesktop || 'cover',
+                '--fit-mobile': block.props?.objectFitMobile || 'cover',
+                objectFit: (block.props && previewDevice === 'mobile' && preview)
+                    ? (block.props?.objectFitMobile || 'cover')
+                    : (block.props?.objectFitDesktop || 'cover'),
+            } as React.CSSProperties}
+        />
     )
 }
 

@@ -51,7 +51,7 @@ export function MarqueeEditor({ props, onChange }: EditorProps) {
                     // Also update legacy fontSize for backward compatibility if needed,
                     // though we use fontSizeDesktop/Mobile primarily now.
                     if (updates.fontSizeDesktop) {
-                        newProps.fontSize = updates.fontSizeDesktop
+                        (newProps as any).fontSize = updates.fontSizeDesktop
                     }
                     onChange(newProps)
                 }}
