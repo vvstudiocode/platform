@@ -39,6 +39,8 @@ import { BentoGrid } from '../store/bento-grid'
 import { SocialWall } from '../store/social-wall'
 import { NewsHero } from '../store/news-hero'
 import { NewsFeature } from '../store/news-feature'
+import { PricingBlock } from '../store/pricing-block'
+import { PricingSection2Block } from '../store/pricing-section-2'
 import dynamic from 'next/dynamic'
 
 // Inline LoadingState
@@ -132,7 +134,7 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
     // 定義哪些區塊應該是全寬的
     const isFullWidthBlock = (type: string) => {
         // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
-        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after', 'scroll_reveal', 'shiny_text', 'gradient_text', 'rotating_text', 'spacer', 'carousel_3d', 'text_parallax_content', 'bento_grid', 'social_wall', 'news_hero', 'news_feature'].includes(type)
+        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after', 'scroll_reveal', 'shiny_text', 'gradient_text', 'rotating_text', 'spacer', 'carousel_3d', 'text_parallax_content', 'bento_grid', 'social_wall', 'news_hero', 'news_feature', 'pricing', 'pricing_2'].includes(type)
     }
 
     return (
@@ -746,6 +748,40 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 fontSizeDesktop={block.props?.fontSizeDesktop}
                 fontSizeMobile={block.props?.fontSizeMobile}
                 isMobile={isMobile}
+            />
+        case 'pricing':
+            return <PricingBlock
+                plans={block.props?.plans}
+                title={block.props?.title}
+                description={block.props?.description}
+                primaryColor={block.props?.primaryColor}
+                backgroundColor={block.props?.backgroundColor}
+                textColor={block.props?.textColor}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                isMobile={isMobile}
+                showAnnualToggle={block.props?.showAnnualToggle}
+                currencySymbol={block.props?.currencySymbol}
+                monthlyLabel={block.props?.monthlyLabel}
+                yearlyLabel={block.props?.yearlyLabel}
+            />
+        case 'pricing_2':
+            return <PricingSection2Block
+                plans={block.props?.plans}
+                title={block.props?.title}
+                description={block.props?.description}
+                primaryColor={block.props?.primaryColor}
+                backgroundColor={block.props?.backgroundColor}
+                textColor={block.props?.textColor}
+                toggleColor={block.props?.toggleColor}
+                toggleTextColor={block.props?.toggleTextColor}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                isMobile={isMobile}
+                showAnnualToggle={block.props?.showAnnualToggle}
+                currencySymbol={block.props?.currencySymbol}
+                monthlyLabel={block.props?.monthlyLabel}
+                yearlyLabel={block.props?.yearlyLabel}
             />
         default:
             return null

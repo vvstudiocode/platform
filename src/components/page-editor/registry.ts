@@ -45,9 +45,11 @@ import {
     SpacerEditor,
     Carousel3DEditor,
     TextParallaxContentEditor,
-    BentoGridEditor
+    BentoGridEditor,
+    PricingEditor,
+    PricingSection2Editor
 } from './editors'
-import { Sparkles, ScrollText, MoveVertical } from 'lucide-react'
+import { Sparkles, ScrollText, MoveVertical, CreditCard } from 'lucide-react'
 
 export interface ComponentConfig {
     editor: ComponentType<EditorProps>
@@ -100,6 +102,139 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             avatar3Image: '',
             paddingYDesktop: 64,
             paddingYMobile: 32
+        }
+    },
+    pricing: {
+        editor: PricingEditor,
+        label: '價格方案',
+        icon: '',
+        category: 'interactive',
+        tier: 'free',
+        defaultProps: {
+            title: '方案價格',
+            description: '選擇最適合您的方案\n所有方案皆包含平台存取權限、客戶開發工具及專屬客服支援。',
+            primaryColor: '#6366f1',
+            backgroundColor: '#ffffff',
+            textColor: '#333333',
+            paddingYDesktop: 64,
+            paddingYMobile: 32,
+            showAnnualToggle: true,
+            annualToggleText: '年繳方案（省 20%）',
+            currencySymbol: 'NT$',
+            monthlyLabel: '按月計費',
+            yearlyLabel: '按年計費',
+            plans: [
+                {
+                    name: '入門方案',
+                    price: '50',
+                    yearlyPrice: '40',
+                    period: '每月',
+                    features: ['最多 10 個專案', '基礎分析報表', '48 小時內回覆', '有限 API 存取', '社群支援'],
+                    description: '適合個人與小型專案',
+                    buttonText: '免費試用',
+                    href: '#',
+                    isPopular: false,
+                },
+                {
+                    name: '專業方案',
+                    price: '99',
+                    yearlyPrice: '79',
+                    period: '每月',
+                    features: ['無限專案數量', '進階分析報表', '24 小時內回覆', '完整 API 存取', '優先客服支援', '團隊協作功能', '自訂整合'],
+                    description: '適合成長中的團隊與企業',
+                    buttonText: '立即開始',
+                    href: '#',
+                    isPopular: true,
+                },
+                {
+                    name: '企業方案',
+                    price: '299',
+                    yearlyPrice: '239',
+                    period: '每月',
+                    features: ['包含專業方案所有功能', '客製化解決方案', '專屬客戶經理', '1 小時內回覆', 'SSO 單一登入', '進階安全防護', '客製合約', 'SLA 服務保證'],
+                    description: '適合有特殊需求的大型組織',
+                    buttonText: '聯繫業務',
+                    href: '#',
+                    isPopular: false,
+                },
+            ]
+        }
+    },
+    pricing_2: {
+        editor: PricingSection2Editor,
+        label: '價格方案2',
+        icon: 'CreditCard',
+        category: 'interactive',
+        tier: 'free',
+        defaultProps: {
+            title: '選擇最適合您的方案',
+            description: '受到數百萬人信賴，我們為全球團隊提供服務，探索最適合您的選項。',
+            primaryColor: '#000000',
+            backgroundColor: '#ffffff',
+            textColor: '#000000',
+            paddingYDesktop: 0,
+            paddingYMobile: 0,
+            showAnnualToggle: true,
+            monthlyLabel: '月繳',
+            yearlyLabel: '年繳',
+            currencySymbol: 'NT$',
+            plans: [
+                {
+                    name: '入門方案',
+                    description: '適合個人與小型專案的基礎方案',
+                    price: '50',
+                    yearlyPrice: '480',
+                    buttonText: '立即開始',
+                    buttonVariant: 'outline',
+                    includes: [
+                        '基礎功能：',
+                        '無限卡片',
+                        '自訂背景與貼圖',
+                        '雙重驗證',
+                        '進階項目：',
+                        '無限卡片',
+                        '自訂背景與貼圖',
+                        '雙重驗證',
+                    ],
+                },
+                {
+                    name: '專業方案',
+                    description: '最適合成長中團隊的進階功能',
+                    price: '99',
+                    yearlyPrice: '990',
+                    buttonText: '立即開始',
+                    buttonVariant: 'default',
+                    popular: true,
+                    includes: [
+                        '包含入門方案所有功能，另加：',
+                        '進階清單管理',
+                        '自訂欄位',
+                        '雲端功能',
+                        '包含入門方案所有功能，另加：',
+                        '進階清單管理',
+                        '自訂欄位',
+                        '雲端功能',
+                    ],
+                },
+                {
+                    name: '企業方案',
+                    description: '大型團隊專屬的完整方案',
+                    price: '299',
+                    yearlyPrice: '2990',
+                    buttonText: '立即開始',
+                    buttonVariant: 'outline',
+                    includes: [
+                        '包含專業方案所有功能，另加：',
+                        '多板管理',
+                        '多板訪客',
+                        '附件權限',
+                        '包含專業方案所有功能，另加：',
+                        '多板管理',
+                        '多板訪客',
+                        '附件權限',
+                    ],
+                },
+            ]
         }
     },
     text: {

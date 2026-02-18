@@ -95,6 +95,8 @@ const componentCategories = [
             { type: 'gradient_text', icon: Sparkles, label: '漸變文字', description: '漸層色彩文字效果' },
             { type: 'rotating_text', icon: RotateCw, label: '輪替文字', description: '輪替文字效果' },
             { type: 'spacer', icon: MoveVertical, label: '空白間距', description: '調整元件間距' },
+            { type: 'pricing', icon: LayoutGrid, label: '價格方案', description: '月/年切換價格表' },
+            { type: 'pricing_2', icon: LayoutGrid, label: '價格方案2', description: '月/年切換價格表' },
         ]
     },
     {

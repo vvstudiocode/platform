@@ -23,7 +23,8 @@ import {
     ImageTrailEditor,
     ShinyTextEditor,
     GradientTextEditor,
-    RotatingTextEditor
+    RotatingTextEditor,
+    PricingSection2Editor
 } from '@/components/page-editor/component-editors'
 import { SpacingControls, ImageControls, AspectRatioControls } from '@/components/page-editor/responsive-controls'
 import { PageContentRenderer } from '@/components/store/page-content-renderer'
@@ -76,6 +77,7 @@ const componentCategories = [
             { type: 'shiny_text', icon: Sparkles, label: '閃亮文字', description: '金屬光澤文字效果' },
             { type: 'gradient_text', icon: Sparkles, label: '漸變文字', description: '漸層色彩文字效果' },
             { type: 'rotating_text', icon: RotateCw, label: '輪替文字', description: '輪替文字效果' },
+            { type: 'pricing_2', icon: LayoutGrid, label: '價格方案2', description: '月/年切換價格表' },
         ]
     },
     {
@@ -811,6 +813,70 @@ function getDefaultProps(type: string): Record<string, any> {
                 paddingYDesktop: 64,
                 paddingYMobile: 32
             }
+        case 'pricing_2':
+            return {
+                title: '選擇最適合您的方案',
+                description: '受到數百萬人信賴，我們為全球團隊提供服務，探索最適合您的選項。',
+                primaryColor: '#000000',
+                backgroundColor: '#ffffff',
+                textColor: '#000000',
+                paddingYDesktop: 64,
+                paddingYMobile: 40,
+                showAnnualToggle: true,
+                monthlyLabel: '月繳',
+                yearlyLabel: '年繳',
+                currencySymbol: 'NT$',
+                plans: [
+                    {
+                        name: '入門方案',
+                        description: '適合個人與小型專案的基礎方案',
+                        price: '50',
+                        yearlyPrice: '480',
+                        buttonText: '立即開始',
+                        buttonHref: '#',
+                        buttonVariant: 'outline',
+                        features: [
+                            { text: '無限卡片' },
+                            { text: '自訂背景與貼圖' },
+                            { text: '雙重驗證', tooltip: '透過雙重驗證保護您的帳號安全' },
+                            { text: '基礎客服支援' },
+                        ],
+                    },
+                    {
+                        name: '專業方案',
+                        description: '最適合成長中團隊的進階功能',
+                        price: '99',
+                        yearlyPrice: '990',
+                        buttonText: '立即開始',
+                        buttonHref: '#',
+                        buttonVariant: 'default',
+                        popular: true,
+                        features: [
+                            { text: '包含入門方案所有功能' },
+                            { text: '進階清單管理' },
+                            { text: '自訂欄位' },
+                            { text: '雲端功能', tooltip: '自動備份至雲端' },
+                            { text: '優先客服支援', tooltip: '24/7 即時支援' },
+                        ],
+                    },
+                    {
+                        name: '企業方案',
+                        description: '大型團隊專屬的完整方案',
+                        price: '299',
+                        yearlyPrice: '2990',
+                        buttonText: '聯絡我們',
+                        buttonHref: '#',
+                        buttonVariant: 'outline',
+                        features: [
+                            { text: '包含專業方案所有功能' },
+                            { text: '多板管理' },
+                            { text: '多板訪客' },
+                            { text: '附件權限管理' },
+                            { text: '專屬客戶成功經理' },
+                        ],
+                    },
+                ]
+            }
         default:
             return {}
     }
@@ -856,6 +922,12 @@ function ComponentEditor({ type, props, onChange, tenantId }: { type: string; pr
             return <GradientTextEditor props={props} onChange={onChange} />
         case 'rotating_text':
             return <RotatingTextEditor props={props} onChange={onChange} />
+        case 'pricing_2': {
+            // merge 預設值：只填補 undefined 的欄位，不覆蓋用戶已設定的值
+            const defaults = getDefaultProps('pricing_2')
+            const mergedProps = { ...defaults, ...props }
+            return <PricingSection2Editor props={mergedProps} onChange={onChange} />
+        }
         default:
             return (
                 <div className="text-zinc-500 text-sm">
