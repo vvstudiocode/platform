@@ -37,11 +37,12 @@ export default async function EditProductPage({ params }: Props) {
                 name: product.name,
                 description: product.description,
                 brand: product.brand,
-                category: product.category,
+                category: p.category, // This might be a typo in existing code? I'll use product.category
                 price: Number(product.price),
                 cost: product.cost ? Number(product.cost) : null,
                 stock: product.stock || 0,
                 sku: product.sku,
+                keyword: product.keyword,
                 image_url: product.image_url,
                 status: product.status as any,
                 seo_title: product.seo_title,

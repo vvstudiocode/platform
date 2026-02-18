@@ -53,6 +53,7 @@ export default async function EditProductPage({ params }: Props) {
                 price_krw: product.price_krw,
                 stock: product.stock || 0,
                 sku: product.sku,
+                keyword: product.keyword,
                 image_url: product.image_url,
                 status: product.status || 'active',
                 images: (product.images as any) || [],
