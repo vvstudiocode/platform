@@ -34,6 +34,8 @@ import ShinyText from '../store/shiny-text'
 import GradientText from '../store/gradient-text'
 import RotatingText from '../store/rotating-text'
 import { Carousel3D } from '../store/carousel-3d'
+import { TextParallaxContentBlock } from '../store/text-parallax-content-block'
+import { BentoGrid } from '../store/bento-grid'
 import dynamic from 'next/dynamic'
 
 // Inline LoadingState
@@ -127,7 +129,7 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
     // 定義哪些區塊應該是全寬的
     const isFullWidthBlock = (type: string) => {
         // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
-        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after', 'scroll_reveal', 'shiny_text', 'gradient_text', 'rotating_text', 'spacer', 'carousel_3d'].includes(type)
+        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after', 'scroll_reveal', 'shiny_text', 'gradient_text', 'rotating_text', 'spacer', 'carousel_3d', 'text_parallax_content', 'bento_grid'].includes(type)
     }
 
     return (
@@ -655,6 +657,41 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 gap={block.props?.gap}
                 paddingYDesktop={block.props?.paddingYDesktop}
                 paddingYMobile={block.props?.paddingYMobile}
+            />
+        case 'text_parallax_content':
+            return <TextParallaxContentBlock
+                items={block.props?.items}
+                buttonText={block.props?.buttonText}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                backgroundColor={block.props?.backgroundColor}
+            />
+        case 'bento_grid':
+            return <BentoGrid
+                title1={block.props?.title1}
+                value1={block.props?.value1}
+                title2={block.props?.title2}
+                desc2={block.props?.desc2}
+                icon2={block.props?.icon2}
+                title3={block.props?.title3}
+                desc3={block.props?.desc3}
+                graphic3={block.props?.graphic3}
+                title4={block.props?.title4}
+                desc4={block.props?.desc4}
+                icon4={block.props?.icon4}
+                chart4={block.props?.chart4}
+                title5={block.props?.title5}
+                desc5={block.props?.desc5}
+                icon5={block.props?.icon5}
+                avatar1Name={block.props?.avatar1Name}
+                avatar1Image={block.props?.avatar1Image}
+                avatar2Name={block.props?.avatar2Name}
+                avatar2Image={block.props?.avatar2Image}
+                avatar3Name={block.props?.avatar3Name}
+                avatar3Image={block.props?.avatar3Image}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                isMobile={isMobile}
             />
         default:
             return null

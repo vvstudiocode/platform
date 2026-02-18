@@ -21,8 +21,8 @@ export function BillingSettingsPage({ tenant, plans, history }: Props) {
     const currentPlan = plans.find(p => p.id === tenant.plan_id) || plans[0]
 
     const handleContact = () => {
-        // You can replace this with a specific Line URL or contact form
-        window.open('mailto:support@omoselect.shop?subject=詢問方案升級', '_blank')
+        // Redirect to Line official account for contact/upgrade
+        window.open('https://lin.ee/SdEyFVl', '_blank')
     }
 
     return (

@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, useEffect } from 'react'
-import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Box, Sparkles, MessageSquareQuote, Lock, RotateCw, MoveVertical } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, GripVertical, Type, Image, LayoutGrid, MessageSquare, Eye, ChevronUp, ChevronDown, ChevronRight, X, ExternalLink, Plus, Box, Sparkles, MessageSquareQuote, Lock, RotateCw, MoveVertical, ScrollText } from 'lucide-react'
 import { useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -78,6 +78,7 @@ const componentCategories = [
             { type: 'portfolio_grid', icon: LayoutGrid, label: '作品集網格', description: '拼圖式作品展示' },
             { type: 'social_wall', icon: Image, label: '社群美牆', description: 'Instagram 風格貼文牆' },
             { type: 'news_hero', icon: Image, label: '九宮格Hero', description: '活動首頁 Hero' },
+            { type: 'bento_grid', icon: LayoutGrid, label: '便當盒特點區塊', description: '高質感特點展示網格' },
         ]
     },
     {
@@ -118,6 +119,7 @@ const componentCategories = [
             { type: 'image-trail-block', icon: Sparkles, label: '圖片軌跡', description: '滑鼠軌跡圖片效果' },
             { type: 'before_after', icon: LayoutGrid, label: 'Before/After', description: '前後對比效果' },
             { type: 'scroll_reveal', icon: Sparkles, label: 'Scroll Reveal', description: '捲動視差揭露效果' },
+            { type: 'text_parallax_content', icon: ScrollText, label: '視差滾動內容', description: '背景固定視差效果' },
         ]
     },
 ]

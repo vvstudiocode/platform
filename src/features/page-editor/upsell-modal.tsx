@@ -74,7 +74,7 @@ export function UpsellModal({ open, onOpenChange, featureName = "進階互動元
                     <DialogFooter className="p-6 pt-0 sm:justify-center">
                         <Button
                             className="w-full text-lg py-6 bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-200 transition-all hover:scale-[1.01]"
-                            onClick={() => window.open('/admin/settings/billing', '_blank')}
+                            onClick={() => window.open('https://lin.ee/SdEyFVl', '_blank')}
                         >
                             <Zap className="w-5 h-5 mr-2 fill-current" />
                             立即升級

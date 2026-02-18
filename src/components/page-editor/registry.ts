@@ -43,7 +43,9 @@ import {
     NewsFeatureEditor,
     SocialWallEditor,
     SpacerEditor,
-    Carousel3DEditor
+    Carousel3DEditor,
+    TextParallaxContentEditor,
+    BentoGridEditor
 } from './editors'
 import { Sparkles, ScrollText, MoveVertical } from 'lucide-react'
 
@@ -70,6 +72,34 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             backgroundUrl: '',
             buttonText: '',
             buttonUrl: ''
+        }
+    },
+    bento_grid: {
+        editor: BentoGridEditor,
+        label: '便當盒特點區塊',
+        icon: '',
+        category: 'basic',
+        tier: 'free',
+        defaultProps: {
+            title1: '高度客製化',
+            value1: '100%',
+            title2: '預設安全防護',
+            icon2: '',
+            title3: '極速效能體驗',
+            graphic3: '',
+            title4: '數據洞察與分析',
+            icon4: '',
+            chart4: '',
+            title5: '守護您的摯愛',
+            icon5: '',
+            avatar1Name: 'Likeur',
+            avatar1Image: '',
+            avatar2Name: 'M. Irung',
+            avatar2Image: '',
+            avatar3Name: 'B. Ng',
+            avatar3Image: '',
+            paddingYDesktop: 64,
+            paddingYMobile: 32
         }
     },
     text: {
@@ -684,6 +714,33 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             paddingYMobile: 32
         }
     },
+    text_parallax_content: {
+        editor: TextParallaxContentEditor,
+        label: '視差滾動內容',
+        icon: 'ScrollText',
+        category: 'interactive',
+        tier: 'growth',
+        defaultProps: {
+            items: [
+                {
+                    imgUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop",
+                    subheading: "OMO 全通路整合",
+                    heading: "打造無縫零售體驗",
+                    contentTitle: "數據驅動的會員運營",
+                    contentDescription1: "整合線上與線下會員數據，精準描繪消費者輪廓。透過全方位的數據分析，洞察顧客需求，提供個人化的購物體驗，有效提升會員黏著度與終身價值。",
+                    contentDescription2: "從流量獲取到會員留存，我們提供完整的數位轉型解決方案。讓您的品牌在數位浪潮中站穩腳步，創造持續性的營收成長。",
+                    contentButtonText: "了解更多",
+                    contentButtonLink: "",
+                    contentBackgroundColor: "#ffffff",
+                    contentButtonColor: "#171717",
+                }
+            ],
+            buttonText: '了解更多',
+            paddingYDesktop: 0,
+            paddingYMobile: 0,
+            backgroundColor: 'transparent'
+        }
+    },
     testimonial_showcase: {
         editor: TestimonialShowcaseEditor,
         label: '見證展示',
@@ -990,7 +1047,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
             paddingYDesktop: 64,
             paddingYMobile: 32
         }
-    }
+    },
 }
 
 

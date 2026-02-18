@@ -47,11 +47,11 @@ export function MarqueeEditor({ props, onChange }: EditorProps) {
             <FontSizeControls
                 fontSize={{ desktop: fontSizeDesktop, mobile: fontSizeMobile }}
                 onChange={(updates) => {
-                    const newProps = { ...props, ...updates }
+                    const newProps: Record<string, any> = { ...props, ...updates }
                     // Also update legacy fontSize for backward compatibility if needed,
                     // though we use fontSizeDesktop/Mobile primarily now.
                     if (updates.fontSizeDesktop) {
-                        (newProps as any).fontSize = updates.fontSizeDesktop
+                        newProps.fontSize = updates.fontSizeDesktop
                     }
                     onChange(newProps)
                 }}
