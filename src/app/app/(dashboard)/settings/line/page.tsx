@@ -71,6 +71,7 @@ export default async function LineSettingsPage() {
                     webhookUrl={webhookUrl}
                     currentSettings={currentSettings}
                     welcomeMessage={lineSettings.welcome_message || ''}
+                    lineId={lineSettings.line_id || ''}
                     groupOrderingEnabled={lineSettings.group_ordering_enabled || false}
                     dmOrderingEnabled={lineSettings.dm_ordering_enabled || false}
                     notifyShipped={lineSettings.notify_shipped || false}

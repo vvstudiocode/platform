@@ -17,6 +17,7 @@ const productSchema = z.object({
     price_krw: z.coerce.number().min(0, '韓幣價格不能為負數').nullish().transform(v => v ?? undefined),
     stock: z.coerce.number().min(0, '庫存不能為負數').default(0),
     sku: z.string().nullish().transform(v => v || undefined),
+    keyword: z.string().nullish().transform(v => v || undefined),
     status: z.enum(['draft', 'active', 'archived']).default('draft'),
     seo_title: z.string().nullish().transform(v => v || undefined),
     seo_description: z.string().nullish().transform(v => v || undefined),
@@ -206,6 +207,7 @@ export async function createProduct(
         seo_keywords: formData.get('seo_keywords'),
         options: formData.get('options'),
         variants: formData.get('variants'),
+        keyword: formData.get('keyword'),
     })
 
     if (!validated.success) {
@@ -239,6 +241,7 @@ export async function createProduct(
                 tenant_id: tenantId,
                 ...validated.data,
                 sku,
+                keyword: validated.data.keyword || null,
                 image_url: finalImages[0] || null,
                 images: finalImages,
                 options: validated.data.options || [],
@@ -301,6 +304,7 @@ export async function updateProduct(
         seo_keywords: formData.get('seo_keywords'),
         options: formData.get('options'),
         variants: formData.get('variants'),
+        keyword: formData.get('keyword'),
     })
 
     if (!validated.success) {
@@ -327,6 +331,7 @@ export async function updateProduct(
             .from('products')
             .update({
                 ...validated.data,
+                keyword: validated.data.keyword || null,
                 image_url: finalImages[0] || null,
                 images: finalImages,
                 options: validated.data.options || [],

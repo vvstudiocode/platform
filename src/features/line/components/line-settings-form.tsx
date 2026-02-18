@@ -18,6 +18,7 @@ interface Props {
         isConfigured: boolean
     }
     welcomeMessage: string
+    lineId: string
     groupOrderingEnabled: boolean
     dmOrderingEnabled: boolean
     notifyShipped: boolean
@@ -34,6 +35,7 @@ export function LineSettingsForm({
     webhookUrl,
     currentSettings,
     welcomeMessage,
+    lineId,
     groupOrderingEnabled,
     dmOrderingEnabled,
     notifyShipped,
@@ -300,6 +302,20 @@ export function LineSettingsForm({
                                 {msgState.message}
                             </div>
                         )}
+
+                        <div>
+                            <Label htmlFor="lineId">LINE 官方帳號 ID (Basic ID)</Label>
+                            <p className="text-xs text-muted-foreground mb-2">
+                                例如：<code>@your_store</code>。用於產生一鍵喊單連結。
+                            </p>
+                            <Input
+                                id="lineId"
+                                name="lineId"
+                                defaultValue={lineId}
+                                placeholder="@your_store"
+                                className="bg-background"
+                            />
+                        </div>
 
                         <div>
                             <Label htmlFor="welcomeMessage">歡迎訊息</Label>

@@ -223,6 +223,7 @@ function PricingCard({
     textColor?: string;
 }) {
     const [hovered, setHovered] = React.useState(false);
+
     // 統一轉成數字
     const monthlyPrice = Number(plan.price) || 0;
     const annualPrice = Number(plan.yearlyPrice) || 0;
@@ -247,7 +248,7 @@ function PricingCard({
     return (
         <div
             className={cn(
-                "relative flex w-full flex-col rounded-xl border transition-shadow duration-300",
+                "relative flex w-full h-full flex-col rounded-xl border transition-shadow duration-300",
                 plan.popular
                     ? "shadow-lg"
                     : "hover:shadow-md"
@@ -403,6 +404,16 @@ export function PricingSection2Block({
     const displayPlans = plans && plans.length > 0 ? plans : defaultPlans;
     const accentColor = primaryColor || "#000000";
 
+    // 根據方案數量決定 grid 欄位，最多 4 欄
+    const gridColsClass = React.useMemo(() => {
+        const count = displayPlans.length;
+        if (isMobile) return "grid-cols-1 max-w-sm";
+        if (count === 1) return "grid-cols-1 max-w-lg mx-auto";
+        if (count === 2) return "md:grid-cols-2 max-w-4xl mx-auto";
+        if (count === 3) return "md:grid-cols-3 max-w-6xl mx-auto";
+        return "md:grid-cols-2 lg:grid-cols-4";
+    }, [displayPlans.length, isMobile]);
+
     return (
         <div
             className="w-full"
@@ -413,7 +424,7 @@ export function PricingSection2Block({
                 paddingBottom: isMobile ? `${paddingYMobile}px` : `${paddingYDesktop}px`,
             }}
         >
-            <div className="mx-auto flex w-full max-w-5xl flex-col items-center space-y-8 px-4">
+            <div className="mx-auto flex w-full max-w-7xl flex-col items-center space-y-8 px-4">
                 {/* Heading */}
                 <div className="mx-auto max-w-2xl space-y-3 text-center">
                     <motion.h2
@@ -459,14 +470,7 @@ export function PricingSection2Block({
                 )}
 
                 {/* Cards Grid */}
-                <div
-                    className={cn(
-                        "grid w-full gap-5",
-                        isMobile
-                            ? "grid-cols-1 max-w-sm"
-                            : "grid-cols-1 md:grid-cols-3"
-                    )}
-                >
+                <div className={cn("grid w-full gap-5", gridColsClass)}>
                     {displayPlans.map((plan, index) => (
                         <motion.div
                             key={plan.name}
@@ -474,6 +478,7 @@ export function PricingSection2Block({
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true, amount: 0.1 }}
                             transition={{ duration: 0.45, delay: index * 0.1 }}
+                            className="h-full"
                         >
                             <PricingCard
                                 plan={plan}

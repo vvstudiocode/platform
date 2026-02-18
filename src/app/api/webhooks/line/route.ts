@@ -258,38 +258,51 @@ function buildCheckoutFlexMessage(
         })
     }
 
+    const flexBubble: any = {
+        type: 'bubble',
+        body: {
+            type: 'box',
+            layout: 'vertical',
+            spacing: 'md',
+            paddingAll: '20px',
+            contents: bodyContents,
+        },
+        footer: {
+            type: 'box',
+            layout: 'vertical',
+            spacing: 'sm',
+            paddingAll: '16px',
+            contents: [
+                {
+                    type: 'button',
+                    style: 'primary',
+                    color: '#1a1a1a',
+                    height: 'md',
+                    action: {
+                        type: 'uri',
+                        label: '🛒 前往結帳',
+                        uri: magicLinkUrl,
+                    },
+                },
+            ],
+        },
+    }
+
+    // Add product image if available
+    if (product.image_url) {
+        flexBubble.hero = {
+            type: 'image',
+            url: product.image_url,
+            size: 'full',
+            aspectRatio: '20:13',
+            aspectMode: 'cover',
+        }
+    }
+
     return {
         type: 'flex',
         altText: `✅ 已將 ${product.name} x${quantity} 加入購物車 - NT$${totalPrice}`,
-        contents: {
-            type: 'bubble',
-            body: {
-                type: 'box',
-                layout: 'vertical',
-                spacing: 'md',
-                paddingAll: '20px',
-                contents: bodyContents,
-            },
-            footer: {
-                type: 'box',
-                layout: 'vertical',
-                spacing: 'sm',
-                paddingAll: '16px',
-                contents: [
-                    {
-                        type: 'button',
-                        style: 'primary',
-                        color: '#1a1a1a',
-                        height: 'md',
-                        action: {
-                            type: 'uri',
-                            label: '🛒 前往結帳',
-                            uri: magicLinkUrl,
-                        },
-                    },
-                ],
-            },
-        },
+        contents: flexBubble,
     }
 }
 
@@ -455,30 +468,32 @@ async function handleTextMessage(
     }
 
     // Parse "+1" pattern: productId+quantity or productId *quantity
-    // Supports formats: p000001+1, P000001+2, p000001*3, p000001 +1
-    const match = text.match(/^(p\d{4,})\s*[+*×x]\s*(\d+)$/i)
+    // Now searching anywhere in the text to support rich formatting
+    // Supports formats: A01+1, p0001*2, S-123 x3, ITEM101 +5
+    const match = text.match(/([a-z0-9_-]+)\s*[+*×x]\s*(\d+)/i)
     if (!match) {
         console.log('[LINE +1] SKIP: Regex did not match text:', text)
         return
     }
 
-    const productId = match[1].toUpperCase()  // normalize to uppercase (DB stores as P000001)
+    const productIdentifier = match[1].toUpperCase()
     const quantity = parseInt(match[2], 10)
 
-    console.log('[LINE +1] Parsed:', { productId, quantity })
+    console.log('[LINE +1] Parsed:', { productIdentifier, quantity })
 
     if (quantity <= 0 || quantity > 99) return
 
-    // Find product by SKU (product IDs are like P000001)
+    // Find product by SKU or Keyword (case-insensitive check handled by DB or app logic)
+    // We prioritize the identifier matching either the sku column or the keyword column
     const { data: product, error: productError } = await adminClient
         .from('products')
-        .select('id, name, price, options, image_url, stock, sku')
+        .select('id, name, price, options, image_url, stock, sku, keyword')
         .eq('tenant_id', tenantId)
-        .eq('sku', productId)
         .eq('status', 'active')
-        .single()
+        .or(`sku.ieq.${productIdentifier},keyword.ieq.${productIdentifier}`)
+        .maybeSingle()
 
-    console.log('[LINE +1] Product lookup:', { productId, tenantId, found: !!product, error: productError?.message })
+    console.log('[LINE +1] Product lookup:', { productIdentifier, tenantId, found: !!product, error: productError?.message })
 
     if (!product) {
         // Don't reply for invalid IDs to avoid spam

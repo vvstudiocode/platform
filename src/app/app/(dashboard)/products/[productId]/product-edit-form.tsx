@@ -21,6 +21,7 @@ interface Props {
         cost: number | null
         stock: number
         sku: string | null
+        keyword: string | null
         image_url: string | null
         status: 'draft' | 'active' | 'archived'
         seo_title?: string | null
@@ -157,11 +158,32 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
             <form action={handleSubmit} className="bg-card rounded-xl border border-border p-6 space-y-6 shadow-sm">
 
                 <div className="space-y-4">
-                    <h2 className="text-lg font-semibold text-foreground">基本資訊</h2>
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold text-foreground">基本資訊</h2>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">ID: {product.id}</span>
+                        </div>
+                    </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="sm:col-span-2">
                             <Label htmlFor="name">商品名稱 *</Label>
                             <Input id="name" name="name" required defaultValue={product.name} />
+                        </div>
+                        <div className="sm:col-span-2">
+                            <Label htmlFor="keyword" className="flex items-center gap-2">
+                                LINE 喊單編號 (Keyword)
+                                <span className="text-[10px] font-normal text-muted-foreground bg-accent/10 px-1.5 py-0.5 rounded">自訂編號</span>
+                            </Label>
+                            <Input 
+                                id="keyword" 
+                                name="keyword" 
+                                defaultValue={product.keyword || ''} 
+                                placeholder="例如：A01, B2 (客人輸入此編號 +1 即可下單)"
+                                className="border-accent/30 focus:ring-accent"
+                            />
+                            <p className="text-[10px] text-muted-foreground mt-1">
+                                若未設定，系統預設使用商品 SKU (目前為: <code>{product.sku || '無'}</code>)。
+                            </p>
                         </div>
                         <div>
                             <Label htmlFor="brand">品牌</Label>

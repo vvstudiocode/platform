@@ -2,13 +2,15 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Package, Edit, GripVertical, Loader2 } from 'lucide-react'
+import { Package, Edit, GripVertical, Loader2, Link2, Check } from 'lucide-react'
 import { DeleteButton } from '@/components/ui/delete-button'
 
 interface Product {
     id: string
     sku: string | null
+    keyword: string | null
     name: string
+    description: string | null
     brand: string | null
     category: string | null
     price: number
@@ -21,16 +23,48 @@ interface Product {
 
 interface Props {
     initialProducts: Product[]
+    lineBasicId: string | null
     basePath: string // '/admin/products' or '/app/products'
     deleteAction: (id: string) => Promise<{ error?: string; success?: boolean }>
     updateStatusAction: (id: string, status: string) => Promise<{ error?: string; success?: boolean }>
     updateOrderAction: (items: { id: string; order: number }[]) => Promise<{ error?: string; success?: boolean }>
 }
 
-export function ProductList({ initialProducts, basePath, deleteAction, updateStatusAction, updateOrderAction }: Props) {
+export function ProductList({ initialProducts, lineBasicId, basePath, deleteAction, updateStatusAction, updateOrderAction }: Props) {
     const [products, setProducts] = useState<Product[]>(initialProducts)
     const [dragIndex, setDragIndex] = useState<number | null>(null)
     const [updating, setUpdating] = useState<string | null>(null)
+    const [copiedId, setCopiedId] = useState<string | null>(null)
+
+    const copyLineLink = (productId: string, sku: string | null, keyword: string | null) => {
+        if (!lineBasicId) {
+            alert('請先在 LINE 設定中填寫「官方帳號 ID」')
+            return
+        }
+        
+        // 優先使用自訂編號 (Keyword)，若無則使用 SKU
+        const identifier = keyword || sku
+        
+        if (!identifier) {
+            alert('該商品尚未設定編號，無法產生喊單連結')
+            return
+        }
+
+        // 取得當前網址
+        const origin = window.location.origin
+        // 從 basePath 提取 site slug (/app/products -> 'app' or /admin/products -> 'admin')
+        // 但實際上在中轉頁面，site 應該是商店的 slug
+        // 我們先簡單從 basePath 取得第一層 (通常是 admin 或 app)
+        const parts = basePath.split('/')
+        const site = parts[1] || 'app'
+
+        // 產生中轉頁面連結 (這會讓 LINE 抓取預覽圖)
+        const link = `${origin}/${site}/line-order/${productId}`
+        
+        navigator.clipboard.writeText(link)
+        setCopiedId(identifier)
+        setTimeout(() => setCopiedId(null), 2000)
+    }
 
     // 計算利潤
     const getProfit = (price: number, cost: number) => {
@@ -192,6 +226,16 @@ export function ProductList({ initialProducts, basePath, deleteAction, updateSta
                                         </td>
                                         <td className="px-4 py-4 text-right align-top">
                                             <div className="flex items-center justify-end gap-1">
+                                                <button
+                                                    onClick={() => copyLineLink(product.id, product.sku, product.keyword)}
+                                                    title="複製 LINE 喊單連結"
+                                                    className={`h-8 w-8 inline-flex items-center justify-center rounded-md transition-colors ${copiedId === (product.keyword || product.sku)
+                                                            ? 'text-emerald-500 bg-emerald-500/10'
+                                                            : 'text-muted-foreground hover:text-foreground hover:bg-accent/10'
+                                                        }`}
+                                                >
+                                                    {copiedId === (product.keyword || product.sku) ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
+                                                </button>
                                                 <Link href={`${basePath}/${product.id}`}>
                                                     <button className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors">
                                                         <Edit className="h-4 w-4" />

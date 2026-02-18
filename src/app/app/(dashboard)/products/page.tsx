@@ -22,19 +22,30 @@ export default async function AppProductsPage() {
     const storeId = await getUserStoreId(supabase, user.id)
     if (!storeId) redirect('/app/onboarding')
 
-    const { data: products } = await supabase
-        .from('products')
-        .select('*')
-        .eq('tenant_id', storeId)
-        .order('sort_order', { ascending: true })
-        .order('created_at', { ascending: false })
+    const [{ data: products }, { data: tenant }] = await Promise.all([
+        supabase
+            .from('products')
+            .select('*')
+            .eq('tenant_id', storeId)
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: false }),
+        supabase
+            .from('tenants')
+            .select('settings')
+            .eq('id', storeId)
+            .single()
+    ])
+
+    const lineBasicId = (tenant?.settings as any)?.line?.line_id || null
 
     return (
         <ProductsPage
             products={products?.map(p => ({
                 id: p.id,
                 sku: p.sku,
+                keyword: p.keyword,
                 name: p.name,
+                description: p.description,
                 brand: p.brand,
                 category: p.category,
                 price: p.price,
@@ -44,6 +55,7 @@ export default async function AppProductsPage() {
                 status: (p.status as 'active' | 'draft' | 'archived') || 'draft',
                 sort_order: p.sort_order || 0
             })) || []}
+            lineBasicId={lineBasicId}
             basePath="/app/products"
             deleteAction={deleteProduct}
             updateStatusAction={updateProductStatus}

@@ -8,7 +8,9 @@ import { ProductList } from './components/product-list'
 export interface Product {
     id: string
     sku: string | null
+    keyword: string | null
     name: string
+    description: string | null
     brand: string | null
     category: string | null
     price: number
@@ -21,6 +23,7 @@ export interface Product {
 
 interface ProductsPageProps {
     products: Product[]
+    lineBasicId: string | null
     basePath: string // '/admin/products' or '/app/products'
     deleteAction: (id: string) => Promise<{ error?: string; success?: boolean }>
     updateStatusAction: (id: string, status: string) => Promise<{ error?: string; success?: boolean }>
@@ -29,6 +32,7 @@ interface ProductsPageProps {
 
 export function ProductsPage({
     products,
+    lineBasicId,
     basePath,
     deleteAction,
     updateStatusAction,
@@ -65,6 +69,7 @@ export function ProductsPage({
             {/* Product List */}
             <ProductList
                 initialProducts={products}
+                lineBasicId={lineBasicId}
                 basePath={basePath}
                 deleteAction={deleteAction}
                 updateStatusAction={updateStatusAction}

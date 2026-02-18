@@ -182,46 +182,37 @@ export function PricingBlock({
 
                 <div
                     className={cn(
-                        "grid gap-4",
-                        effectiveIsMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-3"
+                        "grid gap-6",
+                        isMobile
+                            ? "grid-cols-1 max-w-sm mx-auto"
+                            : displayPlans.length === 1
+                                ? "grid-cols-1 max-w-lg mx-auto"
+                                : displayPlans.length === 2
+                                    ? "md:grid-cols-2 max-w-4xl mx-auto"
+                                    : displayPlans.length === 3
+                                        ? "md:grid-cols-3 max-w-6xl mx-auto"
+                                        : "md:grid-cols-2 lg:grid-cols-4"
                     )}
                 >
                     {displayPlans.map((plan, index) => (
                         <motion.div
                             key={index}
-                            initial={{ y: 50, opacity: 0 }}
-                            whileInView={
-                                !effectiveIsMobile
-                                    ? {
-                                        y: plan.isPopular ? -20 : 0,
-                                        opacity: 1,
-                                        x: index === 2 ? -30 : index === 0 ? 30 : 0,
-                                        scale: index === 0 || index === 2 ? 0.94 : 1.0,
-                                    }
-                                    : { y: 0, opacity: 1 }
-                            }
+                            initial={{ y: 24, opacity: 0 }}
+                            whileInView={{ y: 0, opacity: 1 }}
                             viewport={{ once: true }}
                             transition={{
-                                duration: 1.6,
+                                duration: 0.6,
                                 type: "spring",
                                 stiffness: 100,
                                 damping: 30,
-                                delay: 0.4,
-                                opacity: { duration: 0.5 },
+                                delay: index * 0.1,
                             }}
                             className={cn(
-                                `rounded-2xl border p-6 text-center lg:flex lg:flex-col lg:justify-center relative`,
+                                `rounded-2xl border p-6 text-center lg:flex lg:flex-col lg:justify-center relative h-full`,
                                 plan.isPopular
-                                    ? "border-2 shadow-lg"
-                                    : "border-gray-200",
-                                "flex flex-col",
-                                !plan.isPopular && "mt-5",
-                                !effectiveIsMobile &&
-                                (index === 0 || index === 2
-                                    ? "z-0"
-                                    : "z-10"),
-                                !effectiveIsMobile && index === 0 && "origin-right",
-                                !effectiveIsMobile && index === 2 && "origin-left"
+                                    ? "border-2 shadow-lg ring-1 ring-primary/10"
+                                    : "border-gray-200 shadow-sm",
+                                "flex flex-col w-full"
                             )}
                             style={{
                                 backgroundColor: backgroundColor || "#ffffff",
@@ -232,7 +223,7 @@ export function PricingBlock({
                         >
                             {plan.isPopular && (
                                 <div
-                                    className="absolute top-0 right-0 py-0.5 px-2 rounded-bl-xl rounded-tr-xl flex items-center"
+                                    className="absolute top-0 right-0 py-0.5 px-2 rounded-bl-xl rounded-tr-xl flex items-center z-20"
                                     style={{
                                         backgroundColor: primaryColor || "#6366f1",
                                     }}
@@ -243,88 +234,92 @@ export function PricingBlock({
                                     </span>
                                 </div>
                             )}
-                            <div className="flex-1 flex flex-col">
-                                <p
-                                    className="text-base font-semibold opacity-70"
-                                    style={{ color: textColor || undefined }}
-                                >
-                                    {plan.name}
-                                </p>
-                                <div className="mt-6 flex items-center justify-center gap-x-2">
-                                    <span
-                                        className="text-5xl font-bold tracking-tight"
+                            <div className="flex-1 flex flex-col h-full">
+                                <div className="flex-1">
+                                    <p
+                                        className="text-base font-semibold opacity-70"
                                         style={{ color: textColor || undefined }}
                                     >
-                                        {currencySymbol}
-                                        <NumberFlow
-                                            value={
-                                                isMonthly
-                                                    ? Number(plan.price)
-                                                    : Number(plan.yearlyPrice)
-                                            }
-                                            format={{
-                                                minimumFractionDigits: 0,
-                                                maximumFractionDigits: 0,
-                                            }}
-                                            transformTiming={{
-                                                duration: 500,
-                                                easing: "ease-out",
-                                            }}
-                                            willChange
-                                        />
-                                    </span>
-                                    {plan.period !== "Next 3 months" && (
-                                        <span className="text-sm font-semibold leading-6 tracking-wide opacity-60">
-                                            / {plan.period}
+                                        {plan.name}
+                                    </p>
+                                    <div className="mt-6 flex items-center justify-center gap-x-2">
+                                        <span
+                                            className="text-5xl font-bold tracking-tight"
+                                            style={{ color: textColor || undefined }}
+                                        >
+                                            {currencySymbol}
+                                            <NumberFlow
+                                                value={
+                                                    isMonthly
+                                                        ? Number(plan.price)
+                                                        : Number(plan.yearlyPrice)
+                                                }
+                                                format={{
+                                                    minimumFractionDigits: 0,
+                                                    maximumFractionDigits: 0,
+                                                }}
+                                                transformTiming={{
+                                                    duration: 500,
+                                                    easing: "ease-out",
+                                                }}
+                                                willChange
+                                            />
                                         </span>
-                                    )}
+                                        {plan.period !== "Next 3 months" && (
+                                            <span className="text-sm font-semibold leading-6 tracking-wide opacity-60">
+                                                / {plan.period}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <p className="text-xs leading-5 opacity-60 mt-1">
+                                        {isMonthly ? monthlyLabel : yearlyLabel}
+                                    </p>
+
+                                    <ul className="mt-6 mb-8 gap-3 flex flex-col">
+                                        {plan.features.map((feature, idx) => (
+                                            <li key={idx} className="flex items-start gap-2">
+                                                <Check
+                                                    className="h-4 w-4 mt-1 flex-shrink-0"
+                                                    style={{ color: primaryColor || "#6366f1" }}
+                                                />
+                                                <span className="text-left text-sm leading-snug">{feature}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
 
-                                <p className="text-xs leading-5 opacity-60 mt-1">
-                                    {isMonthly ? monthlyLabel : yearlyLabel}
-                                </p>
+                                <div className="mt-auto">
+                                    <hr className="w-full my-4 opacity-20" />
 
-                                <ul className="mt-5 gap-2 flex flex-col">
-                                    {plan.features.map((feature, idx) => (
-                                        <li key={idx} className="flex items-start gap-2">
-                                            <Check
-                                                className="h-4 w-4 mt-1 flex-shrink-0"
-                                                style={{ color: primaryColor || "#6366f1" }}
-                                            />
-                                            <span className="text-left text-sm">{feature}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                <hr className="w-full my-4 opacity-20" />
-
-                                <Link
-                                    href={plan.href}
-                                    className={cn(
-                                        buttonVariants({
-                                            variant: "outline",
-                                        }),
-                                        "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter",
-                                        "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-offset-1",
-                                        plan.isPopular ? "text-white" : ""
-                                    )}
-                                    style={{
-                                        backgroundColor: plan.isPopular
-                                            ? primaryColor || "#6366f1"
-                                            : "transparent",
-                                        borderColor: plan.isPopular
-                                            ? primaryColor || "#6366f1"
-                                            : textColor || "#333",
-                                        color: plan.isPopular
-                                            ? "#ffffff"
-                                            : textColor || "#333",
-                                    }}
-                                >
-                                    {plan.buttonText}
-                                </Link>
-                                <p className="mt-6 text-xs leading-5 opacity-60">
-                                    {plan.description}
-                                </p>
+                                    <Link
+                                        href={plan.href}
+                                        className={cn(
+                                            buttonVariants({
+                                                variant: "outline",
+                                            }),
+                                            "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter",
+                                            "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-offset-1",
+                                            plan.isPopular ? "text-white" : ""
+                                        )}
+                                        style={{
+                                            backgroundColor: plan.isPopular
+                                                ? primaryColor || "#6366f1"
+                                                : "transparent",
+                                            borderColor: plan.isPopular
+                                                ? primaryColor || "#6366f1"
+                                                : textColor || "#333",
+                                            color: plan.isPopular
+                                                ? "#ffffff"
+                                                : textColor || "#333",
+                                        }}
+                                    >
+                                        {plan.buttonText}
+                                    </Link>
+                                    <p className="mt-4 text-xs leading-5 opacity-60 italic">
+                                        {plan.description}
+                                    </p>
+                                </div>
                             </div>
                         </motion.div>
                     ))}

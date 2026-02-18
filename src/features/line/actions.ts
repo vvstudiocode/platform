@@ -147,6 +147,7 @@ export async function saveLineWelcomeMessage(
     if (!hasAccess) return { error: '未授權' }
 
     const welcomeMessage = formData.get('welcomeMessage') as string || ''
+    const lineId = formData.get('lineId') as string || ''
     const groupOrderingEnabled = formData.get('groupOrderingEnabled') === 'on'
     const dmOrderingEnabled = formData.get('dmOrderingEnabled') === 'on'
     const notifyShipped = formData.get('notifyShipped') === 'on'
@@ -171,6 +172,7 @@ export async function saveLineWelcomeMessage(
         line: {
             ...(currentSettings.line || {}),
             welcome_message: welcomeMessage,
+            line_id: lineId,
             group_ordering_enabled: groupOrderingEnabled,
             dm_ordering_enabled: dmOrderingEnabled,
             notify_shipped: notifyShipped,

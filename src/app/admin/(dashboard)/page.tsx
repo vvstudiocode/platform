@@ -248,7 +248,7 @@ export default async function AdminDashboardPage({
 
             {/* Charts & Store List */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                <Card className="col-span-full lg:col-span-4 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
                     <CardHeader>
                         <CardTitle>店鋪業績排行榜</CardTitle>
                         <CardDescription>營收最高的前 5 名商店</CardDescription>
@@ -257,7 +257,7 @@ export default async function AdminDashboardPage({
                         <TopStores data={topStoresData} />
                     </CardContent>
                 </Card>
-                <Card className="col-span-3 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                <Card className="col-span-full lg:col-span-3 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
                     <CardHeader>
                         <CardTitle>整體營收組合</CardTitle>
                         <CardDescription>各分店營收貢獻比例</CardDescription>
@@ -270,7 +270,7 @@ export default async function AdminDashboardPage({
 
             {/* Advanced Metrics */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                <Card className="col-span-full lg:col-span-4 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
                     <CardHeader>
                         <CardTitle>每日平均客單價 (AOV)</CardTitle>
                         <CardDescription>觀察客單價變化趨勢</CardDescription>
@@ -279,7 +279,7 @@ export default async function AdminDashboardPage({
                         <AovTrendChart data={aovTrendData} />
                     </CardContent>
                 </Card>
-                <Card className="col-span-3 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                <Card className="col-span-full lg:col-span-3 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
                     <CardHeader>
                         <CardTitle>熱銷商品排行</CardTitle>
                         <CardDescription>營收貢獻最高的商品</CardDescription>
@@ -292,7 +292,7 @@ export default async function AdminDashboardPage({
 
             {/* Customer Type & Recent Stores */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-3 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                <Card className="col-span-full lg:col-span-3 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
                     <CardHeader>
                         <CardTitle>訂單客戶類型</CardTitle>
                         <CardDescription>會員與訪客訂單比例</CardDescription>
@@ -301,7 +301,7 @@ export default async function AdminDashboardPage({
                         <CustomerRetentionChart data={customerTypeData} />
                     </CardContent>
                 </Card>
-                <div className="col-span-4">
+                <div className="col-span-full lg:col-span-4">
                     <RecentActivity
                         title="最近建立的商店"
                         viewAllHref="/admin/stores"

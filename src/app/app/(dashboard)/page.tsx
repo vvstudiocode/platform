@@ -293,7 +293,7 @@ export default async function AppDashboardPage({
 
             {/* Charts */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                <Card className="col-span-full lg:col-span-4 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
                     <CardHeader>
                         <CardTitle>營收趨勢</CardTitle>
                         <CardDescription>期間每日營收變化</CardDescription>
@@ -302,7 +302,7 @@ export default async function AppDashboardPage({
                         <RevenueChart data={revenueData} />
                     </CardContent>
                 </Card>
-                <Card className="col-span-3 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                <Card className="col-span-full lg:col-span-3 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
                     <CardHeader>
                         <CardTitle>訂單狀態</CardTitle>
                         <CardDescription>期間訂單分佈</CardDescription>
@@ -315,7 +315,7 @@ export default async function AppDashboardPage({
 
             {/* Advanced Charts */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                <Card className="col-span-full lg:col-span-4 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
                     <CardHeader>
                         <CardTitle>每日平均客單價 (AOV)</CardTitle>
                         <CardDescription>觀察客單價變化趨勢</CardDescription>
@@ -324,7 +324,7 @@ export default async function AppDashboardPage({
                         <AovTrendChart data={aovTrendData} />
                     </CardContent>
                 </Card>
-                <Card className="col-span-3 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                <Card className="col-span-full lg:col-span-3 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
                     <CardHeader>
                         <CardTitle>熱銷商品排行</CardTitle>
                         <CardDescription>營收貢獻最高的商品</CardDescription>
@@ -337,7 +337,7 @@ export default async function AppDashboardPage({
 
             {/* Customer & Recent Orders */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-3 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                <Card className="col-span-full lg:col-span-3 border-zinc-200/50 dark:border-zinc-800 shadow-sm">
                     <CardHeader>
                         <CardTitle>訂單客戶類型</CardTitle>
                         <CardDescription>會員與訪客訂單比例</CardDescription>
@@ -347,7 +347,7 @@ export default async function AppDashboardPage({
                     </CardContent>
                 </Card>
 
-                <div className="col-span-4">
+                <div className="col-span-full md:col-span-4 lg:col-span-4">
                     <RecentActivity
                         title="最近訂單"
                         viewAllHref="/app/orders"
