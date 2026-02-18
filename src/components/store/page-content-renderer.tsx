@@ -36,6 +36,9 @@ import RotatingText from '../store/rotating-text'
 import { Carousel3D } from '../store/carousel-3d'
 import { TextParallaxContentBlock } from '../store/text-parallax-content-block'
 import { BentoGrid } from '../store/bento-grid'
+import { SocialWall } from '../store/social-wall'
+import { NewsHero } from '../store/news-hero'
+import { NewsFeature } from '../store/news-feature'
 import dynamic from 'next/dynamic'
 
 // Inline LoadingState
@@ -129,7 +132,7 @@ export function PageContentRenderer({ content, storeSlug = '', tenantId = '', pr
     // 定義哪些區塊應該是全寬的
     const isFullWidthBlock = (type: string) => {
         // 目前只設定 Hero Banner 為全寬，如需其他元件（如輪播）也全寬，可在此加入
-        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after', 'scroll_reveal', 'shiny_text', 'gradient_text', 'rotating_text', 'spacer', 'carousel_3d', 'text_parallax_content', 'bento_grid'].includes(type)
+        return ['hero', 'hero_composition', 'showcase_slider', 'marquee', 'image_marquee', 'newsletter_banner', 'testimonial_showcase', 'image_card_grid', 'magazine_grid', 'scrollable_cards', 'stats_grid', 'portfolio_grid', 'threads_block', 'before_after', 'scroll_reveal', 'shiny_text', 'gradient_text', 'rotating_text', 'spacer', 'carousel_3d', 'text_parallax_content', 'bento_grid', 'social_wall', 'news_hero', 'news_feature'].includes(type)
     }
 
     return (
@@ -691,6 +694,57 @@ function ContentBlock({ block, storeSlug, tenantId, preview, previewDevice }: { 
                 avatar3Image={block.props?.avatar3Image}
                 paddingYDesktop={block.props?.paddingYDesktop}
                 paddingYMobile={block.props?.paddingYMobile}
+                isMobile={isMobile}
+            />
+        case 'social_wall':
+            return <SocialWall
+                title={block.props?.title}
+                subtitle={block.props?.subtitle}
+                username={block.props?.username}
+                profileUrl={block.props?.profileUrl}
+                followButtonText={block.props?.followButtonText}
+                backgroundColor={block.props?.backgroundColor}
+                textColor={block.props?.textColor}
+                posts={block.props?.posts}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                isMobile={isMobile}
+            />
+        case 'news_hero':
+            return <NewsHero
+                title={block.props?.title}
+                subtitle={block.props?.subtitle}
+                number={block.props?.number}
+                unit={block.props?.unit}
+                note={block.props?.note}
+                descriptionTitle={block.props?.descriptionTitle}
+                description={block.props?.description}
+                images={block.props?.images}
+                date={block.props?.date}
+                brandText={block.props?.brandText}
+                primaryColor={block.props?.primaryColor}
+                backgroundColor={block.props?.backgroundColor}
+                textColor={block.props?.textColor}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                isMobile={isMobile}
+            />
+        case 'news_feature':
+            return <NewsFeature
+                sectionTitle={block.props?.sectionTitle}
+                brandText={block.props?.brandText}
+                productIds={block.props?.productIds}
+                mainProduct={block.props?.mainProduct}
+                subProducts={block.props?.subProducts}
+                newArrivalsText={block.props?.newArrivalsText}
+                lookbookText={block.props?.lookbookText}
+                primaryColor={block.props?.primaryColor}
+                backgroundColor={block.props?.backgroundColor}
+                textColor={block.props?.textColor}
+                paddingYDesktop={block.props?.paddingYDesktop}
+                paddingYMobile={block.props?.paddingYMobile}
+                fontSizeDesktop={block.props?.fontSizeDesktop}
+                fontSizeMobile={block.props?.fontSizeMobile}
                 isMobile={isMobile}
             />
         default:

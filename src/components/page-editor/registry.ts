@@ -960,7 +960,7 @@ export const componentRegistry: Record<string, ComponentConfig> = {
         label: 'Before/After',
         icon: '↔️',
         category: 'interactive',
-        tier: 'free',
+        tier: 'growth',
         defaultProps: {
             beforeImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
             afterImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80&grayscale', // Same image but different effect for demo
