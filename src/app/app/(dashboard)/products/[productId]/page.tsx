@@ -37,7 +37,7 @@ export default async function EditProductPage({ params }: Props) {
                 name: product.name,
                 description: product.description,
                 brand: product.brand,
-                category: p.category, // This might be a typo in existing code? I'll use product.category
+                category: product.category,
                 price: Number(product.price),
                 cost: product.cost ? Number(product.cost) : null,
                 stock: product.stock || 0,
