@@ -490,7 +490,7 @@ async function handleTextMessage(
         .select('id, name, price, options, image_url, stock, sku, keyword')
         .eq('tenant_id', tenantId)
         .eq('status', 'active')
-        .or(`sku.ieq.${productIdentifier},keyword.ieq.${productIdentifier}`)
+        .or(`sku.ilike.${productIdentifier},keyword.ilike.${productIdentifier}`)
         .maybeSingle()
 
     console.log('[LINE +1] Product lookup:', { productIdentifier, tenantId, found: !!product, error: productError?.message })

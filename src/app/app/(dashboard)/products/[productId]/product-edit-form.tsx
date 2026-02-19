@@ -174,10 +174,10 @@ export function ProductEditForm({ product, updateAction, storeSlug }: Props) {
                                 LINE 喊單編號 (Keyword)
                                 <span className="text-[10px] font-normal text-muted-foreground bg-accent/10 px-1.5 py-0.5 rounded">自訂編號</span>
                             </Label>
-                            <Input 
-                                id="keyword" 
-                                name="keyword" 
-                                defaultValue={product.keyword || ''} 
+                            <Input
+                                id="keyword"
+                                name="keyword"
+                                defaultValue={product.keyword || ''}
                                 placeholder="例如：A01, B2 (客人輸入此編號 +1 即可下單)"
                                 className="border-accent/30 focus:ring-accent"
                             />
