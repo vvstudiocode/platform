@@ -46,7 +46,7 @@ interface Props {
 
 export function CheckoutClient({ store }: Props) {
     const router = useRouter()
-    const { items, getCartTotal, clearCart } = useCart()
+    const { items, getCartTotal, clearCart, setStoreSlug } = useCart()
     const [mounted, setMounted] = useState(false)
     const [loading, setLoading] = useState(false)
     const [success, setSuccess] = useState(false)
@@ -78,6 +78,10 @@ export function CheckoutClient({ store }: Props) {
     useEffect(() => {
         setMounted(true)
     }, [])
+
+    useEffect(() => {
+        setStoreSlug(store.slug)
+    }, [store.slug, setStoreSlug])
 
     const settings = store.settings || {}
 
@@ -391,4 +395,3 @@ export function CheckoutClient({ store }: Props) {
         </div>
     )
 }
-

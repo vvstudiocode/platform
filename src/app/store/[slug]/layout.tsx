@@ -55,6 +55,7 @@ export default async function StoreLayout({
 
     return (
         <CartProvider>
+            {store && <CartHydrator tenantId={store.id} />}
             {store && <AnalyticsTracker tenantId={store.id} />}
             {ga4Id && <GoogleAnalytics gaId={ga4Id} />}
             {children}

@@ -28,6 +28,7 @@ interface CartContextType {
     setIsCartOpen: (open: boolean) => void
     syncWithDB: (tenantId: string, userId?: string, traceId?: string) => Promise<void>
     hasSynced: boolean
+    isHydrated: boolean
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -57,7 +58,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (stored) {
             try {
                 const parsed = JSON.parse(stored)
-                setItems(parsed.items || [])
+                const storedItems = parsed.items || []
+                setItems(prev => {
+                    // If items already exist, it means syncWithDB might have finished first.
+                    // We only load from local if current state is empty.
+                    // This is a safety measure, but usually hydration happens first.
+                    return prev.length === 0 ? storedItems : prev
+                })
             } catch (e) {
                 console.error('Failed to parse cart:', e)
                 setItems([])
@@ -111,6 +118,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (slug !== storeSlug) {
             setIsHydrated(false)
             setStoreSlugState(slug)
+            activeStoreSlugRef.current = slug // Update sync ref immediately
         }
     }, [storeSlug])
 
@@ -129,7 +137,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const syncWithDB = useCallback(async (tId: string, uId?: string, traceIdParam?: string) => {
         const currentTraceId = traceIdParam || `sync-${Math.random().toString(36).substring(2, 9)}`
-        
+
         if (isSyncingRef.current) {
             console.log(`[Cart Sync] [${currentTraceId}] Sync already in progress, queuing...`)
             pendingSyncRef.current = { tenantId: tId, userId: uId, traceId: currentTraceId }
@@ -137,7 +145,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
 
         isSyncingRef.current = true
-        
+
         const performSync = async () => {
             try {
                 let nextSync: { tenantId: string; userId?: string; traceId?: string } | null = { tenantId: tId, userId: uId, traceId: currentTraceId }
@@ -205,7 +213,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         syncPromiseRef.current = performSync()
         return syncPromiseRef.current
-    }, [getItemKey])
+    }, [getItemKey, storeSlug])
 
     const addItem = useCallback((newItem: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
         setItems(prev => {
@@ -250,13 +258,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const clearCart = useCallback(() => {
         setItems([])
-        
+
         // Proactively clear DB if we have the context
         if (tenantId) {
             const traceId = `clear-${Math.random().toString(36).substring(2, 9)}`
             let url = `/api/cart/sync?tenant_id=${tenantId}&trace_id=${traceId}`
             if (userId) url += `&user_id=${userId}`
-            
+
             console.log(`[Cart Sync] [${traceId}] Proactively clearing DB cart`)
             fetch(url, {
                 method: 'POST',
@@ -288,7 +296,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         isCartOpen,
         setIsCartOpen,
         syncWithDB,
-        hasSynced
+        hasSynced,
+        isHydrated
     }), [
         items,
         addItem,
@@ -302,7 +311,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         isCartOpen,
         setIsCartOpen,
         syncWithDB,
-        hasSynced
+        hasSynced,
+        isHydrated
     ])
 
     return (

@@ -17,7 +17,7 @@ export default function LineCartPage({ params }: { params: Promise<{ slug: strin
     const tenantId = searchParams.get('tenant_id')
     const userIdParam = searchParams.get('user_id')
     const traceIdParam = searchParams.get('trace_id')
-    const { setStoreSlug, syncWithDB, storeSlug } = useCart()
+    const { setStoreSlug, syncWithDB, storeSlug, isHydrated: cartIsHydrated } = useCart()
     const [status, setStatus] = useState('載入購物車中...')
     const [hydrated, setHydrated] = useState(false)
 
@@ -32,8 +32,8 @@ export default function LineCartPage({ params }: { params: Promise<{ slug: strin
 
     useEffect(() => {
         // Wait until storeSlug in context matches the slug from params
-        // This ensures localStorage hydration for the correct store is finished
-        if (!tenantId || hydrated || !slug || storeSlug !== slug) return
+        // AND localStorage hydration for the correct store is finished
+        if (!tenantId || hydrated || !slug || storeSlug !== slug || !cartIsHydrated) return
 
         async function hydrateCart() {
             try {
@@ -60,7 +60,7 @@ export default function LineCartPage({ params }: { params: Promise<{ slug: strin
         }
 
         hydrateCart()
-    }, [tenantId, slug, storeSlug, hydrated, router, syncWithDB, userIdParam, traceId])
+    }, [tenantId, slug, storeSlug, hydrated, router, syncWithDB, userIdParam, traceId, cartIsHydrated])
 
 
     return (
