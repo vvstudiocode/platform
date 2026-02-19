@@ -26,7 +26,7 @@ interface CartContextType {
     setStoreSlug: (slug: string) => void
     isCartOpen: boolean
     setIsCartOpen: (open: boolean) => void
-    syncWithDB: (tenantId: string, userId?: string) => Promise<void>
+    syncWithDB: (tenantId: string, userId?: string, traceId?: string) => Promise<void>
     hasSynced: boolean
 }
 
@@ -44,7 +44,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const [userId, setUserId] = useState<string | null>(null)
     const [hasSynced, setHasSynced] = useState(false)
     const isSyncingRef = useRef(false)
-    const pendingSyncRef = useRef<{ tenantId: string; userId?: string } | null>(null)
+    const syncPromiseRef = useRef<Promise<void> | null>(null)
+    const pendingSyncRef = useRef<{ tenantId: string; userId?: string; traceId?: string } | null>(null)
     const activeStoreSlugRef = useRef<string | null>(null)
 
     // 1. Initial Load from localStorage
@@ -83,19 +84,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (!isHydrated || !hasSynced || !tenantId || !storeSlug) return
 
         const syncTimer = setTimeout(async () => {
+            const traceId = `bg-${Math.random().toString(36).substring(2, 9)}`
             try {
                 // Only sync if we have a way to identify the user (session or userId param)
                 // We'll trust the API to handle the auth check
-                let url = `/api/cart/sync?tenant_id=${tenantId}`
+                let url = `/api/cart/sync?tenant_id=${tenantId}&trace_id=${traceId}`
                 if (userId) url += `&user_id=${userId}`
 
-                await fetch(url, {
+                console.log(`[Cart Sync] [${traceId}] Background sync starting (mode: replace, items: ${items.length})`)
+                const res = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ items, mode: 'replace' })
                 })
+                if (!res.ok) throw new Error(`Sync failed with status ${res.status}`)
+                console.log(`[Cart Sync] [${traceId}] Background sync success`)
             } catch (e) {
-                console.warn('[Cart Sync] Background sync failed:', e)
+                console.warn(`[Cart Sync] [${traceId}] Background sync failed:`, e)
             }
         }, 1500) // 1.5s debounce
 
@@ -122,69 +127,84 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }, [])
 
 
-    const syncWithDB = useCallback(async (tId: string, uId?: string) => {
+    const syncWithDB = useCallback(async (tId: string, uId?: string, traceIdParam?: string) => {
+        const currentTraceId = traceIdParam || `sync-${Math.random().toString(36).substring(2, 9)}`
+        
         if (isSyncingRef.current) {
-            // Keep the newest request so we don't drop an important follow-up sync.
-            pendingSyncRef.current = { tenantId: tId, userId: uId }
-            return
+            console.log(`[Cart Sync] [${currentTraceId}] Sync already in progress, queuing...`)
+            pendingSyncRef.current = { tenantId: tId, userId: uId, traceId: currentTraceId }
+            return syncPromiseRef.current || Promise.resolve()
         }
 
         isSyncingRef.current = true
+        
+        const performSync = async () => {
+            try {
+                let nextSync: { tenantId: string; userId?: string; traceId?: string } | null = { tenantId: tId, userId: uId, traceId: currentTraceId }
 
-        try {
-            let nextSync: { tenantId: string; userId?: string } | null = { tenantId: tId, userId: uId }
+                while (nextSync) {
+                    const currentSync = nextSync
+                    const syncTraceId = currentSync.traceId || currentTraceId
+                    nextSync = null
 
-            while (nextSync) {
-                const currentSync = nextSync
-                nextSync = null
+                    setTenantId(currentSync.tenantId)
+                    setUserId(currentSync.userId ?? null)
 
-                setTenantId(currentSync.tenantId)
-                setUserId(currentSync.userId ?? null)
+                    const syncStoreSlug = activeStoreSlugRef.current
+                    let url = `/api/cart/line?tenant_id=${currentSync.tenantId}&trace_id=${syncTraceId}`
+                    if (currentSync.userId) url += `&user_id=${currentSync.userId}`
 
-                const syncStoreSlug = activeStoreSlugRef.current
-                let url = `/api/cart/line?tenant_id=${currentSync.tenantId}`
-                if (currentSync.userId) url += `&user_id=${currentSync.userId}`
+                    console.log(`[Cart Sync] [${syncTraceId}] Fetching DB cart items...`)
+                    const res = await fetch(url)
+                    if (res.ok) {
+                        const data = await res.json()
+                        const dbItems: CartItem[] = data.items || []
+                        console.log(`[Cart Sync] [${syncTraceId}] Fetched ${dbItems.length} items from DB`)
 
-                const res = await fetch(url)
-                if (res.ok) {
-                    const data = await res.json()
-                    const dbItems: CartItem[] = data.items || []
+                        // Ignore stale response if user switched stores while the request was in flight.
+                        if (syncStoreSlug !== activeStoreSlugRef.current) {
+                            console.log(`[Cart Sync] [${syncTraceId}] Store slug changed, ignoring stale response`)
+                            continue
+                        }
 
-                    // Ignore stale response if user switched stores while the request was in flight.
-                    if (syncStoreSlug !== activeStoreSlugRef.current) {
-                        continue
+                        setItems(prev => {
+                            const merged = [...prev]
+                            for (const dbItem of dbItems) {
+                                const dbKey = getItemKey(dbItem.productId, dbItem.variantId, dbItem.options)
+                                const existingIdx = merged.findIndex(i =>
+                                    getItemKey(i.productId, i.variantId, i.options) === dbKey
+                                )
+
+                                if (existingIdx > -1) {
+                                    merged[existingIdx] = { ...merged[existingIdx], quantity: dbItem.quantity }
+                                } else {
+                                    merged.push(dbItem)
+                                }
+                            }
+                            console.log(`[Cart Sync] [${syncTraceId}] Merged items. Final count: ${merged.length}`)
+                            return merged
+                        })
+
+                        setHasSynced(true)
+                    } else {
+                        console.error(`[Cart Sync] [${syncTraceId}] Failed to fetch DB cart: ${res.status}`)
                     }
 
-                    setItems(prev => {
-                        const merged = [...prev]
-                        for (const dbItem of dbItems) {
-                            const dbKey = getItemKey(dbItem.productId, dbItem.variantId, dbItem.options)
-                            const existingIdx = merged.findIndex(i =>
-                                getItemKey(i.productId, i.variantId, i.options) === dbKey
-                            )
-
-                            if (existingIdx > -1) {
-                                merged[existingIdx] = { ...merged[existingIdx], quantity: dbItem.quantity }
-                            } else {
-                                merged.push(dbItem)
-                            }
-                        }
-                        return merged
-                    })
-
-                    setHasSynced(true)
+                    if (pendingSyncRef.current) {
+                        nextSync = pendingSyncRef.current
+                        pendingSyncRef.current = null
+                    }
                 }
-
-                if (pendingSyncRef.current) {
-                    nextSync = pendingSyncRef.current
-                    pendingSyncRef.current = null
-                }
+            } catch (e) {
+                console.error(`[Cart Sync] [${currentTraceId}] Sync failed:`, e)
+            } finally {
+                isSyncingRef.current = false
+                syncPromiseRef.current = null
             }
-        } catch (e) {
-            console.error('[Cart Context] Initial sync failed:', e)
-        } finally {
-            isSyncingRef.current = false
         }
+
+        syncPromiseRef.current = performSync()
+        return syncPromiseRef.current
     }, [getItemKey])
 
     const addItem = useCallback((newItem: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
@@ -230,7 +250,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const clearCart = useCallback(() => {
         setItems([])
-    }, [])
+        
+        // Proactively clear DB if we have the context
+        if (tenantId) {
+            const traceId = `clear-${Math.random().toString(36).substring(2, 9)}`
+            let url = `/api/cart/sync?tenant_id=${tenantId}&trace_id=${traceId}`
+            if (userId) url += `&user_id=${userId}`
+            
+            console.log(`[Cart Sync] [${traceId}] Proactively clearing DB cart`)
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items: [], mode: 'replace' })
+            }).catch(e => console.warn(`[Cart Sync] [${traceId}] Proactive clear failed:`, e))
+        }
+    }, [tenantId, userId])
+
 
     const getItemCount = useCallback(() => {
         return items.reduce((sum, item) => sum + item.quantity, 0)

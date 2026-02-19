@@ -319,6 +319,8 @@ function buildCheckoutFlexMessage(
 }
 
 export async function POST(request: NextRequest) {
+    const traceId = `line-${Math.random().toString(36).substring(2, 9)}`
+    
     // 1. Get tenant ID from query param
     const tenantId = request.nextUrl.searchParams.get('tenant')
     if (!tenantId) {
@@ -327,6 +329,8 @@ export async function POST(request: NextRequest) {
 
     // 2. Get raw body for signature verification
     const rawBody = await request.text()
+
+    console.log(`[LINE Webhook] [${traceId}] Received webhook for tenant: ${tenantId}`)
 
     // 3. Get LINE credentials
     const credentials = await getLineCredentials(tenantId)
@@ -337,6 +341,7 @@ export async function POST(request: NextRequest) {
     // 4. Verify signature
     const signature = request.headers.get('x-line-signature')
     if (!signature || !verifySignature(credentials.channelSecret, signature, rawBody)) {
+        console.error(`[LINE Webhook] [${traceId}] Invalid signature`)
         return NextResponse.json({ error: 'Invalid signature' }, { status: 403 })
     }
 
@@ -354,9 +359,9 @@ export async function POST(request: NextRequest) {
 
     for (const event of events) {
         try {
-            await handleEvent(event, tenantId, client, adminClient)
+            await handleEvent(event, tenantId, client, adminClient, traceId)
         } catch (err) {
-            console.error('[LINE Webhook] Error handling event:', err)
+            console.error(`[LINE Webhook] [${traceId}] Error handling event:`, err)
         }
     }
 
@@ -376,19 +381,20 @@ async function handleEvent(
     event: any,
     tenantId: string,
     client: any,
-    adminClient: any
+    adminClient: any,
+    traceId: string
 ) {
     switch (event.type) {
         case 'follow':
-            await handleFollow(event, tenantId, client, adminClient)
+            await handleFollow(event, tenantId, client, adminClient, traceId)
             break
         case 'message':
             if (event.message.type === 'text') {
-                await handleTextMessage(event, tenantId, client, adminClient)
+                await handleTextMessage(event, tenantId, client, adminClient, traceId)
             }
             break
         case 'postback':
-            await handlePostback(event, tenantId, client, adminClient)
+            await handlePostback(event, tenantId, client, adminClient, traceId)
             break
         default:
             // Unhandled event type
@@ -404,10 +410,13 @@ async function handleFollow(
     event: any,
     tenantId: string,
     client: any,
-    adminClient: any
+    adminClient: any,
+    traceId: string
 ) {
     const lineUserId = event.source.userId
     if (!lineUserId) return
+
+    console.log(`[LINE Webhook] [${traceId}] Follow event from: ${lineUserId}`)
 
     // Get tenant's welcome message
     const { data: tenant } = await adminClient
@@ -436,13 +445,14 @@ async function handleTextMessage(
     event: any,
     tenantId: string,
     client: any,
-    adminClient: any
+    adminClient: any,
+    traceId: string
 ) {
     const text = event.message.text.trim()
     const lineUserId = event.source.userId
     const isGroupContext = event.source.type === 'group' || event.source.type === 'room'
 
-    console.log('[LINE +1] Received text message:', { text, lineUserId, sourceType: event.source.type })
+    console.log(`[LINE +1] [${traceId}] Received text message:`, { text, lineUserId, sourceType: event.source.type })
 
     // Check tenant settings for group ordering
     const { data: tenant } = await adminClient
@@ -455,18 +465,18 @@ async function handleTextMessage(
     const groupOrderingEnabled = settings.line?.group_ordering_enabled || false
     const dmOrderingEnabled = settings.line?.dm_ordering_enabled || false
 
-    console.log('[LINE +1] Settings:', { groupOrderingEnabled, dmOrderingEnabled }, 'Source type:', event.source.type)
+    console.log(`[LINE +1] [${traceId}] Settings:`, { groupOrderingEnabled, dmOrderingEnabled }, 'Source type:', event.source.type)
 
     // Check permissions based on context
     if (isGroupContext) {
         if (!groupOrderingEnabled) {
-            console.log('[LINE +1] SKIP: Group ordering is disabled')
+            console.log(`[LINE +1] [${traceId}] SKIP: Group ordering is disabled`)
             return
         }
     } else {
         // 1-on-1 Chat
         if (!dmOrderingEnabled) {
-            console.log('[LINE +1] SKIP: DM ordering is disabled')
+            console.log(`[LINE +1] [${traceId}] SKIP: DM ordering is disabled`)
             return
         }
     }
@@ -475,7 +485,7 @@ async function handleTextMessage(
     const loginKeywords = ['登入', 'login', '會員', 'member', '查詢', '查訂單', '訂單', '我的帳戶', 'account']
     const textLower = text.toLowerCase()
     if (loginKeywords.some(kw => textLower === kw)) {
-        await handleLoginRequest(event, tenantId, tenant?.slug || 'omo', client, adminClient)
+        await handleLoginRequest(event, tenantId, tenant?.slug || 'omo', client, adminClient, traceId)
         return
     }
 
@@ -484,14 +494,14 @@ async function handleTextMessage(
     // Supports formats: A01+1, p0001*2, S-123 x3, ITEM101 +5
     const match = text.match(/([a-z0-9_-]+)\s*[+*×x]\s*(\d+)/i)
     if (!match) {
-        console.log('[LINE +1] SKIP: Regex did not match text:', text)
+        console.log(`[LINE +1] [${traceId}] SKIP: Regex did not match text:`, text)
         return
     }
 
     const productIdentifier = match[1].toUpperCase()
     const quantity = parseInt(match[2], 10)
 
-    console.log('[LINE +1] Parsed:', { productIdentifier, quantity })
+    console.log(`[LINE +1] [${traceId}] parsed: tenantId=${tenantId}, lineUserId=${lineUserId}, productIdentifier=${productIdentifier}, qty=${quantity}`)
 
     if (quantity <= 0 || quantity > 99) return
 
@@ -505,17 +515,22 @@ async function handleTextMessage(
         .or(`sku.ilike.${productIdentifier},keyword.ilike.${productIdentifier}`)
         .maybeSingle()
 
-    console.log('[LINE +1] Product lookup:', { productIdentifier, tenantId, found: !!product, error: productError?.message })
+    if (productError) {
+        console.error(`[LINE +1] [${traceId}] Product lookup error:`, productError.message)
+    }
 
     if (!product) {
-        // Don't reply for invalid IDs to avoid spam
+        console.log(`[LINE +1] [${traceId}] Product NOT found for identifier: ${productIdentifier}`)
         return
     }
+
+    console.log(`[LINE +1] [${traceId}] Found product: ${product.name} (ID: ${product.id})`)
 
     // Auto-register or find existing customer (Shadow Account pattern)
     const customer = await getOrCreateCustomer(adminClient, client, tenantId, lineUserId)
 
     if (!customer) {
+        console.error(`[LINE +1] [${traceId}] customer resolved: FAILED`)
         // Reply with error
         await client.replyMessage({
             replyToken: event.replyToken,
@@ -527,17 +542,20 @@ async function handleTextMessage(
         return
     }
 
+    console.log(`[LINE +1] [${traceId}] customer resolved: customerId=${customer.id}, authUserId=${customer.authUserId}`)
+
     // Check if product has variants
     const hasVariants = product.options &&
         Array.isArray(product.options) &&
         (product.options as any[]).length > 0
 
     if (hasVariants) {
+        console.log(`[LINE +1] [${traceId}] Product has variants, sending selector`)
         // Send variant selector
         await sendVariantSelector(client, event.replyToken, product, quantity)
     } else {
         // Simple product - add directly to cart
-        const cartResult = await addToCart(adminClient, tenantId, customer.id, product.id, null, quantity)
+        const cartResult = await addToCart(adminClient, tenantId, customer.id, product.id, null, quantity, traceId)
 
         if (!cartResult.ok) {
             await client.replyMessage({
@@ -580,7 +598,8 @@ async function handlePostback(
     event: any,
     tenantId: string,
     client: any,
-    adminClient: any
+    adminClient: any,
+    traceId: string
 ) {
     const data = new URLSearchParams(event.postback.data)
     const action = data.get('action')
@@ -591,10 +610,15 @@ async function handlePostback(
         const quantity = parseInt(data.get('quantity') || '1', 10)
         const lineUserId = event.source.userId
 
+        console.log(`[LINE Postback] [${traceId}] add_to_cart received:`, { productId, variant, quantity, lineUserId })
+
         // Auto-register or find existing customer
         const customer = await getOrCreateCustomer(adminClient, client, tenantId, lineUserId)
 
-        if (!customer || !productId) return
+        if (!customer || !productId) {
+            console.error(`[LINE Postback] [${traceId}] Customer or productId missing`)
+            return
+        }
 
         // Fetch product and tenant slug
         const { data: product } = await adminClient
@@ -610,9 +634,12 @@ async function handlePostback(
             .eq('id', tenantId)
             .single()
 
-        if (!product) return
+        if (!product) {
+            console.error(`[LINE Postback] [${traceId}] Product NOT found for ID: ${productId}`)
+            return
+        }
 
-        const cartResult = await addToCart(adminClient, tenantId, customer.id, productId, variant, quantity)
+        const cartResult = await addToCart(adminClient, tenantId, customer.id, productId, variant, quantity, traceId)
 
         if (!cartResult.ok) {
             await client.replyMessage({
@@ -837,12 +864,13 @@ async function handleLoginRequest(
     tenantId: string,
     storeSlug: string,
     client: any,
-    adminClient: any
+    adminClient: any,
+    traceId: string
 ) {
     const lineUserId = event.source.userId
     if (!lineUserId) return
 
-    console.log('[LINE Login] Login request from:', lineUserId)
+    console.log(`[LINE Login] [${traceId}] Login request from: ${lineUserId}`)
 
     // Get or create customer (shadow account)
     const customer = await getOrCreateCustomer(adminClient, client, tenantId, lineUserId)
@@ -863,7 +891,7 @@ async function handleLoginRequest(
     const siteUrl = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     const magicUrl = `${siteUrl}/api/auth/line-magic-login?token=${magicToken}&redirect=account`
 
-    console.log('[LINE Login] Magic link generated for customer:', customer.id)
+    console.log(`[LINE Login] [${traceId}] Magic link generated for customer: ${customer.id}`)
 
     // Build Flex Message
     const flexMessage = {
@@ -939,9 +967,10 @@ async function addToCart(
     customerId: string,
     productId: string,
     variant: string | null,
-    quantity: number
+    quantity: number,
+    traceId: string
 ): Promise<{ ok: boolean; error?: string; totalCount?: number }> {
-    console.log('[LINE +1] addToCart called:', { tenantId, customerId, productId, variant, quantity })
+    console.log(`[LINE +1] [${traceId}] addToCart called:`, { tenantId, customerId, productId, variant, quantity })
 
     try {
         // Check if item already in cart
@@ -958,29 +987,33 @@ async function addToCart(
             query = query.is('variant', null)
         }
 
-        const { data: existing, error: lookupError } = await query.single()
+        const { data: existing, error: lookupError } = await query.maybeSingle()
 
-        if (lookupError && lookupError.code !== 'PGRST116') {
+        if (lookupError) {
+            console.error(`[LINE +1] [${traceId}] addToCart lookup error:`, lookupError)
             throw new Error(`Lookup failed: ${lookupError.message}`)
         }
 
+        let existingQty = 0
+        let newQty = quantity
+
         if (existing) {
-            // Update quantity
-            const newQty = existing.quantity + quantity
-            console.log('[LINE +1] addToCart: updating existing item', existing.id, 'qty:', existing.quantity, '->', newQty)
+            existingQty = existing.quantity
+            newQty = existingQty + quantity
+            console.log(`[LINE +1] [${traceId}] addToCart before/after: existingQty=${existingQty}, newQty=${newQty}`)
+            
             const { error: updateError } = await adminClient
                 .from('cart_items')
                 .update({ quantity: newQty })
                 .eq('id', existing.id)
 
             if (updateError) {
+                console.error(`[LINE +1] [${traceId}] addToCart update error:`, updateError)
                 throw new Error(`Update failed: ${updateError.message}`)
             }
-            console.log('[LINE +1] addToCart: update success')
         } else {
-            // Insert new item
-            console.log('[LINE +1] addToCart: inserting new item')
-            const { data: inserted, error: insertError } = await adminClient
+            console.log(`[LINE +1] [${traceId}] addToCart before/after: existingQty=0, newQty=${quantity}`)
+            const { error: insertError } = await adminClient
                 .from('cart_items')
                 .insert({
                     tenant_id: tenantId,
@@ -989,16 +1022,14 @@ async function addToCart(
                     variant,
                     quantity,
                 })
-                .select('id')
-                .single()
 
             if (insertError) {
+                console.error(`[LINE +1] [${traceId}] addToCart insert error:`, insertError)
                 throw new Error(`Insert failed: ${insertError.message}`)
             }
-            console.log('[LINE +1] addToCart: insert success, id:', inserted?.id)
         }
 
-        // Fetch total count for confidence
+        // Fetch total count for confidence (ALWAYS fetch from DB to be 100% sure)
         const { data: countData, error: countError } = await adminClient
             .from('cart_items')
             .select('quantity')
@@ -1006,14 +1037,18 @@ async function addToCart(
             .eq('customer_id', customerId)
 
         let totalCount = 0
-        if (!countError && countData) {
+        if (countError) {
+            console.error(`[LINE +1] [${traceId}] Failed to fetch total cart count:`, countError)
+        } else if (countData) {
             totalCount = countData.reduce((acc: number, item: any) => acc + item.quantity, 0)
         }
 
+        console.log(`[LINE +1] [${traceId}] addToCart success. Total items in DB cart: ${totalCount}`)
         return { ok: true, totalCount }
 
     } catch (error: any) {
-        console.error('[LINE +1] addToCart final failure:', error.message)
+        console.error(`[LINE +1] [${traceId}] addToCart final failure:`, error.message)
         return { ok: false, error: error.message }
     }
 }
+

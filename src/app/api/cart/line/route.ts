@@ -21,11 +21,14 @@ function getAdminClient() {
 }
 
 export async function GET(request: NextRequest) {
+    const traceId = request.nextUrl.searchParams.get('trace_id') || `get-${Math.random().toString(36).substring(2, 9)}`
     try {
         const tenantId = request.nextUrl.searchParams.get('tenant_id')
         if (!tenantId) {
             return NextResponse.json({ error: 'Missing tenant_id' }, { status: 400 })
         }
+
+        console.log(`[Cart API] [${traceId}] GET request received for tenant: ${tenantId}`)
 
         // Try to get user ID from multiple sources
         let userId: string | null = null
@@ -36,10 +39,10 @@ export async function GET(request: NextRequest) {
             const { data: { user } } = await supabase.auth.getUser()
             if (user?.id) {
                 userId = user.id
-                console.log('[Cart API] Auth via session cookie:', userId)
+                console.log(`[Cart API] [${traceId}] Auth via session cookie: ${userId}`)
             }
         } catch (e) {
-            console.log('[Cart API] Session auth failed, trying fallback')
+            console.log(`[Cart API] [${traceId}] Session auth failed, trying fallback`)
         }
 
         // Method 2: user_id from magic-login redirect (already JWT-verified)
@@ -50,13 +53,13 @@ export async function GET(request: NextRequest) {
                 const { data: verifiedUser } = await adminClient.auth.admin.getUserById(userIdParam)
                 if (verifiedUser?.user) {
                     userId = verifiedUser.user.id
-                    console.log('[Cart API] Auth via user_id param:', userId)
+                    console.log(`[Cart API] [${traceId}] Auth via user_id param: ${userId}`)
                 }
             }
         }
 
         if (!userId) {
-            console.error('[Cart API] No authenticated user found')
+            console.error(`[Cart API] [${traceId}] No authenticated user found`)
             return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
         }
 
@@ -73,27 +76,27 @@ export async function GET(request: NextRequest) {
         if (customerError) {
             // If no row found, it's fine, return empty cart
             if (customerError.code === 'PGRST116') {
-                console.log('[Cart API] Customer not found for authUserId:', userId)
+                console.log(`[Cart API] [${traceId}] Customer not found for authUserId: ${userId}, returning empty cart`)
                 return NextResponse.json({ items: [] })
             }
             // Real DB error
-            console.error('[Cart API] Error fetching customer:', customerError)
+            console.error(`[Cart API] [${traceId}] Error fetching customer:`, customerError)
             return NextResponse.json({
                 error: 'Failed to fetch customer',
                 details: customerError.message,
-                code: customerError.code
+                code: customerError.code,
+                trace_id: traceId
             }, { status: 500 })
         }
 
         if (!customer) {
-            console.log('[Cart API] No customer data returned')
+            console.log(`[Cart API] [${traceId}] No customer record found`)
             return NextResponse.json({ items: [] })
         }
 
-        console.log('[Cart API] Found customer:', customer.id)
+        console.log(`[Cart API] [${traceId}] Found customer: ${customer.id}`)
 
         // Get cart items with product details
-        console.log('[Cart API] Querying cart_items for customer_id:', customer.id, 'tenant_id:', tenantId)
         const { data: cartItems, error } = await adminClient
             .from('cart_items')
             .select(`
@@ -114,18 +117,17 @@ export async function GET(request: NextRequest) {
             .eq('tenant_id', tenantId)
             .eq('customer_id', customer.id)
 
-        console.log('[Cart API] Raw cart items query result:', { count: cartItems?.length, error })
-
         if (error) {
-            console.error('[Cart API] Error fetching cart items:', error)
+            console.error(`[Cart API] [${traceId}] Error fetching cart items:`, error)
             return NextResponse.json({
                 error: 'Failed to fetch cart',
                 details: error.message,
-                code: error.code
+                code: error.code,
+                trace_id: traceId
             }, { status: 500 })
         }
 
-        console.log('[Cart API] Raw cart items content:', JSON.stringify(cartItems, null, 2))
+        console.log(`[Cart API] [${traceId}] Raw cart items count: ${cartItems?.length || 0}`)
 
         // Transform to match CartItem interface from cart-context
         const items = (cartItems || [])
@@ -145,14 +147,16 @@ export async function GET(request: NextRequest) {
                 }
             })
 
-        return NextResponse.json({ items, customerId: customer.id })
+        console.log(`[Cart API] [${traceId}] Successfully transformed ${items.length} items`)
+        return NextResponse.json({ items, customerId: customer.id, trace_id: traceId })
 
     } catch (err: any) {
-        console.error('[Cart API] Unexpected error:', err)
+        console.error(`[Cart API] [${traceId}] Unexpected error:`, err)
         return NextResponse.json({
             error: 'Internal Server Error',
             details: err.message,
-            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+            trace_id: traceId
         }, { status: 500 })
     }
 }
+

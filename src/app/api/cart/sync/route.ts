@@ -19,6 +19,7 @@ function getAdminClient() {
 }
 
 export async function POST(request: NextRequest) {
+    const traceId = request.nextUrl.searchParams.get('trace_id') || `sync-${Math.random().toString(36).substring(2, 9)}`
     try {
         const tenantId = request.nextUrl.searchParams.get('tenant_id')
         if (!tenantId) {
@@ -27,6 +28,8 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json()
         const { items, mode = 'replace' } = body
+
+        console.log(`[Cart Sync] [${traceId}] POST request received. Mode: ${mode}, Items: ${items?.length}, Tenant: ${tenantId}`)
 
         if (!Array.isArray(items)) {
             return NextResponse.json({ error: 'Invalid items format' }, { status: 400 })
@@ -39,7 +42,10 @@ export async function POST(request: NextRequest) {
         try {
             const supabase = await createServerClient()
             const { data: { user } } = await supabase.auth.getUser()
-            if (user?.id) userId = user.id
+            if (user?.id) {
+                userId = user.id
+                console.log(`[Cart Sync] [${traceId}] Auth via session: ${userId}`)
+            }
         } catch (e) { }
 
         // Fallback to user_id param (from magic links/LINE)
@@ -48,11 +54,15 @@ export async function POST(request: NextRequest) {
             if (userIdParam) {
                 const adminClient = getAdminClient()
                 const { data: verifiedUser } = await adminClient.auth.admin.getUserById(userIdParam)
-                if (verifiedUser?.user) userId = verifiedUser.user.id
+                if (verifiedUser?.user) {
+                    userId = verifiedUser.user.id
+                    console.log(`[Cart Sync] [${traceId}] Auth via user_id param: ${userId}`)
+                }
             }
         }
 
         if (!userId) {
+            console.warn(`[Cart Sync] [${traceId}] Not authenticated`)
             return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
         }
 
@@ -67,18 +77,29 @@ export async function POST(request: NextRequest) {
             .single()
 
         if (customerError || !customer) {
+            console.error(`[Cart Sync] [${traceId}] Customer not found for authUserId: ${userId}, tenant: ${tenantId}`)
             return NextResponse.json({ error: 'Customer not found' }, { status: 404 })
         }
+
+        console.log(`[Cart Sync] [${traceId}] Resolved customer: ${customer.id}`)
 
         // 3. Sync Logic
         if (mode === 'replace') {
             // Delete all existing and insert new
-            await adminClient
+            const { count: deletedRows, error: deleteError } = await adminClient
                 .from('cart_items')
-                .delete()
+                .delete({ count: 'exact' })
                 .eq('tenant_id', tenantId)
                 .eq('customer_id', customer.id)
 
+            if (deleteError) {
+                console.error(`[Cart Sync] [${traceId}] Delete failed:`, deleteError)
+                throw deleteError
+            }
+
+            console.log(`[Cart Sync] [${traceId}] Deleted ${deletedRows || 0} existing rows`)
+
+            let insertedRows = 0
             if (items.length > 0) {
                 const toInsert = items.map(item => ({
                     tenant_id: tenantId,
@@ -87,10 +108,17 @@ export async function POST(request: NextRequest) {
                     variant: item.options?.variant || null,
                     quantity: item.quantity
                 }))
-                await adminClient.from('cart_items').insert(toInsert)
+                const { error: insertError } = await adminClient.from('cart_items').insert(toInsert)
+                if (insertError) {
+                    console.error(`[Cart Sync] [${traceId}] Insert failed:`, insertError)
+                    throw insertError
+                }
+                insertedRows = toInsert.length
             }
+            console.log(`[Cart Sync] [${traceId}] Inserted ${insertedRows} new rows. Final items count in payload: ${items.length}`)
         } else {
             // Merge mode (used for initial link)
+            console.log(`[Cart Sync] [${traceId}] Performing merge for ${items.length} items`)
             for (const item of items) {
                 // Check if exists
                 let q = adminClient
@@ -127,10 +155,11 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        return NextResponse.json({ success: true })
+        return NextResponse.json({ success: true, trace_id: traceId })
 
     } catch (err: any) {
-        console.error('[Cart Sync API] Error:', err)
-        return NextResponse.json({ error: 'Internal Error', details: err.message }, { status: 500 })
+        console.error(`[Cart Sync] [${traceId}] Unexpected error:`, err)
+        return NextResponse.json({ error: 'Internal Error', details: err.message, trace_id: traceId }, { status: 500 })
     }
 }
+
