@@ -44,10 +44,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const [userId, setUserId] = useState<string | null>(null)
     const [hasSynced, setHasSynced] = useState(false)
     const isSyncingRef = useRef(false)
+    const pendingSyncRef = useRef<{ tenantId: string; userId?: string } | null>(null)
+    const activeStoreSlugRef = useRef<string | null>(null)
 
     // 1. Initial Load from localStorage
     useEffect(() => {
         if (!storeSlug) return
+        activeStoreSlugRef.current = storeSlug
 
         const stored = localStorage.getItem(getCartStorageKey(storeSlug))
         if (stored) {
@@ -120,43 +123,62 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 
     const syncWithDB = useCallback(async (tId: string, uId?: string) => {
-        // userId check: ensure we don't use a stale ID if the new request doesn't have one
-        setTenantId(tId)
-        setUserId(uId ?? null)
-
         if (isSyncingRef.current) {
-            console.log('[Cart Context] Sync already in progress, skipping...')
+            // Keep the newest request so we don't drop an important follow-up sync.
+            pendingSyncRef.current = { tenantId: tId, userId: uId }
             return
         }
+
         isSyncingRef.current = true
 
         try {
-            let url = `/api/cart/line?tenant_id=${tId}`
-            if (uId) url += `&user_id=${uId}`
+            let nextSync: { tenantId: string; userId?: string } | null = { tenantId: tId, userId: uId }
 
-            const res = await fetch(url)
-            if (res.ok) {
-                const data = await res.json()
-                const dbItems: CartItem[] = data.items || []
+            while (nextSync) {
+                const currentSync = nextSync
+                nextSync = null
 
-                setItems(prev => {
-                    // Merge logic: Combine local and DB items
-                    const merged = [...prev]
-                    for (const dbItem of dbItems) {
-                        const dbKey = getItemKey(dbItem.productId, dbItem.variantId, dbItem.options)
-                        const existingIdx = merged.findIndex(i =>
-                            getItemKey(i.productId, i.variantId, i.options) === dbKey
-                        )
+                setTenantId(currentSync.tenantId)
+                setUserId(currentSync.userId ?? null)
 
-                        if (existingIdx > -1) {
-                            merged[existingIdx] = { ...merged[existingIdx], quantity: dbItem.quantity }
-                        } else {
-                            merged.push(dbItem)
-                        }
+                const syncStoreSlug = activeStoreSlugRef.current
+                let url = `/api/cart/line?tenant_id=${currentSync.tenantId}`
+                if (currentSync.userId) url += `&user_id=${currentSync.userId}`
+
+                const res = await fetch(url)
+                if (res.ok) {
+                    const data = await res.json()
+                    const dbItems: CartItem[] = data.items || []
+
+                    // Ignore stale response if user switched stores while the request was in flight.
+                    if (syncStoreSlug !== activeStoreSlugRef.current) {
+                        continue
                     }
-                    return merged
-                })
-                setHasSynced(true)
+
+                    setItems(prev => {
+                        const merged = [...prev]
+                        for (const dbItem of dbItems) {
+                            const dbKey = getItemKey(dbItem.productId, dbItem.variantId, dbItem.options)
+                            const existingIdx = merged.findIndex(i =>
+                                getItemKey(i.productId, i.variantId, i.options) === dbKey
+                            )
+
+                            if (existingIdx > -1) {
+                                merged[existingIdx] = { ...merged[existingIdx], quantity: dbItem.quantity }
+                            } else {
+                                merged.push(dbItem)
+                            }
+                        }
+                        return merged
+                    })
+
+                    setHasSynced(true)
+                }
+
+                if (pendingSyncRef.current) {
+                    nextSync = pendingSyncRef.current
+                    pendingSyncRef.current = null
+                }
             }
         } catch (e) {
             console.error('[Cart Context] Initial sync failed:', e)

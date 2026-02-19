@@ -18,17 +18,23 @@ export function CartHydrator({ tenantId }: Props) {
     const supabase = useMemo(() => createClient(), [])
 
     useEffect(() => {
+        let cancelled = false
+
         async function checkUserAndSync() {
             if (hasSynced) return // Skip if already synced in this session
 
             const { data: { user } } = await supabase.auth.getUser()
-            if (user) {
+            if (!cancelled && user) {
                 console.log('[Cart Hydrator] user logged in, triggering sync...')
                 await syncWithDB(tenantId)
             }
         }
 
         checkUserAndSync()
+
+        return () => {
+            cancelled = true
+        }
     }, [tenantId, syncWithDB, hasSynced, supabase])
 
     return null

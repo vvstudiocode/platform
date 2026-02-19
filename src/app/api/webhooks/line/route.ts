@@ -189,15 +189,23 @@ function buildCheckoutFlexMessage(
     variant: string | null,
     totalPrice: number,
     magicLinkUrl: string,
-    isNewUser: boolean
+    isNewUser: boolean,
+    cartTotalCount?: number
 ): any {
     const bodyContents: any[] = [
         {
             type: 'text',
-            text: '已加入購物車',
+            text: '✅ 已加入購物車',
             weight: 'bold',
             size: 'lg',
             color: '#1a1a1a',
+        },
+        {
+            type: 'text',
+            text: '您可以現在結帳，或稍後到購物車查看',
+            size: 'xs',
+            color: '#888888',
+            margin: 'xs',
         },
         {
             type: 'separator',
@@ -214,6 +222,7 @@ function buildCheckoutFlexMessage(
                     size: 'sm',
                     flex: 3,
                     wrap: true,
+                    weight: 'bold',
                 },
                 {
                     type: 'text',
@@ -224,29 +233,32 @@ function buildCheckoutFlexMessage(
                 },
             ],
         },
-        {
+    ]
+
+    if (cartTotalCount !== undefined) {
+        bodyContents.push({
             type: 'box',
             layout: 'horizontal',
             margin: 'sm',
             contents: [
                 {
                     type: 'text',
-                    text: '小計',
+                    text: '購物車目前共',
                     size: 'sm',
                     color: '#888888',
                     flex: 3,
                 },
                 {
                     type: 'text',
-                    text: `NT$${totalPrice.toLocaleString()}`,
+                    text: `${cartTotalCount} 件`,
                     size: 'sm',
                     weight: 'bold',
                     align: 'end',
-                    flex: 1,
+                    flex: 2,
                 },
             ],
-        },
-    ]
+        })
+    }
 
     if (isNewUser) {
         bodyContents.push({
@@ -280,7 +292,7 @@ function buildCheckoutFlexMessage(
                     height: 'md',
                     action: {
                         type: 'uri',
-                        label: '前往結帳',
+                        label: '查看購物車 / 去結帳',
                         uri: magicLinkUrl,
                     },
                 },
@@ -525,7 +537,18 @@ async function handleTextMessage(
         await sendVariantSelector(client, event.replyToken, product, quantity)
     } else {
         // Simple product - add directly to cart
-        await addToCart(adminClient, tenantId, customer.id, product.id, null, quantity)
+        const cartResult = await addToCart(adminClient, tenantId, customer.id, product.id, null, quantity)
+
+        if (!cartResult.ok) {
+            await client.replyMessage({
+                replyToken: event.replyToken,
+                messages: [{
+                    type: 'text',
+                    text: `❌ 加入購物車失敗，請稍後再試。\n原因：${cartResult.error || '資料庫操作異常'}`
+                }]
+            })
+            return
+        }
 
         // Generate Magic Link for one-click checkout
         const magicToken = await generateMagicLinkToken(customer.authUserId, tenantId)
@@ -538,7 +561,8 @@ async function handleTextMessage(
             null,
             totalPrice,
             magicUrl,
-            customer.isNew
+            customer.isNew,
+            cartResult.totalCount
         )
 
         // Reply with Flex Message
@@ -588,7 +612,18 @@ async function handlePostback(
 
         if (!product) return
 
-        await addToCart(adminClient, tenantId, customer.id, productId, variant, quantity)
+        const cartResult = await addToCart(adminClient, tenantId, customer.id, productId, variant, quantity)
+
+        if (!cartResult.ok) {
+            await client.replyMessage({
+                replyToken: event.replyToken,
+                messages: [{
+                    type: 'text',
+                    text: `❌ 加入購物車失敗，請稍後再試。\n原因：${cartResult.error || '資料庫操作異常'}`
+                }]
+            })
+            return
+        }
 
         // Generate Magic Link for one-click checkout
         const magicToken = await generateMagicLinkToken(customer.authUserId, tenantId)
@@ -601,7 +636,8 @@ async function handlePostback(
             variant || null,
             totalPrice,
             magicUrl,
-            customer.isNew
+            customer.isNew,
+            cartResult.totalCount
         )
 
         // Reply with Flex Message
@@ -904,62 +940,80 @@ async function addToCart(
     productId: string,
     variant: string | null,
     quantity: number
-) {
+): Promise<{ ok: boolean; error?: string; totalCount?: number }> {
     console.log('[LINE +1] addToCart called:', { tenantId, customerId, productId, variant, quantity })
 
-    // Check if item already in cart
-    let query = adminClient
-        .from('cart_items')
-        .select('id, quantity')
-        .eq('tenant_id', tenantId)
-        .eq('customer_id', customerId)
-        .eq('product_id', productId)
-
-    if (variant) {
-        query = query.eq('variant', variant)
-    } else {
-        query = query.is('variant', null)
-    }
-
-    const { data: existing, error: lookupError } = await query.single()
-
-    if (lookupError && lookupError.code !== 'PGRST116') {
-        console.error('[LINE +1] addToCart lookup error:', lookupError)
-    }
-
-    if (existing) {
-        // Update quantity
-        const newQty = existing.quantity + quantity
-        console.log('[LINE +1] addToCart: updating existing item', existing.id, 'qty:', existing.quantity, '->', newQty)
-        const { error: updateError } = await adminClient
+    try {
+        // Check if item already in cart
+        let query = adminClient
             .from('cart_items')
-            .update({ quantity: newQty })
-            .eq('id', existing.id)
+            .select('id, quantity')
+            .eq('tenant_id', tenantId)
+            .eq('customer_id', customerId)
+            .eq('product_id', productId)
 
-        if (updateError) {
-            console.error('[LINE +1] addToCart UPDATE failed:', updateError)
+        if (variant) {
+            query = query.eq('variant', variant)
         } else {
-            console.log('[LINE +1] addToCart: update success')
+            query = query.is('variant', null)
         }
-    } else {
-        // Insert new item
-        console.log('[LINE +1] addToCart: inserting new item')
-        const { data: inserted, error: insertError } = await adminClient
-            .from('cart_items')
-            .insert({
-                tenant_id: tenantId,
-                customer_id: customerId,
-                product_id: productId,
-                variant,
-                quantity,
-            })
-            .select('id')
-            .single()
 
-        if (insertError) {
-            console.error('[LINE +1] addToCart INSERT failed:', insertError)
+        const { data: existing, error: lookupError } = await query.single()
+
+        if (lookupError && lookupError.code !== 'PGRST116') {
+            throw new Error(`Lookup failed: ${lookupError.message}`)
+        }
+
+        if (existing) {
+            // Update quantity
+            const newQty = existing.quantity + quantity
+            console.log('[LINE +1] addToCart: updating existing item', existing.id, 'qty:', existing.quantity, '->', newQty)
+            const { error: updateError } = await adminClient
+                .from('cart_items')
+                .update({ quantity: newQty })
+                .eq('id', existing.id)
+
+            if (updateError) {
+                throw new Error(`Update failed: ${updateError.message}`)
+            }
+            console.log('[LINE +1] addToCart: update success')
         } else {
+            // Insert new item
+            console.log('[LINE +1] addToCart: inserting new item')
+            const { data: inserted, error: insertError } = await adminClient
+                .from('cart_items')
+                .insert({
+                    tenant_id: tenantId,
+                    customer_id: customerId,
+                    product_id: productId,
+                    variant,
+                    quantity,
+                })
+                .select('id')
+                .single()
+
+            if (insertError) {
+                throw new Error(`Insert failed: ${insertError.message}`)
+            }
             console.log('[LINE +1] addToCart: insert success, id:', inserted?.id)
         }
+
+        // Fetch total count for confidence
+        const { data: countData, error: countError } = await adminClient
+            .from('cart_items')
+            .select('quantity')
+            .eq('tenant_id', tenantId)
+            .eq('customer_id', customerId)
+
+        let totalCount = 0
+        if (!countError && countData) {
+            totalCount = countData.reduce((acc: number, item: any) => acc + item.quantity, 0)
+        }
+
+        return { ok: true, totalCount }
+
+    } catch (error: any) {
+        console.error('[LINE +1] addToCart final failure:', error.message)
+        return { ok: false, error: error.message }
     }
 }
