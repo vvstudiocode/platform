@@ -16,7 +16,7 @@ export default function LineCartPage({ params }: { params: Promise<{ slug: strin
     const searchParams = useSearchParams()
     const tenantId = searchParams.get('tenant_id')
     const userIdParam = searchParams.get('user_id')
-    const { addItem, clearCart, setStoreSlug, items } = useCart()
+    const { addItem, clearCart, setStoreSlug, items, syncWithDB } = useCart()
     const [status, setStatus] = useState('載入購物車中...')
     const [hydrated, setHydrated] = useState(false)
 
@@ -49,32 +49,12 @@ export default function LineCartPage({ params }: { params: Promise<{ slug: strin
                 const data = await res.json()
                 const dbItems = data.items || []
 
-                if (dbItems.length === 0) {
-                    setStatus('購物車是空的，正在為您跳轉...')
-                    setTimeout(() => router.replace(`/store/${slug}/checkout`), 1500)
-                    return
-                }
+                // Sync and Merge logic:
+                // Instead of clearCart() + for-loop, we use syncWithDB
+                // which handles merging logic automatically in the context.
+                await syncWithDB(tenantId!, userIdParam || undefined)
 
-                // Clear existing localStorage cart and inject DB items
-                clearCart()
-
-                // Small delay to let state settle after clearCart
-                await new Promise(r => setTimeout(r, 100))
-
-                for (const item of dbItems) {
-                    addItem({
-                        productId: item.productId,
-                        name: item.name,
-                        price: item.price,
-                        quantity: item.quantity,
-                        image: item.image,
-                        maxStock: item.maxStock,
-                        sku: item.sku,
-                        options: item.options,
-                    })
-                }
-
-                setStatus(`已載入 ${dbItems.length} 件商品，正在前往結帳...`)
+                setStatus('購物車已成功同步，正在前往結帳...')
                 setHydrated(true)
 
                 // Redirect to checkout after a brief delay

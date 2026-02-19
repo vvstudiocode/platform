@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { AnalyticsTracker } from '@/components/analytics-tracker'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import type { Metadata } from 'next'
+import { CartHydrator } from './components/cart-hydrator'
 
 // --- GSC Verification via generateMetadata ---
 export async function generateMetadata({

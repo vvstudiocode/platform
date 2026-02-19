@@ -14,7 +14,7 @@ export default async function LineSettingsPage() {
     // Get HQ tenant (omo)
     const { data: tenant } = await supabase
         .from('tenants')
-        .select('id, settings, plan_id, slug')
+        .select('id, settings, plan_id')
         .eq('slug', 'omo')
         .single()
 
@@ -85,7 +85,6 @@ export default async function LineSettingsPage() {
                     completedMessage={lineSettings.completed_message || ''}
                     saveLineAction={boundSaveLineAction}
                     saveWelcomeAction={boundSaveWelcomeAction}
-                    storeSlug={tenant.slug}
                 />
             )}
         </div>

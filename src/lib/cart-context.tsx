@@ -26,6 +26,7 @@ interface CartContextType {
     setStoreSlug: (slug: string) => void
     isCartOpen: boolean
     setIsCartOpen: (open: boolean) => void
+    syncWithDB: (tenantId: string, userId?: string) => Promise<void>
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -33,24 +34,15 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 // 使用商店專屬的 localStorage key，確保不同商店的購物車資料隔離
 const getCartStorageKey = (slug: string | null) => `cart_${slug || 'default'}`
 
-const getItemKey = (productId: string, variantId?: string, options?: Record<string, string>) => {
-    if (variantId) return `${productId}-${variantId}`
-    if (!options) return productId
-    // Create a stable key from options
-    const optionsKey = Object.entries(options)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([k, v]) => `${k}:${v}`)
-        .join('|')
-    return `${productId}-${optionsKey}`
-}
-
 export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([])
     const [storeSlug, setStoreSlugState] = useState<string | null>(null)
     const [isHydrated, setIsHydrated] = useState(false)
     const [isCartOpen, setIsCartOpen] = useState(false)
+    const [tenantId, setTenantId] = useState<string | null>(null)
+    const [userId, setUserId] = useState<string | null>(null)
 
-    // 從 localStorage 載入購物車（當 storeSlug 改變時重新載入）
+    // 1. Initial Load from localStorage
     useEffect(() => {
         if (!storeSlug) return
 
@@ -69,14 +61,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setIsHydrated(true)
     }, [storeSlug])
 
-    // 儲存到 localStorage（商店專屬）
+    // 2. Sync to localStorage when items change
     useEffect(() => {
         if (isHydrated && storeSlug) {
             localStorage.setItem(getCartStorageKey(storeSlug), JSON.stringify({ items }))
         }
     }, [items, storeSlug, isHydrated])
 
-    // 當設定新的 storeSlug 時，重置購物車狀態
+    // 3. Background Sync to DB (Debounced)
+    useEffect(() => {
+        if (!isHydrated || !tenantId || !storeSlug) return
+
+        const syncTimer = setTimeout(async () => {
+            try {
+                // Only sync if we have a way to identify the user (session or userId param)
+                // We'll trust the API to handle the auth check
+                let url = `/api/cart/sync?tenant_id=${tenantId}`
+                if (userId) url += `&user_id=${userId}`
+
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items, mode: 'replace' })
+                })
+            } catch (e) {
+                console.warn('[Cart Sync] Background sync failed:', e)
+            }
+        }, 1500) // 1.5s debounce
+
+        return () => clearTimeout(syncTimer)
+    }, [items, tenantId, userId, isHydrated, storeSlug])
+
     const setStoreSlug = (slug: string) => {
         if (slug !== storeSlug) {
             setIsHydrated(false)
@@ -84,10 +99,49 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    const syncWithDB = async (tId: string, uId?: string) => {
+        setTenantId(tId)
+        if (uId) setUserId(uId)
+
+        try {
+            let url = `/api/cart/line?tenant_id=${tId}`
+            if (uId) url += `&user_id=${uId}`
+
+            const res = await fetch(url)
+            if (res.ok) {
+                const data = await res.json()
+                const dbItems: CartItem[] = data.items || []
+
+                if (dbItems.length > 0) {
+                    setItems(prev => {
+                        // Merge logic: Combine local and DB items
+                        const merged = [...prev]
+                        for (const dbItem of dbItems) {
+                            const dbKey = getItemKey(dbItem.productId, dbItem.variantId, dbItem.options)
+                            const existingIdx = merged.findIndex(i =>
+                                getItemKey(i.productId, i.variantId, i.options) === dbKey
+                            )
+
+                            if (existingIdx > -1) {
+                                // If exists in both, use the larger quantity or just replace? 
+                                // Let's take the DB as authoritative for quantity if it's there
+                                merged[existingIdx] = { ...merged[existingIdx], quantity: dbItem.quantity }
+                            } else {
+                                merged.push(dbItem)
+                            }
+                        }
+                        return merged
+                    })
+                }
+            }
+        } catch (e) {
+            console.error('[Cart Context] Initial sync failed:', e)
+        }
+    }
+
     const getItemKey = (productId: string, variantId?: string, options?: Record<string, string>) => {
         if (variantId) return `${productId}-${variantId}`
         if (options) {
-            // Create a stable key from options
             const optionsKey = Object.entries(options)
                 .sort(([a], [b]) => a.localeCompare(b))
                 .map(([k, v]) => `${k}:${v}`)
@@ -162,7 +216,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             storeSlug,
             setStoreSlug,
             isCartOpen,
-            setIsCartOpen
+            setIsCartOpen,
+            syncWithDB
         }}>
             {children}
         </CartContext.Provider>
