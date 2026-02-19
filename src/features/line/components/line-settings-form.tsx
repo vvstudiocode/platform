@@ -27,6 +27,7 @@ interface Props {
     completedMessage: string
     saveLineAction: (prevState: any, formData: FormData) => Promise<any>
     saveWelcomeAction: (prevState: any, formData: FormData) => Promise<any>
+    storeSlug: string
 }
 
 export function LineSettingsForm({
@@ -44,19 +45,24 @@ export function LineSettingsForm({
     completedMessage,
     saveLineAction,
     saveWelcomeAction,
+    storeSlug,
 }: Props) {
     const [credState, credFormAction, credPending] = useActionState(saveLineAction, {})
     const [msgState, msgFormAction, msgPending] = useActionState(saveWelcomeAction, {})
     const [showToken, setShowToken] = useState(false)
     const [showSecret, setShowSecret] = useState(false)
-    const [copied, setCopied] = useState(false)
+    const [copiedUrl, setCopiedUrl] = useState<string | null>(null)
     const [deleting, setDeleting] = useState(false)
 
-    const copyWebhook = () => {
-        navigator.clipboard.writeText(webhookUrl)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
+    const copyToClipboard = (text: string, id: string) => {
+        navigator.clipboard.writeText(text)
+        setCopiedUrl(id)
+        setTimeout(() => setCopiedUrl(null), 2000)
     }
+
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+    const checkoutUrl = `${origin}/store/${storeSlug}/checkout`
+    const ordersUrl = `${origin}/store/${storeSlug}/orders`
 
     const handleDelete = async () => {
         if (!confirm('確定要解除 LINE 連接嗎？這將移除所有已儲存的金鑰。')) return
@@ -176,8 +182,8 @@ export function LineSettingsForm({
                                 <code className="flex-1 bg-muted px-3 py-2 rounded-lg text-xs font-mono text-foreground break-all">
                                     {webhookUrl}
                                 </code>
-                                <Button variant="outline" size="sm" onClick={copyWebhook} className="shrink-0">
-                                    {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                                <Button variant="outline" size="sm" onClick={() => copyToClipboard(webhookUrl, 'webhook')} className="shrink-0">
+                                    {copiedUrl === 'webhook' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
                                 </Button>
                             </div>
                         </div>
@@ -530,6 +536,67 @@ export function LineSettingsForm({
                     </div>
                 </div>
             </form>
+
+            {/* LINE Rich Menu Links */}
+            <div className="bg-card rounded-xl border border-border shadow-soft overflow-hidden">
+                <div className="px-6 py-4 border-b border-border bg-rose-50/50">
+                    <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                        <ExternalLink className="h-5 w-5 text-rose-500" />
+                        圖文選單快捷連結
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">設定 LINE 圖文選單時，可直接複製以下網址使用。</p>
+                </div>
+                <div className="p-6 space-y-6">
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label className="text-sm font-medium">查看購物車 (結帳頁面)</Label>
+                            <div className="flex items-center gap-2">
+                                <code className="flex-1 bg-muted px-3 py-2 rounded-lg text-xs font-mono text-foreground break-all">
+                                    {checkoutUrl}
+                                </code>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => copyToClipboard(checkoutUrl, 'checkout')}
+                                    className="shrink-0"
+                                >
+                                    {copiedUrl === 'checkout' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground">建議放置在「查看購物車」或「立即結帳」按鈕。</p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-sm font-medium">訂單查詢</Label>
+                            <div className="flex items-center gap-2">
+                                <code className="flex-1 bg-muted px-3 py-2 rounded-lg text-xs font-mono text-foreground break-all">
+                                    {ordersUrl}
+                                </code>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => copyToClipboard(ordersUrl, 'orders')}
+                                    className="shrink-0"
+                                >
+                                    {copiedUrl === 'orders' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground">建議放置在「我的訂單」或「訂單查詢」按鈕。</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                        <div className="flex gap-3">
+                            <AlertTriangle className="h-5 w-5 text-blue-500 shrink-0" />
+                            <div className="text-xs text-blue-800 space-y-1">
+                                <p className="font-bold">💡 提示：</p>
+                                <p>• 這些網址在 LINE 內置瀏覽器中會自動識別您的商店環境。</p>
+                                <p>• 設定圖文選單時，動作類型請選擇「連結 (URL)」。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }

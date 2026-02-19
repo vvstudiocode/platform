@@ -80,6 +80,7 @@ export default async function LineSettingsPage() {
                     completedMessage={lineSettings.completed_message || ''}
                     saveLineAction={boundSaveLineAction}
                     saveWelcomeAction={boundSaveWelcomeAction}
+                    storeSlug={tenant.slug}
                 />
             )}
         </div>
