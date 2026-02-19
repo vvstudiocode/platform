@@ -16,7 +16,7 @@ export default function LineCartPage({ params }: { params: Promise<{ slug: strin
     const searchParams = useSearchParams()
     const tenantId = searchParams.get('tenant_id')
     const userIdParam = searchParams.get('user_id')
-    const { addItem, clearCart, setStoreSlug, items, syncWithDB } = useCart()
+    const { setStoreSlug, syncWithDB } = useCart()
     const [status, setStatus] = useState('載入購物車中...')
     const [hydrated, setHydrated] = useState(false)
 
@@ -31,27 +31,7 @@ export default function LineCartPage({ params }: { params: Promise<{ slug: strin
             try {
                 setStatus('正在同步您的購物車...')
 
-                let url = `/api/cart/line?tenant_id=${tenantId}`
-                if (userIdParam) url += `&user_id=${userIdParam}`
-
-                const res = await fetch(url)
-                if (!res.ok) {
-                    console.error('[Cart Hydrate] API error:', res.status)
-                    if (res.status === 401) {
-                        setStatus('登入連結已過期，請回 LINE 重新點擊結帳按鈕')
-                    } else {
-                        setStatus('購物車同步失敗，正在為您跳轉...')
-                    }
-                    setTimeout(() => router.replace(`/store/${slug}`), 2500)
-                    return
-                }
-
-                const data = await res.json()
-                const dbItems = data.items || []
-
-                // Sync and Merge logic:
-                // Instead of clearCart() + for-loop, we use syncWithDB
-                // which handles merging logic automatically in the context.
+                // Optimized: syncWithDB handles both fetching and merging in one go
                 await syncWithDB(tenantId!, userIdParam || undefined)
 
                 setStatus('購物車已成功同步，正在前往結帳...')
@@ -70,7 +50,7 @@ export default function LineCartPage({ params }: { params: Promise<{ slug: strin
         }
 
         hydrateCart()
-    }, [tenantId, slug, hydrated, addItem, clearCart, router, setStoreSlug])
+    }, [tenantId, slug, hydrated, router, syncWithDB, userIdParam])
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

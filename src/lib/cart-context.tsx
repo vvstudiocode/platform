@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo, useRef } from 'react'
 
 export interface CartItem {
     productId: string
@@ -27,6 +27,7 @@ interface CartContextType {
     isCartOpen: boolean
     setIsCartOpen: (open: boolean) => void
     syncWithDB: (tenantId: string, userId?: string) => Promise<void>
+    hasSynced: boolean
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -41,6 +42,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const [isCartOpen, setIsCartOpen] = useState(false)
     const [tenantId, setTenantId] = useState<string | null>(null)
     const [userId, setUserId] = useState<string | null>(null)
+    const [hasSynced, setHasSynced] = useState(false)
+    const isSyncingRef = useRef(false)
 
     // 1. Initial Load from localStorage
     useEffect(() => {
@@ -59,6 +62,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             setItems([])
         }
         setIsHydrated(true)
+        // Reset hasSynced when switching stores
+        setHasSynced(false)
     }, [storeSlug])
 
     // 2. Sync to localStorage when items change
@@ -70,7 +75,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     // 3. Background Sync to DB (Debounced)
     useEffect(() => {
-        if (!isHydrated || !tenantId || !storeSlug) return
+        // Guard: Only sync to DB if we are hydrated FROM local AND we have synced WITH DB at least once
+        // This prevents an empty local cart from wiping the DB cart before they are merged
+        if (!isHydrated || !hasSynced || !tenantId || !storeSlug) return
 
         const syncTimer = setTimeout(async () => {
             try {
@@ -90,18 +97,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }, 1500) // 1.5s debounce
 
         return () => clearTimeout(syncTimer)
-    }, [items, tenantId, userId, isHydrated, storeSlug])
+    }, [items, tenantId, userId, isHydrated, storeSlug, hasSynced])
 
-    const setStoreSlug = (slug: string) => {
+    const setStoreSlug = useCallback((slug: string) => {
         if (slug !== storeSlug) {
             setIsHydrated(false)
             setStoreSlugState(slug)
         }
-    }
+    }, [storeSlug])
 
-    const syncWithDB = async (tId: string, uId?: string) => {
+    const getItemKey = useCallback((productId: string, variantId?: string, options?: Record<string, string>) => {
+        if (variantId) return `${productId}-${variantId}`
+        if (options) {
+            const optionsKey = Object.entries(options)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([k, v]) => `${k}:${v}`)
+                .join('|')
+            return `${productId}-${optionsKey}`
+        }
+        return productId
+    }, [])
+
+
+    const syncWithDB = useCallback(async (tId: string, uId?: string) => {
+        // userId check: ensure we don't use a stale ID if the new request doesn't have one
         setTenantId(tId)
-        if (uId) setUserId(uId)
+        setUserId(uId ?? null)
+
+        if (isSyncingRef.current) {
+            console.log('[Cart Context] Sync already in progress, skipping...')
+            return
+        }
+        isSyncingRef.current = true
 
         try {
             let url = `/api/cart/line?tenant_id=${tId}`
@@ -112,46 +139,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 const data = await res.json()
                 const dbItems: CartItem[] = data.items || []
 
-                if (dbItems.length > 0) {
-                    setItems(prev => {
-                        // Merge logic: Combine local and DB items
-                        const merged = [...prev]
-                        for (const dbItem of dbItems) {
-                            const dbKey = getItemKey(dbItem.productId, dbItem.variantId, dbItem.options)
-                            const existingIdx = merged.findIndex(i =>
-                                getItemKey(i.productId, i.variantId, i.options) === dbKey
-                            )
+                setItems(prev => {
+                    // Merge logic: Combine local and DB items
+                    const merged = [...prev]
+                    for (const dbItem of dbItems) {
+                        const dbKey = getItemKey(dbItem.productId, dbItem.variantId, dbItem.options)
+                        const existingIdx = merged.findIndex(i =>
+                            getItemKey(i.productId, i.variantId, i.options) === dbKey
+                        )
 
-                            if (existingIdx > -1) {
-                                // If exists in both, use the larger quantity or just replace? 
-                                // Let's take the DB as authoritative for quantity if it's there
-                                merged[existingIdx] = { ...merged[existingIdx], quantity: dbItem.quantity }
-                            } else {
-                                merged.push(dbItem)
-                            }
+                        if (existingIdx > -1) {
+                            merged[existingIdx] = { ...merged[existingIdx], quantity: dbItem.quantity }
+                        } else {
+                            merged.push(dbItem)
                         }
-                        return merged
-                    })
-                }
+                    }
+                    return merged
+                })
+                setHasSynced(true)
             }
         } catch (e) {
             console.error('[Cart Context] Initial sync failed:', e)
+        } finally {
+            isSyncingRef.current = false
         }
-    }
+    }, [getItemKey])
 
-    const getItemKey = (productId: string, variantId?: string, options?: Record<string, string>) => {
-        if (variantId) return `${productId}-${variantId}`
-        if (options) {
-            const optionsKey = Object.entries(options)
-                .sort(([a], [b]) => a.localeCompare(b))
-                .map(([k, v]) => `${k}:${v}`)
-                .join('|')
-            return `${productId}-${optionsKey}`
-        }
-        return productId
-    }
-
-    const addItem = (newItem: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
+    const addItem = useCallback((newItem: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
         setItems(prev => {
             const quantity = newItem.quantity || 1
             const newItemKey = getItemKey(newItem.productId, newItem.variantId, newItem.options)
@@ -175,50 +189,67 @@ export function CartProvider({ children }: { children: ReactNode }) {
             return [...prev, { ...newItem, quantity }]
         })
         setIsCartOpen(true)
-    }
+    }, [getItemKey])
 
-    const removeItem = (productId: string, variantId?: string, options?: Record<string, string>) => {
+    const removeItem = useCallback((productId: string, variantId?: string, options?: Record<string, string>) => {
         setItems(prev => prev.filter(item =>
             getItemKey(item.productId, item.variantId, item.options) !== getItemKey(productId, variantId, options)
         ))
-    }
+    }, [getItemKey])
 
-    const updateQuantity = (productId: string, quantity: number, variantId?: string, options?: Record<string, string>) => {
+    const updateQuantity = useCallback((productId: string, quantity: number, variantId?: string, options?: Record<string, string>) => {
         setItems(prev => prev.map(item => {
             if (getItemKey(item.productId, item.variantId, item.options) === getItemKey(productId, variantId, options)) {
                 return { ...item, quantity: Math.min(Math.max(0, quantity), item.maxStock) }
             }
             return item
         }).filter(item => item.quantity > 0))
-    }
+    }, [getItemKey])
 
-    const clearCart = () => {
+    const clearCart = useCallback(() => {
         setItems([])
-    }
+    }, [])
 
-    const getItemCount = () => {
+    const getItemCount = useCallback(() => {
         return items.reduce((sum, item) => sum + item.quantity, 0)
-    }
+    }, [items])
 
-    const getCartTotal = () => {
+    const getCartTotal = useCallback(() => {
         return items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    }
+    }, [items])
+
+    const contextValue = useMemo(() => ({
+        items,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        getItemCount,
+        getCartTotal,
+        storeSlug,
+        setStoreSlug,
+        isCartOpen,
+        setIsCartOpen,
+        syncWithDB,
+        hasSynced
+    }), [
+        items,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        getItemCount,
+        getCartTotal,
+        storeSlug,
+        setStoreSlug,
+        isCartOpen,
+        setIsCartOpen,
+        syncWithDB,
+        hasSynced
+    ])
 
     return (
-        <CartContext.Provider value={{
-            items,
-            addItem,
-            removeItem,
-            updateQuantity,
-            clearCart,
-            getItemCount,
-            getCartTotal,
-            storeSlug,
-            setStoreSlug,
-            isCartOpen,
-            setIsCartOpen,
-            syncWithDB
-        }}>
+        <CartContext.Provider value={contextValue}>
             {children}
         </CartContext.Provider>
     )
