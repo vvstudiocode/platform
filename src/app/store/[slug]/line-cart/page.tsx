@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, use } from 'react'
+import { useEffect, useState, use, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCart } from '@/lib/cart-context'
 import { Loader2 } from 'lucide-react'
@@ -21,7 +21,9 @@ export default function LineCartPage({ params }: { params: Promise<{ slug: strin
     const [status, setStatus] = useState('載入購物車中...')
     const [hydrated, setHydrated] = useState(false)
 
-    const traceId = traceIdParam || `page-${Math.random().toString(36).substring(2, 9)}`
+    const traceId = useMemo(() => {
+        return traceIdParam || `page-${Math.random().toString(36).substring(2, 9)}`
+    }, [traceIdParam])
 
     useEffect(() => {
         if (slug) {
