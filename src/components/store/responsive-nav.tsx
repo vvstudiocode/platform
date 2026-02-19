@@ -18,9 +18,11 @@ interface Props {
     storeId: string
     navigation: NavItem[]
     logo?: string
+    planId?: string
 }
 
-export function ResponsiveNav({ storeName, storeSlug, storeId, navigation, logo }: Props) {
+export function ResponsiveNav({ storeName, storeSlug, storeId, navigation, logo, planId }: Props) {
+    const isAdvanced = planId === 'growth'
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [isScrolled, setIsScrolled] = useState(false)
     const [isVisible, setIsVisible] = useState(true)
@@ -157,15 +159,17 @@ export function ResponsiveNav({ storeName, storeSlug, storeId, navigation, logo 
                             ))}
 
                             {/* Auth Button */}
-                            <button
-                                onClick={() => setShowAuthModal(true)}
-                                className={`flex items-center gap-1 font-medium transition-colors ${isTransparent
-                                    ? 'text-white hover:text-white/80 drop-shadow-md'
-                                    : 'text-gray-700 hover:text-gray-900'
-                                    }`}
-                            >
-                                <User className="h-5 w-5" />
-                            </button>
+                            {isAdvanced && (
+                                <button
+                                    onClick={() => setShowAuthModal(true)}
+                                    className={`flex items-center gap-1 font-medium transition-colors ${isTransparent
+                                        ? 'text-white hover:text-white/80 drop-shadow-md'
+                                        : 'text-gray-700 hover:text-gray-900'
+                                        }`}
+                                >
+                                    <User className="h-5 w-5" />
+                                </button>
+                            )}
 
                             {/* Order Lookup Button */}
                             <button
@@ -264,16 +268,18 @@ export function ResponsiveNav({ storeName, storeSlug, storeId, navigation, logo 
                                 </div>
                             ))}
                             <div className="h-px bg-gray-100 my-2"></div>
-                            <button
-                                onClick={() => {
-                                    setMobileMenuOpen(false)
-                                    setShowAuthModal(true)
-                                }}
-                                className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium text-left"
-                            >
-                                <User className="h-5 w-5" />
-                                會員登入/註冊
-                            </button>
+                            {isAdvanced && (
+                                <button
+                                    onClick={() => {
+                                        setMobileMenuOpen(false)
+                                        setShowAuthModal(true)
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium text-left"
+                                >
+                                    <User className="h-5 w-5" />
+                                    會員登入/註冊
+                                </button>
+                            )}
                             <button
                                 onClick={() => {
                                     setMobileMenuOpen(false)

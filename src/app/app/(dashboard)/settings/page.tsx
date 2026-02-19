@@ -13,7 +13,7 @@ export default async function AppSettingsPage() {
                 <p className="text-muted-foreground mt-1">管理您的商店資訊與商品屬性</p>
             </div>
 
-            <SettingsMenu basePath="/app/settings" />
+            <SettingsMenu basePath="/app/settings" currentPlanId={tenant.plan_id} />
         </div>
     )
 }

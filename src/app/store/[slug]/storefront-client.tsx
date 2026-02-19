@@ -19,6 +19,7 @@ interface Props {
             primaryColor?: string
         }
         footerSettings?: any
+        planId?: string
     }
     products: Array<{
         id: string
@@ -61,6 +62,7 @@ export function StorefrontClient({ store, products, navItems = [] }: Props) {
                 basePath={store.slug === 'omo' ? '' : `/store/${store.slug}`}
                 onCartClick={() => setIsCartOpen(true)}
                 storeId={store.id}
+                planId={store.planId}
             />
 
             {/* Products */}

@@ -12,7 +12,7 @@ export default async function SettingsPage() {
                 <p className="text-muted-foreground mt-1">管理總部商店的全域設定</p>
             </div>
 
-            <SettingsMenu basePath="/admin/settings" />
+            <SettingsMenu basePath="/admin/settings" currentPlanId={tenant.plan_id} />
         </div>
     )
 }

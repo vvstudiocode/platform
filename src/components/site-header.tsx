@@ -27,9 +27,11 @@ interface SiteHeaderProps {
     basePath?: string  // 基本路徑前綴，例如 '' 或 '/store/nike'
     onCartClick?: () => void  // 購物車按鈕點擊回調
     storeId?: string
+    planId?: string
 }
 
-export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = '', onCartClick, storeId }: SiteHeaderProps) {
+export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = '', onCartClick, storeId, planId }: SiteHeaderProps) {
+    const isAdvanced = planId === 'growth'
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [mounted, setMounted] = useState(false)
     const [showOrderLookup, setShowOrderLookup] = useState(false)
@@ -241,29 +243,31 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
                     {/* Right side actions */}
                     <div className="flex items-center gap-2 relative">
                         {/* Auth Button */}
-                        <button
-                            onClick={() => {
-                                if (user) {
-                                    // Navigate to account page
-                                    // Construct path: /store/[slug]/account
-                                    // We can try to get slug from pattern match
-                                    if (basePath && basePath.includes('/store/')) {
-                                        router.push(`${basePath}/account`)
-                                    } else if (storeSlug) {
-                                        router.push(`/store/${storeSlug}/account`)
+                        {isAdvanced && (
+                            <button
+                                onClick={() => {
+                                    if (user) {
+                                        // Navigate to account page
+                                        // Construct path: /store/[slug]/account
+                                        // We can try to get slug from pattern match
+                                        if (basePath && basePath.includes('/store/')) {
+                                            router.push(`${basePath}/account`)
+                                        } else if (storeSlug) {
+                                            router.push(`/store/${storeSlug}/account`)
+                                        } else {
+                                            // Fallback?
+                                            console.warn('No slug found for account navigation')
+                                        }
                                     } else {
-                                        // Fallback?
-                                        console.warn('No slug found for account navigation')
+                                        setShowAuthModal(true)
                                     }
-                                } else {
-                                    setShowAuthModal(true)
-                                }
-                            }}
-                            className="hidden md:block p-2 text-muted-foreground hover:text-foreground transition-colors"
-                            aria-label={user ? "會員帳戶" : "會員登入/註冊"}
-                        >
-                            <User className={`h-6 w-6 ${user ? 'text-primary' : ''}`} />
-                        </button>
+                                }}
+                                className="hidden md:block p-2 text-muted-foreground hover:text-foreground transition-colors"
+                                aria-label={user ? "會員帳戶" : "會員登入/註冊"}
+                            >
+                                <User className={`h-6 w-6 ${user ? 'text-primary' : ''}`} />
+                            </button>
+                        )}
 
                         {/* Order Lookup Button */}
                         <button
@@ -318,24 +322,27 @@ export function SiteHeader({ storeName, logoUrl, navItems, homeSlug, basePath = 
 
                         {/* Auth (Mobile) */}
                         {/* Auth (Mobile) */}
-                        <button
-                            onClick={() => {
-                                setIsMenuOpen(false)
-                                if (user) {
-                                    if (basePath && basePath.includes('/store/')) {
-                                        router.push(`${basePath}/account`)
-                                    } else if (storeSlug) {
-                                        router.push(`/store/${storeSlug}/account`)
+                        {/* Auth (Mobile) */}
+                        {isAdvanced && (
+                            <button
+                                onClick={() => {
+                                    setIsMenuOpen(false)
+                                    if (user) {
+                                        if (basePath && basePath.includes('/store/')) {
+                                            router.push(`${basePath}/account`)
+                                        } else if (storeSlug) {
+                                            router.push(`/store/${storeSlug}/account`)
+                                        }
+                                    } else {
+                                        setShowAuthModal(true)
                                     }
-                                } else {
-                                    setShowAuthModal(true)
-                                }
-                            }}
-                            className="w-full flex items-center gap-2 py-4 text-lg font-medium text-foreground hover:text-accent border-b border-border transition-colors text-left"
-                        >
-                            <User className={`h-6 w-6 ${user ? 'text-primary' : ''}`} />
-                            {user ? '我的帳戶' : '會員登入/註冊'}
-                        </button>
+                                }}
+                                className="w-full flex items-center gap-2 py-4 text-lg font-medium text-foreground hover:text-accent border-b border-border transition-colors text-left"
+                            >
+                                <User className={`h-6 w-6 ${user ? 'text-primary' : ''}`} />
+                                {user ? '我的帳戶' : '會員登入/註冊'}
+                            </button>
+                        )}
 
                         {/* Order Lookup (Mobile) */}
                         <button

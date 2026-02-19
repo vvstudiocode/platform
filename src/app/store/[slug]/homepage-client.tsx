@@ -16,6 +16,7 @@ interface Props {
         }
         footerSettings?: any
         id: string
+        planId?: string
     }
     page: {
         title: string
@@ -66,6 +67,7 @@ export function HomePageClient({ store, page, navItems, homeSlug }: Props) {
                 basePath={store.slug === 'omo' ? '' : `/store/${store.slug}`}
                 onCartClick={() => setIsCartOpen(true)}
                 storeId={store.id}
+                planId={store.planId}
             />
 
             {/* 頁面內容 */}

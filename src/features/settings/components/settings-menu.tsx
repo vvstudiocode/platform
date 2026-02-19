@@ -1,13 +1,19 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Settings, Database, CreditCard, Globe, Wallet, Users, MessageSquare } from 'lucide-react'
+import { UpsellModal } from '@/features/page-editor/upsell-modal'
 
 interface Props {
     basePath: string // '/admin/settings' or '/app/settings'
+    currentPlanId?: string
 }
 
-export function SettingsMenu({ basePath }: Props) {
+export function SettingsMenu({ basePath, currentPlanId }: Props) {
+    const [showUpsell, setShowUpsell] = useState(false)
+    const isAdvanced = currentPlanId === 'growth'
+
     const settingSections = [
         {
             icon: Settings,
@@ -43,41 +49,79 @@ export function SettingsMenu({ basePath }: Props) {
             icon: Globe,
             title: '自訂網域',
             description: '設定您的專屬網址',
-            href: `${basePath}/domain`
+            href: `${basePath}/domain`,
+            requiresAdvanced: true
         },
         {
             icon: Users,
             title: '會員管理',
             description: '管理會員名單、等級與點數機制',
-            href: `${basePath}/members`
+            href: `${basePath}/members`,
+            requiresAdvanced: true
         },
         {
             icon: MessageSquare,
             title: 'LINE Bot',
             description: '串接 LINE 官方帳號與群組喊單功能',
-            href: `${basePath}/line`
+            href: `${basePath}/line`,
+            requiresAdvanced: true
         },
         {
             icon: Settings, // using Settings icon again or Search icon
             title: 'SEO分析',
             description: '設定 GA4 與 Search Console',
-            href: `${basePath}/seo`
+            href: `${basePath}/seo`,
+            requiresAdvanced: true
         }
     ]
 
     return (
-        <div className="grid gap-4 md:grid-cols-2">
-            {settingSections.map((section) => (
-                <Link key={section.title} href={section.href}>
-                    <div className="rounded-xl border border-border bg-card p-6 hover:bg-muted/50 transition-colors cursor-pointer h-full shadow-sm hover:shadow-md group">
-                        <div className="flex items-start justify-between">
-                            <section.icon className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
+        <>
+            <div className="grid gap-4 md:grid-cols-2">
+                {settingSections.map((section) => {
+                    const isDisabled = section.requiresAdvanced && !isAdvanced
+
+                    const Content = (
+                        <div className={`rounded-xl border border-border bg-card p-6 h-full shadow-sm transition-all duration-200 ${isDisabled
+                            ? 'opacity-80 grayscale-[0.5] border-dashed cursor-pointer hover:border-primary/50'
+                            : 'hover:bg-muted/50 cursor-pointer hover:shadow-md group'
+                            }`}>
+                            <div className="flex items-start justify-between">
+                                <section.icon className={`h-6 w-6 transition-colors ${isDisabled ? 'text-muted-foreground' : 'text-muted-foreground group-hover:text-primary'}`} />
+                                {isDisabled && (
+                                    <div className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-600 uppercase tracking-tight">
+                                        進階功能
+                                    </div>
+                                )}
+                            </div>
+                            <h3 className={`font-serif font-semibold mt-4 transition-colors ${isDisabled ? 'text-muted-foreground' : 'text-foreground group-hover:text-primary'}`}>
+                                {section.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-1">{section.description}</p>
                         </div>
-                        <h3 className="font-serif font-semibold text-foreground mt-4 group-hover:text-primary transition-colors">{section.title}</h3>
-                        <p className="text-sm text-muted-foreground mt-1">{section.description}</p>
-                    </div>
-                </Link>
-            ))}
-        </div>
+                    )
+
+                    if (isDisabled) {
+                        return (
+                            <div key={section.title} onClick={() => setShowUpsell(true)}>
+                                {Content}
+                            </div>
+                        )
+                    }
+
+                    return (
+                        <Link key={section.title} href={section.href}>
+                            {Content}
+                        </Link>
+                    )
+                })}
+            </div>
+
+            <UpsellModal
+                open={showUpsell}
+                onOpenChange={setShowUpsell}
+                featureName="會員管理系統"
+            />
+        </>
     )
 }

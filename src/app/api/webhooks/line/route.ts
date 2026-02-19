@@ -194,7 +194,7 @@ function buildCheckoutFlexMessage(
     const bodyContents: any[] = [
         {
             type: 'text',
-            text: '🛒 已加入購物車',
+            text: '已加入購物車',
             weight: 'bold',
             size: 'lg',
             color: '#1a1a1a',
@@ -251,7 +251,7 @@ function buildCheckoutFlexMessage(
     if (isNewUser) {
         bodyContents.push({
             type: 'text',
-            text: '✨ 已為您自動建立帳號',
+            text: '已為您自動建立帳號',
             size: 'xs',
             color: '#27ae60',
             margin: 'md',
@@ -280,7 +280,7 @@ function buildCheckoutFlexMessage(
                     height: 'md',
                     action: {
                         type: 'uri',
-                        label: '🛒 前往結帳',
+                        label: '前往結帳',
                         uri: magicLinkUrl,
                     },
                 },
